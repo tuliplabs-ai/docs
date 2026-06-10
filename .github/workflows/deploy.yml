@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      sdk_ref:
+        description: "SDK ref to build against (default: latest v* tag, else main)"
+        required: false
 
 permissions:
   contents: read
@@ -22,14 +26,33 @@ jobs:
       - name: Check out docs
         uses: actions/checkout@v4
 
-      # The API reference imports the `tulip` package, so we install the SDK
-      # from its repo. Adjust the ref/repo if the SDK moves.
-      - name: Check out the SDK (for the API reference)
+      # The API reference imports the `tulip` package and the notebook
+      # pages embed cookbook source, so we check out the SDK repo too.
+      - name: Check out the SDK (for the API reference and snippets)
         uses: actions/checkout@v4
         with:
           repository: tuliplabs-ai/sdk-python
           path: .sdk
+          fetch-depth: 0 # full history — needed to resolve the latest tag
           token: ${{ secrets.SDK_READ_TOKEN || github.token }}
+
+      # Published docs should match what `pip install tulip-agents` gives
+      # people, not whatever main looks like today — pin to the newest
+      # release tag. Falls back to main while no v* tag exists, and a
+      # manual run can force any ref via the sdk_ref input.
+      - name: Pin the SDK to the latest release
+        working-directory: .sdk
+        run: |
+          ref="${{ inputs.sdk_ref }}"
+          if [ -z "$ref" ]; then
+            ref="$(git tag --list 'v*' --sort=-v:refname | head -n1)"
+          fi
+          if [ -n "$ref" ]; then
+            echo "Building docs against SDK ref: $ref"
+            git checkout -q "$ref"
+          else
+            echo "No v* tag yet — building against main"
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
