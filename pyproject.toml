@@ -1,0 +1,28 @@
+# Hatch-managed docs toolchain — no requirements.txt; everything lives here.
+#
+#   hatch run sdk      # install the SDK into the env (mkdocstrings imports it)
+#   hatch run serve    # mkdocs live-reload on :8000
+#   hatch run build    # strict production build into site/
+
+[project]
+name = "tulip-docs"
+version = "1.0.0"
+description = "tulipagents.ai — documentation site for the Tulip SDK"
+requires-python = ">=3.11"
+
+[tool.hatch.envs.default]
+# Prose + theme only — nothing installable here.
+skip-install = true
+dependencies = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.27",
+]
+
+[tool.hatch.envs.default.scripts]
+# The API reference imports the `tulip` package, so install the SDK into
+# the env first. TULIP_SDK_DIR defaults to a sibling checkout; the deploy
+# workflow points it at .sdk.
+sdk = "python -m pip install -e {env:TULIP_SDK_DIR:../tulip-agents}"
+serve = "mkdocs serve {args}"
+build = "mkdocs build --strict {args}"
