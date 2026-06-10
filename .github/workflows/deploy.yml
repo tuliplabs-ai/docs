@@ -1,0 +1,61 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; newer pushes cancel in-progress runs.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out docs
+        uses: actions/checkout@v4
+
+      # The API reference imports the `tulip` package, so we install the SDK
+      # from its repo. Adjust the ref/repo if the SDK moves.
+      - name: Check out the SDK (for the API reference)
+        uses: actions/checkout@v4
+        with:
+          repository: tuliplabs-ai/sdk-python
+          path: .sdk
+          token: ${{ secrets.SDK_READ_TOKEN || github.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install toolchain + SDK
+        run: |
+          python -m pip install --upgrade pip hatch
+          TULIP_SDK_DIR=./.sdk hatch run sdk
+
+      - name: Build site
+        run: hatch run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
