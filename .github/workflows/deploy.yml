@@ -28,12 +28,16 @@ jobs:
 
       # The API reference imports the `tulip` package and the notebook
       # pages embed cookbook source, so we check out the SDK repo too.
+      # While sdk-python is private, SDK_DEPLOY_KEY (a read-only deploy
+      # key on that repo) authenticates the checkout. Once the SDK goes
+      # public, delete the key + secret — the default token suffices.
       - name: Check out the SDK (for the API reference and snippets)
         uses: actions/checkout@v4
         with:
           repository: tuliplabs-ai/sdk-python
           path: .sdk
           fetch-depth: 0 # full history — needed to resolve the latest tag
+          ssh-key: ${{ secrets.SDK_DEPLOY_KEY }}
           token: ${{ secrets.SDK_READ_TOKEN || github.token }}
 
       # Published docs should match what `pip install tulip-agents` gives
