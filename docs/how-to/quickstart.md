@@ -15,7 +15,7 @@ providers add the corresponding extra:
 ```bash
 pip install "tulip-agents[openai]"        # OpenAI directly
 pip install "tulip-agents[anthropic]"     # Anthropic directly
-pip install "pip install "tulip-agents[sdk]"           # everything
+pip install "tulip-agents[sdk]"           # everything
 ```
 
 ## 2. Configure your provider
