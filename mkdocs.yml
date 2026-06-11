@@ -1,5 +1,5 @@
 site_name: tulip agents
-site_description: Python SDK for agent teams that show their work — typed event streams, grounded claims, eight coordination shapes, durable human-in-the-loop runs.
+site_description: The cybersecurity agent SDK — agent teams whose findings are grounded in evidence (GSAR), whose actions are typed replayable events, and whose risky steps are approval-gated. Mapped to MITRE ATLAS, OWASP LLM, and OWASP ASI.
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/sdk-python
 repo_name: tuliplabs-ai/sdk-python
