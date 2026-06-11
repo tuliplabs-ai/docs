@@ -250,6 +250,7 @@ nav:
   - Serving & pipelines:
     - Agent server: notebooks/notebook_68_agent_server.md
     - Research workflow: notebooks/notebook_69_research_workflow.md
+    - Live vendor integrations: notebooks/notebook_70_vendor_integrations.md
     - LiteLLM AI Gateway: notebooks/notebook_71_litellm_gateway.md
     - LiteLLM AI Gateway — cost tracking: notebooks/notebook_72_litellm_gateway_cost.md
   - Guides:

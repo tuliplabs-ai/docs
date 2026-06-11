@@ -141,12 +141,15 @@ End-to-end use cases — incident response, contract review, audio chat.
 | 60 | [Voice output (TTS)][t60] |
 | 61 | [Voice in → voice out (gpt-audio)][t61] |
 
-## 62–63 · Server & full pipelines
+## 62–66 · Server, pipelines & integrations
 
 | # | Notebook |
 |---|---|
 | 62 | [Agent server (FastAPI)][t62] |
 | 63 | [Research workflow (full pipeline)][t63] |
+| 64 | [Live vendor integrations (IOC intel, SIEM, GPU probe)][t64] |
+| 65 | [LiteLLM AI Gateway][t65] |
+| 66 | [LiteLLM AI Gateway — cost tracking][t66] |
 
 [t08]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_06_basic_agent.py
 [t09]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_07_agent_with_tools.py
@@ -204,3 +207,6 @@ End-to-end use cases — incident response, contract review, audio chat.
 [t61]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_67_audio_chat.py
 [t62]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_68_agent_server.py
 [t63]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_69_research_workflow.py
+[t64]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_70_vendor_integrations.py
+[t65]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_71_litellm_gateway.py
+[t66]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_72_litellm_gateway_cost.py
