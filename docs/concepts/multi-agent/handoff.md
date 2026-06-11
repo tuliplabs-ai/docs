@@ -1,34 +1,34 @@
 # Handoff
 
-Handoff is what an escalation desk does. One agent owns the
-conversation, decides it needs a different role, and hands the
+Handoff is what a SOC escalation desk does. One agent owns the
+investigation, decides it needs a different tier, and hands the
 **whole transcript** to the next agent — who picks up where it left
 off.
 
-![Handoff pattern — Triage agent classifies the customer message, hands the full transcript to Billing agent who continues the conversation](../../img/patterns/handoff.svg){ .diagram }
+![Handoff pattern — L1 triage agent classifies the alert, hands the full transcript to an L2 analyst who continues the investigation](../../img/patterns/handoff.svg){ .diagram }
 
 ## What it is
 
 A `Handoff` flow has:
 
-- An **`initial`** agent — the entry point (usually triage).
-- A **`targets`** dict — name → agent for each possible next role.
+- An **`initial`** agent — the entry point (usually L1 triage).
+- A **`targets`** dict — name → agent for each possible next tier.
 
-The initial agent ends a turn with a `Handoff(target="billing")`
-directive. The full message history transfers; the billing agent
-reads it as if it were the next turn of the same conversation.
+The initial agent ends a turn with a `Handoff(target="tier2")`
+directive. The full message history transfers; the L2 analyst
+reads it as if it were the next turn of the same investigation.
 State, checkpointer, and `thread_id` survive.
 
 ## When to use it
 
-- ✅ **Customer-support flows** where the conversation is the unit
-  of work.
-- ✅ **"Pass to a human"** — the human simply replaces one of the
-  targets.
-- ✅ **Escalation** when the first agent realises it's the wrong
-  specialist (after a few turns of conversation, not on first read).
-- ✅ The customer should **not have to re-explain** when control
-  transfers.
+- ✅ **SOC tier escalation (L1 → L2 → L3)** where the investigation
+  is the unit of work.
+- ✅ **"Pass to a human"** — the on-call responder simply replaces
+  one of the targets.
+- ✅ **Escalation** when the first analyst realises it's above their
+  tier (after a few turns of triage, not on first read).
+- ✅ The investigation should **carry full context** so the next
+  tier doesn't re-triage from scratch when control transfers.
 
 ## When NOT to use it
 
@@ -44,10 +44,10 @@ State, checkpointer, and `thread_id` survive.
 
 | | Handoff | Orchestrator |
 |---|---|---|
-| Conversation owner | **moves** between agents | stays with the coordinator |
+| Investigation owner | **moves** between agents | stays with the coordinator |
 | Routing decision | the agent that's currently in charge | always the coordinator |
 | Specialist's view of history | full transcript | just the sub-task they were dispatched for |
-| Customer-facing? | usually yes | usually no |
+| Drives the live investigation? | usually yes | usually no |
 
 ## Code
 
@@ -56,56 +56,56 @@ from tulip.multiagent import Handoff
 
 triage = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[lookup_order, lookup_account],
+    tools=[query_siem, enrich_indicator],
     system_prompt=(
-        "You triage incoming customer messages. "
-        "Identify whether this is a billing, shipping, or returns issue. "
+        "You are L1 SOC triage on incoming alerts. "
+        "Decide whether this is a malware, phishing, or intrusion case. "
         "Then call Handoff(target=...)."
     ),
 )
-billing = Agent(
+malware = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[issue_refund, retry_charge],
-    system_prompt="You handle billing escalations.",
+    tools=[lookup_hash, isolate_host],
+    system_prompt="You are an L2 malware analyst handling escalations.",
 )
-shipping = Agent(
+phishing = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[track_shipment, request_redelivery],
-    system_prompt="You handle shipping issues.",
+    tools=[enrich_indicator, query_siem],
+    system_prompt="You are an L2 analyst handling phishing reports.",
 )
-returns = Agent(
+intrusion = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[create_return_label],
-    system_prompt="You handle returns.",
+    tools=[isolate_host],
+    system_prompt="You are an L3 incident responder handling intrusions.",
 )
 
 flow = Handoff(
     initial=triage,
-    targets={"billing": billing, "shipping": shipping, "returns": returns},
+    targets={"malware": malware, "phishing": phishing, "intrusion": intrusion},
 )
 
 result = flow.run_sync(
-    "My order #4321 was charged twice.",
-    thread_id="cust-c42-2026-04",
+    "EDR alert: suspicious process on host 192.0.2.45 dropping an unknown binary.",
+    thread_id="alert-a42-2026-04",
 )
 ```
 
 ## What persists across the handoff
 
-- `state.messages` — the full conversation history.
+- `state.messages` — the full investigation history.
 - `state.tool_executions` — including idempotency hashes, so the
-  next agent won't re-fire a write the previous agent already ran.
-- `state.metadata` — your application's per-conversation data.
-- `thread_id` — same thread, just a different agent driving.
+  next tier won't re-fire a containment action the previous tier already ran.
+- `state.metadata` — your application's per-investigation data.
+- `thread_id` — same thread, just a different tier driving.
 
 The receiving agent picks up the same loop. It does not see the
 handoff as a "new turn"; it sees the previous transcript and the
-customer's last message.
+last triage note.
 
 ## Notebooks
 
 - [`notebook_25_agent_handoff.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_25_agent_handoff.py)
-  — full triage + billing + shipping + returns escalation flow.
+  — full L1 triage + malware + phishing + intrusion escalation flow.
 - [`notebook_33_multiagent_human_in_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py)
   — handoff to a human via `interrupt()` (one of three HITL patterns
   in the same file).

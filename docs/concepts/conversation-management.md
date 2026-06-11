@@ -21,11 +21,11 @@ agent = Agent(
 )
 
 # Day 1
-agent.run_sync("I'm looking for a flight to Tokyo.", thread_id="user-c42")
+agent.run_sync("Investigate the beacon from host WIN-7731.", thread_id="case-7731")
 
 # Day 2 — same thread_id, conversation continues
-agent.run_sync("What were we talking about?",       thread_id="user-c42")
-# → "We were searching for flights to Tokyo. Want me to keep looking?"
+agent.run_sync("What did we conclude?",                      thread_id="case-7731")
+# → "We traced the WIN-7731 beacon to a known C2 endpoint. Want me to draft the containment ticket?"
 ```
 
 The `thread_id` is the unit of conversation. Every node that runs
@@ -35,14 +35,14 @@ thread_id=...)` call rehydrates state before the first Think.
 ## Threads, not sessions
 
 The SDK uses **thread** as the term — borrowing from chat UIs and
-issue trackers — because a single user can have many simultaneous
-conversations:
+issue trackers — because a single investigation can have many
+simultaneous conversations:
 
 | Thread | Use |
 |---|---|
-| `user-c42-support` | a customer's open support chat |
-| `user-c42-research` | a parallel research crew the same user kicked off |
-| `agent-research-q3` | a long-running autonomous workflow not tied to a single user |
+| `case-7731-triage` | an open SOC triage conversation for one alert |
+| `case-7731-hunt` | a parallel threat-hunt the same analyst kicked off |
+| `hunt-c2-sweep-q3` | a long-running autonomous sweep not tied to a single case |
 
 A thread is a string. Pick the convention that matches your domain.
 
@@ -66,20 +66,20 @@ goes in `metadata`.
 ```python
 # List all threads in a bucket
 threads = await checkpointer.list_threads()
-# → ["user-c42-support", "user-c42-research", ...]
+# → ["case-7731-triage", "case-7731-hunt", ...]
 
 # Inspect one
-state = await checkpointer.load("user-c42-support")
+state = await checkpointer.load("case-7731-triage")
 print(len(state.messages), "messages")
 
 # Branch — new thread, copy of an existing one
 await checkpointer.copy_thread(
-    source_thread_id="user-c42-support",
-    dest_thread_id="user-c42-support-experiment",
+    source_thread_id="case-7731-triage",
+    dest_thread_id="case-7731-triage-replay",
 )
 
 # Drop
-await checkpointer.delete("user-c42-experiment")
+await checkpointer.delete("case-7731-replay")
 
 # Vacuum old threads via lifecycle policy (per backend)
 ```
@@ -94,9 +94,9 @@ level and the store handles the cleanup.
 Two `agent.run(...)` calls against the same `thread_id` are usually a
 bug — you'll race on the checkpoint. Three patterns to avoid that:
 
-1. **Per-user lock at the application layer.** Most chat UIs already
+1. **Per-case lock at the application layer.** Most SOC consoles already
    serialise messages per session.
-2. **Distinct sub-threads.** If the user asks two things in
+2. **Distinct sub-threads.** If the analyst asks two things in
    parallel, give them two thread ids.
 3. **Last-write-wins is the default.** The SDK's checkpointers do not
    currently expose a conflict exception — if you need optimistic
@@ -145,7 +145,7 @@ and returns the message list — useful for rendering chat history on
 page load.
 
 ```python
-GET /threads/user-c42-support
+GET /threads/case-7731-triage
 # → { "messages": [...], "iterations": 9, ... }
 ```
 

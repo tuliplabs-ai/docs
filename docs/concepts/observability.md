@@ -24,12 +24,13 @@ from tulip.hooks.builtin import StructuredLoggingHook
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search, summarise],
+    tools=[query_siem, enrich_indicator],
     hooks=[StructuredLoggingHook(level=logging.INFO)],
 )
 ```
 
-Every event in the run is emitted as a structured JSON line.
+Every event in the run is emitted as a structured JSON line — a
+forensic audit trail you can forward to a SIEM verbatim.
 Sample (`ToolCompleteEvent`):
 
 ```json
@@ -37,9 +38,9 @@ Sample (`ToolCompleteEvent`):
   "ts": "2026-05-02T01:31:02Z",
   "thread_id": "th-001",
   "run_id": "run-9c14b1",
-  "agent_id": "procurement",
+  "agent_id": "soc-triage",
   "event": "tool_complete",
-  "tool": "search_vendors",
+  "tool": "enrich_indicator",
   "duration_ms": 412,
   "result_size": 2148
 }
@@ -56,10 +57,10 @@ from tulip.hooks.builtin import TelemetryHook
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search, summarise],
+    tools=[query_siem, enrich_indicator],
     hooks=[
         TelemetryHook(
-            service_name="procurement-agent",
+            service_name="soc-triage-agent",
             record_arguments=False,    # set True to attach tool args to spans
             record_results=False,      # set True for results (watch PII)
         ),
@@ -96,7 +97,7 @@ pip install "tulip-agents[telemetry]"
 ### Token cost — already on every result
 
 ```python
-result = agent.run_sync("Plan Q3 launch.")
+result = agent.run_sync("Triage alert SOC-4821.")
 print(f"prompt:     {result.metrics.prompt_tokens}")
 print(f"completion: {result.metrics.completion_tokens}")
 print(f"total:      {result.metrics.total_tokens}")
@@ -110,11 +111,11 @@ For dashboards, key on `agent_id` plus the same metrics the
 ## PII and tool arguments
 
 `record_arguments=True` and `record_results=True` are off by default
-because tool args and results often contain user input — emails,
-account numbers, free-text. Turn them on selectively, and only after
-you've verified your tracing backend has appropriate retention and
-access controls. For PII redaction *inside* the agent before
-anything leaves, see [Safety](safety.md).
+because tool args and results often contain sensitive input — raw alert
+payloads, account identifiers, attacker-supplied free-text. Turn them on
+selectively, and only after you've verified your tracing backend has
+appropriate retention and access controls. For PII redaction *inside*
+the agent before anything leaves, see [Safety](safety.md).
 
 ## Common gotchas
 
@@ -187,10 +188,10 @@ from tulip.agent import Agent
 run_id = "my-run-1"
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search, summarise],
+    tools=[query_siem, enrich_indicator],
     hooks=[EventBusHook(run_id=run_id)],
 )
-result = agent.run_sync("Diagnose the checkout slowdown.")
+result = agent.run_sync("Investigate the spike in failed logins on host web-01.")
 
 # Read the history after the fact.
 bus = get_event_bus()

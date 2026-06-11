@@ -5,29 +5,30 @@ steps, each with a description, expected tools, hints, and validation
 criteria. The `PlaybookEnforcer` checks that the agent runs the right
 tools in the right order and reports any deviation.
 
-If your agent ships customer money, files an SR, or touches anything
-regulated, you want a playbook. The model still picks the wording;
-the *side effects* follow the plan.
+If your agent isolates a host, files a case, or touches anything an
+auditor will review, you want a playbook. The model still picks the
+wording; the *side effects* follow the plan.
 
 ```python
 from tulip.playbooks import Playbook, PlaybookStep
 from tulip.playbooks.hook import PlaybookEnforcerHook
 
+# NIST SP 800-61 detection & analysis phase, encoded as a runbook.
 incident_triage = Playbook(
     id="incident-triage",
-    name="Incident triage",
+    name="Incident detection & analysis",
     steps=[
         PlaybookStep(
-            id="gather_logs",
-            description="Collect logs from affected services.",
-            expected_tools=["read_file", "search_logs"],
-            hints=["Start with the most recent", "ERROR / WARN levels first"],
+            id="gather_alerts",
+            description="Pull the alert and correlated events from the SIEM.",
+            expected_tools=["query_siem", "enrich_indicator"],
+            hints=["Start with the most recent", "Prioritise HIGH severity first"],
             max_tool_calls=5,
         ),
         PlaybookStep(
-            id="analyze_errors",
-            description="Group errors by type, note timestamps.",
-            expected_tools=["analyze_logs", "count_errors"],
+            id="analyze_indicators",
+            description="Group indicators by type, note first/last seen.",
+            expected_tools=["lookup_hash", "enrich_indicator"],
         ),
         PlaybookStep(
             id="summarize_findings",
@@ -40,7 +41,7 @@ incident_triage = Playbook(
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[read_file, search_logs, analyze_logs, count_errors],
+    tools=[query_siem, enrich_indicator, lookup_hash],
     hooks=[PlaybookEnforcerHook(playbook=incident_triage)],
 )
 ```
@@ -49,10 +50,10 @@ agent = Agent(
 
 | Situation | Playbook? |
 |---|---|
-| Regulated workflow (KYC, refunds, account changes) | **yes** |
+| Regulated workflow (NIST 800-61 IR phases, evidence handling, host isolation) | **yes** |
 | Multi-step process where order matters | **yes** |
 | Repeatable runbook the team executes manually today | **yes — encode it** |
-| Audit-trail requirement: "every refund follows the same sequence" | **yes — the execution log *is* the audit trail** |
+| Audit-trail requirement: "every containment follows the same sequence" | **yes — the execution log *is* the audit trail** |
 | One-shot exploration, freeform Q&A | no — overhead's not worth it |
 | You want the model to choose tools freely | no — that's what `Agent(tools=[...])` already gives you |
 
@@ -63,27 +64,27 @@ agent = Agent(
 ```python
 from tulip.playbooks import Playbook, PlaybookStep
 
-refund = Playbook(
-    id="refund-flow",
-    name="Refund flow",
-    description="Issue a refund only after verifying customer and order.",
+containment = Playbook(
+    id="containment-flow",
+    name="Containment flow",
+    description="Isolate a host only after confirming the host and the open case.",
     steps=[
         PlaybookStep(
-            id="verify_customer",
-            description="Look up the customer and confirm they're active.",
-            expected_tools=["lookup_customer"],
+            id="verify_host",
+            description="Look up the host and confirm it's in scope for this case.",
+            expected_tools=["lookup_host"],
             required=True,
         ),
         PlaybookStep(
-            id="verify_order",
-            description="Look up the order and confirm it belongs to the customer.",
-            expected_tools=["lookup_order"],
+            id="verify_case",
+            description="Look up the case and confirm the host belongs to it.",
+            expected_tools=["lookup_case"],
             required=True,
         ),
         PlaybookStep(
-            id="issue_refund",
-            description="Refund the order amount.",
-            expected_tools=["refund"],
+            id="isolate_host",
+            description="Isolate the host from the network.",
+            expected_tools=["isolate_host"],
             required=True,
         ),
     ],
@@ -111,26 +112,26 @@ For checked-in playbooks, use the loader:
 ```python
 from tulip.playbooks import load_playbook
 
-refund = load_playbook("playbooks/refund.yaml")
+containment = load_playbook("playbooks/containment.yaml")
 ```
 
 ```yaml
-# playbooks/refund.yaml
-id: refund-flow
-name: Refund flow
-description: Issue a refund only after verifying customer and order.
+# playbooks/containment.yaml
+id: containment-flow
+name: Containment flow
+description: Isolate a host only after confirming the host and the open case.
 strict_sequence: true
 allow_extra_tools: false
 steps:
-  - id: verify_customer
-    description: Look up the customer and confirm they're active.
-    expected_tools: [lookup_customer]
-  - id: verify_order
-    description: Look up the order and confirm it belongs to the customer.
-    expected_tools: [lookup_order]
-  - id: issue_refund
-    description: Refund the order amount.
-    expected_tools: [refund]
+  - id: verify_host
+    description: Look up the host and confirm it's in scope for this case.
+    expected_tools: [lookup_host]
+  - id: verify_case
+    description: Look up the case and confirm the host belongs to it.
+    expected_tools: [lookup_case]
+  - id: isolate_host
+    description: Isolate the host from the network.
+    expected_tools: [isolate_host]
 ```
 
 ### 3. Wire the enforcer
@@ -140,11 +141,11 @@ from tulip.playbooks.hook import PlaybookEnforcerHook
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[lookup_customer, lookup_order, refund],
-    hooks=[PlaybookEnforcerHook(playbook=refund)],
+    tools=[lookup_host, lookup_case, isolate_host],
+    hooks=[PlaybookEnforcerHook(playbook=containment)],
 )
 
-result = agent.run_sync("Refund order ORD-42 for customer C-7.")
+result = agent.run_sync("Isolate host 192.0.2.45 under case INC-7.")
 ```
 
 The hook injects step descriptions and hints into the agent's

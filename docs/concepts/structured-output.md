@@ -7,26 +7,26 @@ instance for you.
 ```python
 from pydantic import BaseModel, Field
 from tulip.agent import Agent
-class Vendor(BaseModel):
-    name: str = Field(description="Legal name of the vendor")
-    score: float = Field(ge=0.0, le=1.0)
-    region: str
+class Indicator(BaseModel):
+    value: str = Field(description="The IOC value (IP, domain, or hash)")
+    confidence: float = Field(ge=0.0, le=1.0)
+    verdict: str
 
-class VendorList(BaseModel):
-    vendors: list[Vendor]
+class IndicatorList(BaseModel):
+    indicators: list[Indicator]
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_vendors],
-    output_schema=VendorList,
-    system_prompt="Pick three vendors for our cloud-hosting RFP.",
+    tools=[enrich_indicator],
+    output_schema=IndicatorList,
+    system_prompt="Triage the top three indicators from this alert.",
 )
 
-result = agent.run_sync("Top three for $2M of cloud spend.")
+result = agent.run_sync("Score the three indicators in alert A-42.")
 
-picks: VendorList = result.parsed   # type: ignore[assignment]
-for v in picks.vendors:
-    print(v.name, v.score, v.region)
+picks: IndicatorList = result.parsed   # type: ignore[assignment]
+for i in picks.indicators:
+    print(i.value, i.confidence, i.verdict)
 ```
 
 `output_schema` must be a `pydantic.BaseModel` subclass — including
@@ -51,9 +51,9 @@ call `result.parsed_as(YourSchema)` — runtime-checked and raises
 `ValueError` (no parsed output) or `TypeError` (wrong concrete type):
 
 ```python
-picks = result.parsed_as(VendorList)   # VendorList, narrowed by mypy
-for v in picks.vendors:
-    print(v.name)
+picks = result.parsed_as(IndicatorList)   # IndicatorList, narrowed by mypy
+for i in picks.indicators:
+    print(i.value)
 ```
 
 ## Repair on validation failure
@@ -68,7 +68,7 @@ constrained decoding.
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    output_schema=VendorList,
+    output_schema=IndicatorList,
     output_schema_retries=3,        # default 2; set 0 to disable
     output_schema_strict=True,      # default; set False if your provider
                                     # rejects strict json_schema mode
@@ -108,13 +108,13 @@ from tulip.streaming import StructuredStream
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    output_schema=VendorList,
+    output_schema=IndicatorList,
 )
 
-stream = StructuredStream(agent.run("Top 3 vendors."), schema=VendorList)
+stream = StructuredStream(agent.run("Score the 3 indicators."), schema=IndicatorList)
 async for partial in stream:
-    ui.render(partial)               # may have 0, 1, 2, then 3 vendors
-final: VendorList | None = stream.final
+    ui.render(partial)               # may have 0, 1, 2, then 3 indicators
+final: IndicatorList | None = stream.final
 ```
 
 Each `ModelChunkEvent` is appended to a buffer; the SDK auto-closes any
@@ -136,11 +136,11 @@ emits a non-tool response, the SDK parses that response into the schema:
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_vendors, fetch_pricing, soc2_check],
-    output_schema=VendorList,
+    tools=[enrich_indicator, lookup_hash, query_siem],
+    output_schema=IndicatorList,
     system_prompt=(
-        "Research vendors with the available tools, then return your "
-        "ranked picks as a JSON object."
+        "Investigate the indicators with the available tools, then return "
+        "your scored findings as a JSON object."
     ),
 )
 ```

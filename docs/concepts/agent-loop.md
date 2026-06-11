@@ -145,7 +145,7 @@ from tulip.core.termination import (
 )
 
 terminate = (
-    ToolCalled("submit_po") & ConfidenceMet(0.9)
+    ToolCalled("isolate_host") & ConfidenceMet(0.9)
 ) | MaxIterations(10) | TokenLimit(15_000)
 ```
 
@@ -221,28 +221,29 @@ and `SteeringHook` (LLM-as-judge tool approval). Source:
 
 Consider this prompt against the agent on the homepage:
 
-> *"Book a flight from JFK to NRT on 2026-05-04 for customer C-42."*
+> *"Triage alert A-42: a beacon from host WIN-7731 to 198.51.100.23. Isolate the host if it's confirmed malicious."*
 
 Iteration by iteration:
 
 | # | Node | What happens |
 |---|---|---|
-| 1 | Think | Model emits a tool call: `search_flights(origin="JFK", destination="NRT", date="2026-05-04")`. Streams `ThinkEvent` + `ModelChunkEvent`s. |
-| 1 | Execute | Runs `search_flights`. Tool is **not** marked idempotent (read-only) so no dedup. Result added to `state.tool_executions`. Emits `ToolStartEvent`, `ToolCompleteEvent`. |
+| 1 | Think | Model emits a tool call: `enrich_indicator(indicator="198.51.100.23", kind="ipv4")`. Streams `ThinkEvent` + `ModelChunkEvent`s. |
+| 1 | Execute | Runs `enrich_indicator`. Tool is **not** marked idempotent (read-only) so no dedup. Result added to `state.tool_executions`. Emits `ToolStartEvent`, `ToolCompleteEvent`. |
 | 1 | Reflect | Skipped — first iteration, no error, no loop. Router goes back to Think. |
-| 1 | Terminate? | `MaxIterations(8)` not yet hit. `ToolCalled("book_flight")` not satisfied. Continue. |
-| 2 | Think | Model picks `AA-181` from the search results and emits `book_flight(flight_id="AA-181", customer_id="C-42")`. |
-| 2 | Execute | Tool is `idempotent=True`. Execute hashes `("book_flight", {flight_id: "AA-181", customer_id: "C-42"})` and walks `state.tool_executions` for matches. None — so the body fires. Confirmation `BK-58291` returned. |
+| 1 | Terminate? | `MaxIterations(8)` not yet hit. `ToolCalled("isolate_host")` not satisfied. Continue. |
+| 2 | Think | The reputation result confirms a known C2 endpoint, so the model emits `isolate_host(host_id="WIN-7731", alert_id="A-42")`. |
+| 2 | Execute | Tool is `idempotent=True`. Execute hashes `("isolate_host", {host_id: "WIN-7731", alert_id: "A-42"})` and walks `state.tool_executions` for matches. None — so the body fires. Containment ticket `CN-58291` returned. |
 | 2 | Reflect | Reflexion runs (the cadence trigger fires). Confidence assessed at 0.93. `ReflectEvent` emitted. |
-| 2 | Terminate? | `ToolCalled("book_flight")` ✓ AND `ConfidenceMet(0.9)` ✓. The AND branch fires; the OR short-circuits true. Loop exits with `TerminateEvent(reason="ToolCalled AND ConfidenceMet")`. |
+| 2 | Terminate? | `ToolCalled("isolate_host")` ✓ AND `ConfidenceMet(0.9)` ✓. The AND branch fires; the OR short-circuits true. Loop exits with `TerminateEvent(reason="ToolCalled AND ConfidenceMet")`. |
 
 Total: **two iterations, two tool calls, one Reflect, one Terminate**.
 
-If the model had hallucinated and re-emitted `book_flight` with the
+If the model had hallucinated and re-emitted `isolate_host` with the
 same args on iteration 3 (it didn't, but it could), Execute would
 have caught the duplicate `(name, kwargs)` hash, returned the cached
-`BK-58291`, and emitted a `ToolCacheHitEvent` so the trace shows the
-short-circuit clearly.
+`CN-58291`, and emitted a `ToolCacheHitEvent` so the trace shows the
+short-circuit clearly. Re-isolating an already-contained host is a
+no-op — exactly what idempotency guarantees.
 
 ## Stop reasons
 
@@ -366,23 +367,23 @@ from tulip.core.termination import (
 from tulip.hooks.builtin import StructuredLoggingHook
 
 @tool(idempotent=True)
-def submit_po(vendor_id: str, amount_usd: float) -> dict:
-    return finance.submit(vendor_id, amount_usd)
+def isolate_host(host_id: str, alert_id: str) -> dict:
+    return edr.isolate(host_id, alert_id)
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_vendors, submit_po],
-    system_prompt="You are a procurement officer.",
+    tools=[enrich_indicator, isolate_host],
+    system_prompt="You are an incident responder.",
     reflexion=True,                    # turn Reflect on
     grounding=True,                    # claim verification
     checkpointer=S3Backend(...),
     hooks=[StructuredLoggingHook(level="INFO")],
     termination=(
-        ToolCalled("submit_po") & ConfidenceMet(0.9)
+        ToolCalled("isolate_host") & ConfidenceMet(0.9)
     ) | MaxIterations(10),
 )
 
-async for event in agent.run("Find a vendor for $2M cloud spend.",
+async for event in agent.run("Triage alert A-42 and contain the host if malicious.",
                              thread_id="th-q3-2026"):
     match event:
         case ThinkEvent(reasoning=r) if r:    print(f"💭 {r}")

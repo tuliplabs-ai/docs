@@ -8,8 +8,9 @@ produced it (`agent.*`, `multiagent.*`, `composition.*`, `router.*`,
 `rag.*`, `memory.*`, `a2a.*`, `skills.*`, `deepagent.*`).
 
 This page is the **wire-format contract**. The workbench renderer,
-the JSON log adapter, and any downstream OTEL bridge consume from it.
-If you add a new emission site, list it here.
+the JSON log adapter, and any downstream OTEL bridge consume from it —
+it is also the forensic audit trail you forward to a SIEM, one event
+per analyst-visible action. If you add a new emission site, list it here.
 
 ## How emission works
 

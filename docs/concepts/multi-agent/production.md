@@ -39,14 +39,15 @@ Used by notebooks [44 (debate)][t44], [46 (incident)][t46],
 ```python
 from tulip.tools import tool
 @tool(idempotent=True)
-def book_flight(flight_id: str, customer_id: str) -> dict:
-    return billing.charge_and_book(flight_id, customer_id)
+def isolate_host(host_id: str, case_id: str) -> dict:
+    return edr.quarantine(host_id, case_id)
 ```
 
 The ReAct loop dedupes repeat calls on the `(name, kwargs)` hash. The
-model can't double-charge, double-book, or double-page even if the
-graph retries a node or a checkpointed run resumes mid-tool. This is
-the difference between a reliable agent and a horror story.
+model can't double-isolate a host, double-page, or re-fire a containment
+action even if the graph retries a node or a checkpointed run resumes
+mid-tool. This is the difference between a reliable agent and a horror
+story.
 
 → See [Idempotency](../idempotency.md).
 
@@ -161,7 +162,7 @@ from tulip.evaluation import EvalCase, EvalRunner
 
 cases = [
     EvalCase(input="...", expected_terminate=True),
-    EvalCase(input="...", expected_tools=["search_logs"]),
+    EvalCase(input="...", expected_tools=["query_siem"]),
 ]
 report = EvalRunner(agent=graph).run(cases)
 ```

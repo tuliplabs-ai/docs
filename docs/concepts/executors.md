@@ -8,7 +8,7 @@ time**:
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_flights, search_hotels, search_restaurants],
+    tools=[enrich_indicator, lookup_hash, query_siem],
     tool_execution="concurrent",   # default — fan out
     # tool_execution="sequential", # opt-in — one at a time
 )
@@ -21,7 +21,7 @@ them at once and gathers their results before the next Think:
 
 ```python
 # Think emits this:
-[search_flights(...), search_hotels(...), search_restaurants(...)]
+[enrich_indicator(...), lookup_hash(...), query_siem(...)]
 
 # Execute fires all three concurrently
 # Each emits its own ToolStartEvent / ToolCompleteEvent
@@ -30,12 +30,12 @@ them at once and gathers their results before the next Think:
 
 When parallelism helps:
 
-- **Multi-source RAG** — fetch from a vector store, a keyword index,
-  and a knowledge graph in parallel, then merge.
-- **Independent reads** — flights, hotels, and weather have no
-  dependency on each other; do them all at once.
-- **Tool fan-out** — the model called `search_X` for ten X's; run
-  them all instead of ten round-trips.
+- **Multi-source enrichment** — fetch reputation from a threat-intel
+  feed, a passive-DNS index, and a malware sandbox in parallel, then merge.
+- **Independent reads** — indicator reputation, hash lookup, and SIEM
+  events have no dependency on each other; do them all at once.
+- **Tool fan-out** — the model called `enrich_indicator` for ten IOCs;
+  run them all instead of ten round-trips.
 
 ## Sequential execution (opt-in)
 
@@ -63,10 +63,10 @@ any coroutines — is hash each `(tool_name, arguments)` and walk
 `@tool(idempotent=True)`, matched calls short-circuit to the cached
 receipt and never enter the executor at all.
 
-So a model that re-emits `book_flight(flight_id="AA-181", ...)` in
+So a model that re-emits `isolate_host(host_id="WS-014", ...)` in
 iteration 5 — when the same call already fired in iteration 2 — gets
 the cached receipt without a network round-trip and without
-charging again. See [Idempotency](idempotency.md).
+re-isolating the host. See [Idempotency](idempotency.md).
 
 ## Errors don't kill the group (concurrent mode)
 
@@ -74,7 +74,7 @@ If one tool raises while three are running, the other two finish
 normally. The error becomes a `ToolErrorEvent` and a tool-error
 message in state; the next Think sees:
 
-> *Tool `lookup_inventory` failed with: ConnectionTimeout(after 30s).*
+> *Tool `query_siem` failed with: ConnectionTimeout(after 30s).*
 
 …and decides what to do (retry, try a different tool, give up). The
 agent loop never sees an exception unless the whole run errors.
@@ -103,8 +103,8 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 @tool
 @retry(stop=stop_after_attempt(3),
        wait=wait_exponential(multiplier=0.5))
-def lookup_inventory(sku: str) -> dict:
-    return inventory.get(sku)
+def lookup_hash(sha256: str) -> dict:
+    return ti.reputation(sha256)
 ```
 
 For non-transient errors, raise — the loop will see a

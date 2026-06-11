@@ -1,18 +1,18 @@
 # Evaluation
 
-An agent that worked yesterday may not work today — the model
+A triage agent that worked yesterday may not work today — the model
 changed, a tool was renamed, the prompt got a one-line tweak. Tulip ships a small evaluation harness
-so regressions become **failing tests**, not customer tickets.
+so regressions become **failing tests**, not missed detections in production.
 
 ```python
 from tulip.evaluation import EvalCase, EvalRunner
 
 cases = [
     EvalCase(
-        name="weather_lookup",
-        prompt="What's the weather in NYC?",
-        expected_tools=["get_weather"],
-        expected_output_contains=["temperature", "New York"],
+        name="indicator_enrichment",
+        prompt="Enrich indicator 198.51.100.7.",
+        expected_tools=["enrich_indicator"],
+        expected_output_contains=["reputation", "198.51.100.7"],
         max_iterations=5,
     ),
 ]
@@ -41,19 +41,19 @@ print(report.summary())
 ```python
 from tulip.evaluation import EvalCase
 
-books_real = EvalCase(
-    name="books_real_flight",
-    prompt="Book TK-12 for customer C-42.",
-    expected_tools=["book_flight"],
-    expected_output_contains=["TK-12", "booked"],
+isolates_known = EvalCase(
+    name="isolates_known_host",
+    prompt="Isolate host web-01 — confirmed compromise.",
+    expected_tools=["isolate_host"],
+    expected_output_contains=["web-01", "isolated"],
     max_iterations=4,
 )
 
 rejects_unknown = EvalCase(
-    name="rejects_unknown_flight",
-    prompt="Book ZZ-999.",
+    name="rejects_unknown_host",
+    prompt="Isolate host zz-999.",
     expected_output_contains=["not found"],
-    expected_output_not_contains=["booked", "confirmed"],
+    expected_output_not_contains=["isolated", "contained"],
 )
 ```
 
@@ -63,13 +63,13 @@ rejects_unknown = EvalCase(
 from tulip.evaluation import EvalRunner
 
 runner = EvalRunner(agent=agent)
-report = runner.run([books_real, rejects_unknown])
+report = runner.run([isolates_known, rejects_unknown])
 
 print(report.summary())
 # Eval Report: 2/2 passed (avg score: 1.00)
 # Total duration: 4321ms
-#   [PASS] books_real_flight (score: 1.00, 1872ms)
-#   [PASS] rejects_unknown_flight (score: 1.00, 2449ms)
+#   [PASS] isolates_known_host (score: 1.00, 1872ms)
+#   [PASS] rejects_unknown_host (score: 1.00, 2449ms)
 ```
 
 `run()` returns an `EvalReport` — a Pydantic model with per-case
@@ -122,9 +122,9 @@ runner.run(smoke)
 ## LLM-as-judge for open-ended quality
 
 The built-in checks are structural ("did the right tool fire?", "did
-the answer mention 'temperature'?"). For free-text quality
-("is this answer empathetic?", "is the explanation correct?"), wrap a
-judge model as a tool and key on its verdict:
+the answer mention 'reputation'?"). For free-text quality
+("is the triage rationale sound?", "is the finding correctly grounded?"),
+wrap a judge model as a tool and key on its verdict:
 
 ```python
 from tulip.tools.decorator import tool
@@ -136,10 +136,10 @@ def judge(answer: str) -> dict:
 
 # Then in the case:
 EvalCase(
-    name="empathetic_response",
-    prompt="My order is late and I'm upset.",
+    name="sound_triage_rationale",
+    prompt="Explain why alert SOC-4821 is a false positive.",
     expected_tools=["judge"],
-    expected_output_contains=["sorry"],  # at minimum
+    expected_output_contains=["benign"],  # at minimum
 )
 ```
 
@@ -152,7 +152,7 @@ A future SDK release may bundle a typed judge directly into
 |---|---|
 | Case passes locally, fails in CI | Model output varies between runs. Pin the model id, lower `temperature`, run with `n=5` and look at variance. |
 | `max_duration_ms` flakes | Cold-start network latency. Use a wall-clock budget at the suite level, not per-case, or bump the per-case budget by 2×. |
-| `expected_tools` reports failure even though the tool ran | Case-sensitive name match — `book_flight` != `Book_Flight`. |
+| `expected_tools` reports failure even though the tool ran | Case-sensitive name match — `isolate_host` != `Isolate_Host`. |
 | Score is 0.5 every time | One of two checks is consistently failing. Read `result.checks` — it carries the full pass/fail map. |
 
 ## Source and notebook

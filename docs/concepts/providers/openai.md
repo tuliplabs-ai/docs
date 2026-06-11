@@ -29,7 +29,7 @@ That's the only setup. The SDK reads the env var on import.
 
 ```python
 from tulip.agent import Agent
-agent = Agent(model="openai:gpt-5.5", system_prompt="You are helpful.")
+agent = Agent(model="openai:gpt-5.5", system_prompt="You are a SOC triage analyst.")
 ```
 
 The string `"openai:gpt-5.5"` does two things: tells the SDK to use
@@ -39,9 +39,9 @@ the OpenAI provider (`openai:` prefix), and which model id to call
 ### 3. Run it
 
 ```python
-result = agent.run_sync("What is two plus two?")
+result = agent.run_sync("Is 198.51.100.23 a known C2 endpoint?")
 print(result.message)
-# → 'Four.'
+# → 'Yes — flagged in threat intel as a known C2 endpoint.'
 ```
 
 Done. Streaming, tool calls, structured output — all of it works
@@ -80,7 +80,7 @@ deltas, the SDK turns them into `ModelChunkEvent`s, your `async for`
 loop reads them as they arrive — no buffering, no fake chunking.
 
 ```python
-async for event in agent.run("Write a haiku about latency."):
+async for event in agent.run("Summarise the timeline of alert A-42."):
     if isinstance(event, ModelChunkEvent) and event.content:
         print(event.content, end="", flush=True)
 ```
@@ -98,17 +98,17 @@ concurrently via the `ConcurrentExecutor`).
 ```python
 from pydantic import BaseModel
 
-class Answer(BaseModel):
+class Finding(BaseModel):
     summary: str
     confidence: float
 
 agent = Agent(
     model="openai:gpt-5.5",
-    output_schema=Answer,
+    output_schema=Finding,
     system_prompt="Reply as JSON matching the schema.",
 )
-result = agent.run_sync("Was the meeting productive?")
-print(result.parsed)        # Answer(summary='...', confidence=0.83)
+result = agent.run_sync("Is the WIN-7731 beacon malicious?")
+print(result.parsed)        # Finding(summary='...', confidence=0.83)
 ```
 
 Under the hood, the SDK sends an OpenAI `response_format` with the

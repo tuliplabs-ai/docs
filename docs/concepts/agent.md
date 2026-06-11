@@ -16,14 +16,14 @@ the hood — there's one agent abstraction, not five.
 from tulip.agent import Agent
 from tulip.tools import tool
 @tool
-def search(query: str) -> str:
-    """Search the knowledge base."""
+def enrich_indicator(indicator: str) -> str:
+    """Look up reputation and context for an IOC (IP, domain, or hash)."""
     return "results"
 
 agent = Agent(
     model="openai:gpt-4o",
-    tools=[search],
-    system_prompt="You are a helpful assistant.",
+    tools=[enrich_indicator],
+    system_prompt="You are a SOC triage analyst.",
     max_iterations=20,
 )
 ```
@@ -34,15 +34,15 @@ There are three ways to drive the agent:
 
 ```python
 # 1. Streaming events (async, fine-grained)
-async for event in agent.run("Do the task", thread_id="t1"):
+async for event in agent.run("Triage the alert", thread_id="t1"):
     print(event)
 
 # 2. Sync execution (blocks until done)
-result = agent.run_sync("Do the task", thread_id="t1")
+result = agent.run_sync("Triage the alert", thread_id="t1")
 print(result.message)
 
 # 3. Alias for sync
-result = agent.invoke("Do the task", thread_id="t1")
+result = agent.invoke("Triage the alert", thread_id="t1")
 ```
 
 All three drive the same underlying [ReAct loop](#the-react-loop). The
@@ -122,17 +122,17 @@ from pydantic import BaseModel
 from tulip.agent import Agent
 from tulip.core.termination import MaxIterations, ToolCalled
 
-class VendorList(BaseModel):
-    vendors: list[str]
+class IndicatorList(BaseModel):
+    indicators: list[str]
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search, book_flight],
-    output_schema=VendorList,
-    termination=MaxIterations(8) | ToolCalled("book_flight"),
+    tools=[enrich_indicator, isolate_host],
+    output_schema=IndicatorList,
+    termination=MaxIterations(8) | ToolCalled("isolate_host"),
     auxiliary_model="anthropic:claude-sonnet-4-6",
     reflexion=True,
 )
-result = agent.run_sync("Find 3 vendors and book one.")
-print(result.parsed_as(VendorList))
+result = agent.run_sync("Enrich the 3 indicators and isolate the affected host.")
+print(result.parsed_as(IndicatorList))
 ```

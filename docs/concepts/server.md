@@ -133,9 +133,9 @@ client + same `thread_id` → same conversation, same memory.
 
 ```bash
 # Day 1
-curl -X POST .../invoke -d '{"prompt":"Plan Tokyo", "thread_id":"user-c42"}'
-# Day 2 — same thread_id, conversation continues
-curl -X POST .../invoke -d '{"prompt":"What were we discussing?", "thread_id":"user-c42"}'
+curl -X POST .../invoke -d '{"prompt":"Open investigation for alert A-42", "thread_id":"case-4821"}'
+# Day 2 — same thread_id, the investigation continues
+curl -X POST .../invoke -d '{"prompt":"What did we establish so far?", "thread_id":"case-4821"}'
 ```
 
 For multi-worker deployments, swap the checkpointer to one workers

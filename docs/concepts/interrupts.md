@@ -1,8 +1,9 @@
 # Interrupts & human-in-the-loop
 
-Sometimes the agent shouldn't decide alone. A human approves the
-$2M PO. A reviewer signs off on the customer refund. A regulator
-requires an audit checkpoint between research and submission.
+Sometimes the agent shouldn't decide alone. A human approves
+isolating a production host. An incident lead signs off before an
+indicator is blocked fleet-wide. Policy requires an audit checkpoint
+between investigation and containment.
 
 Tulip treats human approval as
 **a tool the model can call** — same shape as any other tool, except
@@ -22,15 +23,15 @@ def request_human_approval(reason: str, action: str) -> dict:
     raise PendingApproval(reason=reason, action=action)
 
 @tool(idempotent=True)
-def submit_po(vendor_id: str, amount_usd: float) -> dict:
-    return finance.submit(vendor_id, amount_usd)
+def isolate_host(host_id: str, incident_id: str) -> dict:
+    return edr.isolate(host_id, incident_id)
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_vendors, request_human_approval, submit_po],
+    tools=[query_siem, request_human_approval, isolate_host],
     system_prompt=(
-        "You are a procurement officer. "
-        "Always call request_human_approval before submit_po."
+        "You are a SOC incident responder. "
+        "Always call request_human_approval before isolate_host."
     ),
 )
 ```
@@ -80,7 +81,7 @@ agent = Agent(
     ...,
     hooks=[SteeringHook(
         judge_model="anthropic:claude-sonnet-4-6",
-        policy="Reject any tool call that doesn't match the user's stated request.",
+        policy="Reject any tool call that doesn't match the analyst's stated request.",
     )],
 )
 ```

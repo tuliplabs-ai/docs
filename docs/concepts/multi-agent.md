@@ -23,12 +23,12 @@ upgrades to a live provider by setting one env var.
 |---|---|---|---|
 | **41** | DeepAgent — research factory | `create_deepagent` with reflexion + grounding + subagent dispatch + `deepagent.*` SSE events. | [`notebook_29_deepagent.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_29_deepagent.py) |
 | **42** | Map-reduce code review | Scatter a diff to `N` reviewers via `Send`, reduce findings into one report. | [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_30_map_reduce_code_review.py) |
-| **43** | Supervisor + critic loop | Researcher → Writer → Critic, loop back to Writer until critic approves (cap'd revisions). | [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_31_supervisor_critic_loop.py) |
-| **44** | Adversarial debate + judge | PRO and CON argue across N rounds; Judge emits a typed `Verdict` via `output_schema`. | [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_32_debate_with_judge.py) |
+| **43** | Supervisor + critic loop | Recon → Report author → Skeptical reviewer, loop back to the author until the reviewer approves (cap'd revisions). | [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_31_supervisor_critic_loop.py) |
+| **44** | Adversarial debate + judge | One agent argues the finding is a true positive, another argues benign, across N rounds; Judge emits a typed `Verdict` via `output_schema`. | [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_32_debate_with_judge.py) |
 | **45** | Multi-agent + human-in-the-loop | Three patterns in one file: approval gate, human-as-tool, long-pause snapshot/resume. | [`notebook_33_multiagent_human_in_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py) |
-| **46** | On-call incident response | Triage → 3 parallel investigators (logs / metrics / traces) → severity gate → page-the-human → mitigate → typed `Postmortem`. | [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py) |
-| **47** | Tiered approval workflow | Justifier → Vendor analyst → tier router (auto / manager / +finance / +CFO) → typed `PurchaseOrder`. Three stacked `interrupt()` gates on the top tier. | [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py) |
-| **48** | Contract review + negotiation | Parser → 3 parallel reviewers → negotiation gate → human counsel → `Command(goto="sign_off")` short-circuits when resolved. Cycles enabled. | [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py) |
+| **46** | IR war-room | Triage → 3 parallel investigators (SIEM / EDR / threat intel) → severity gate → page-the-responder → contain → typed `Postmortem`. | [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py) |
+| **47** | Tiered containment approval | Justifier → Impact analyst → tier router (auto / shift-lead / +IR-manager / +CISO) → typed `PurchaseOrder`. Three stacked `interrupt()` gates on the top tier. | [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py) |
+| **48** | Threat-report review | Parser → 3 parallel reviewers → revision gate → human analyst → `Command(goto="sign_off")` short-circuits when resolved. Cycles enabled. | [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py) |
 
 ## Pick a shape
 
@@ -128,7 +128,7 @@ async def smart_router(state):
 
 Return a `Command` from a node to override the default edge — useful
 for short-circuiting refinement loops or skipping straight to sign-off.
-Used by notebook 48 to skip the negotiation loop when counsel says RESOLVED.
+Used by notebook 48 to skip the revision loop when the analyst says RESOLVED.
 
 ### `Agent(output_schema=...)` — typed terminal artifacts
 
@@ -136,7 +136,7 @@ Used by notebook 48 to skip the negotiation loop when counsel says RESOLVED.
 from pydantic import BaseModel
 from tulip.agent import Agent, AgentConfig
 class Verdict(BaseModel):
-    winner: str
+    disposition: str   # "true_positive" | "benign"
     confidence: float
     reasoning: str
 
@@ -190,13 +190,13 @@ claims get dropped or sent back. → [Reasoning concept](reasoning.md) ·
 
 ```python
 @tool(idempotent=True)
-def book_flight(flight_id: str, customer_id: str) -> dict:
-    return billing.charge_and_book(flight_id, customer_id)
+def isolate_host(host_id: str, case_id: str) -> dict:
+    return edr.quarantine(host_id, case_id)
 ```
 
 The ReAct loop dedupes repeat calls on the `(name, kwargs)` hash — the
-model can't double-charge, double-book, or double-page. → [Idempotency
-concept](idempotency.md).
+model can't double-isolate a host, double-page, or re-fire a containment
+action. → [Idempotency concept](idempotency.md).
 
 ### Checkpointing — survive every restart
 
@@ -236,12 +236,12 @@ from every layer simultaneously:
 from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
-    result = orchestrator.run_sync("Plan Q3 launch.")
+    result = orchestrator.run_sync("Investigate the phishing campaign against finance.")
 
     async for ev in get_event_bus().subscribe(rid):
         match ev.event_type:
             case "multiagent.orchestrator.decision":
-                print("coordinator →", ev.data["specialists_selected"])
+                print("incident commander →", ev.data["specialists_selected"])
             case "agent.tool.started":
                 print("  🔧", ev.data["tool_name"])
             case "agent.terminate":
