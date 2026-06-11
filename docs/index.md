@@ -7,7 +7,7 @@ hide:
 <div class="tulip-hero" markdown>
 <div class="tulip-hero__copy" markdown>
 
-<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the agent SDK for security work</p>
+<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the cybersecurity agent SDK</p>
 
 # Security agents that <span class="accent">show their work.</span>
 
