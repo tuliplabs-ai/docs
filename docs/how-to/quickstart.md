@@ -117,10 +117,10 @@ agent = Agent(
 )
 
 # Day 1
-agent.run_sync("I'm planning a trip to Tokyo.", thread_id="user-c42")
+agent.run_sync("Open the investigation for alert A-42.", thread_id="case-4821")
 
-# Day 2 — same thread_id, conversation continues
-agent.run_sync("What were we talking about?", thread_id="user-c42")
+# Day 2 — same thread_id, the investigation continues
+agent.run_sync("What did we establish so far?", thread_id="case-4821")
 ```
 
 For vendor-neutral durability, swap to `S3Backend(bucket=..., namespace=...)`.

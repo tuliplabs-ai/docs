@@ -35,10 +35,10 @@ Storage layout inside the store:
 With the default prefix `("tulip_memory",)`:
 
 ```
-("tulip_memory", "user")       →  "role":             {content: "Senior Python engineer"}
-("tulip_memory", "feedback")   →  "no_db_mocks":      {content: "Never mock the DB. Why: ..."}
-("tulip_memory", "project")    →  "auth_rewrite":     {content: "Driven by compliance, not TD"}
-("tulip_memory", "reference")  →  "linear_pipeline":  {content: "Pipeline bugs → Linear INGEST"}
+("tulip_memory", "user")       →  "role":             {content: "Tier-2 SOC analyst"}
+("tulip_memory", "feedback")   →  "no_auto_isolate":  {content: "Never auto-isolate prod hosts. Why: ..."}
+("tulip_memory", "project")    →  "phishing_triage":  {content: "Driven by an active campaign, not backlog"}
+("tulip_memory", "reference")  →  "siem_pipeline":    {content: "Alerts tracked in the SIEM 'INGEST' index"}
 ```
 
 Each memory key acts as a stable identifier: re-extracting the same
@@ -50,8 +50,8 @@ fact under the same key **updates** the record, not duplicates it.
 |---|---|---|
 | `user` | Role, expertise, working style | Rarely |
 | `feedback` | Behavioural rules — what to do/avoid and *why* | Rarely |
-| `project` | Goals, deadlines, active decisions | Fast — include a *Why* |
-| `reference` | Pointers to external systems (Jira, dashboards, configs) | Medium |
+| `project` | Active investigations, containment decisions | Fast — include a *Why* |
+| `reference` | Pointers to external systems (SIEM, threat-intel feeds, runbooks) | Medium |
 
 ## Quick start
 
@@ -67,14 +67,14 @@ agent = Agent(
     memory_manager=LLMMemoryManager(store=store),
 )
 
-# Session 1 — agent learns that the user dislikes mocking
-async for event in agent.run("I prefer real DB connections — never mock the database."):
+# Session 1 — agent learns a standing containment rule
+async for event in agent.run("Never auto-isolate production hosts — page on-call for approval first."):
     ...
 
 # Session 2 — the agent already knows
-async for event in agent.run("How should I write the new integration tests?"):
+async for event in agent.run("Host web-01 looks compromised. What do you do?"):
     ...
-# → agent uses real DB connections, no explanation needed
+# → agent requests approval before isolation, no reminder needed
 ```
 
 ## Supplying an LLM extraction function
@@ -110,10 +110,10 @@ You are a memory extraction assistant. Given a conversation, identify
 facts worth remembering across sessions. Return JSON:
 
 [
-  {"type": "user",      "key": "role",       "content": "..."},
-  {"type": "feedback",  "key": "no_mocks",   "content": "... Why: ... How to apply: ..."},
-  {"type": "project",   "key": "auth",       "content": "... Why: ..."},
-  {"type": "reference", "key": "linear",     "content": "..."}
+  {"type": "user",      "key": "role",          "content": "..."},
+  {"type": "feedback",  "key": "no_auto_isolate","content": "... Why: ... How to apply: ..."},
+  {"type": "project",   "key": "phishing",      "content": "... Why: ..."},
+  {"type": "reference", "key": "siem",          "content": "..."}
 ]
 
 Only include facts that are non-obvious, durable, and actionable.
@@ -154,13 +154,13 @@ without changing how your `Agent` consumes memory.
 ```python
 from tulip.memory.managers import Mem0MemoryManager
 
-manager = Mem0MemoryManager(user_id="alice")
+manager = Mem0MemoryManager(user_id="analyst-7")
 agent = Agent(model="anthropic:claude-sonnet-4-6", memory_manager=manager)
 
 # Pass user_id (and optional thread_id) via metadata to scope retrieval:
 agent.run_sync(
-    "Hi, I'm Alice — I prefer concise answers.",
-    metadata={"user_id": "alice", "thread_id": "t-a"},
+    "I'm on the night shift — I prefer concise triage summaries.",
+    metadata={"user_id": "analyst-7", "thread_id": "t-a"},
 )
 ```
 
@@ -198,14 +198,14 @@ after the main system prompt:
 
 ```
 [System Prompt]
-You are a helpful engineering assistant.
+You are a SOC triage assistant.
 
 [Memory Block — injected by MemoryManager]
 [Long-term Memory]
-USER [role]: Senior Python engineer, new to React.
-FEEDBACK [no_db_mocks]: Never mock the database. Why: prior mock/prod divergence.
-PROJECT [auth_rewrite]: Auth rewrite driven by compliance, not tech debt.
-REFERENCE [linear_pipeline]: Pipeline bugs tracked in Linear project 'INGEST'.
+USER [role]: Tier-2 SOC analyst, covers the night shift.
+FEEDBACK [no_auto_isolate]: Never auto-isolate production hosts. Why: prior outage from a false positive.
+PROJECT [phishing_triage]: Active phishing campaign, prioritise mailbox alerts.
+REFERENCE [siem_pipeline]: Alerts tracked in the SIEM 'INGEST' index.
 
 [Conversation continues...]
 ```

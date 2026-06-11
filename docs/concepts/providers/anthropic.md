@@ -32,7 +32,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 from tulip.agent import Agent
 agent = Agent(
     model="anthropic:claude-sonnet-4-20250514",
-    system_prompt="You are a helpful assistant.",
+    system_prompt="You are a SOC triage analyst.",
 )
 ```
 
@@ -44,7 +44,7 @@ suffixes (`-20250514`).
 ### 3. Run it
 
 ```python
-result = agent.run_sync("Summarise the design doc in three bullets.")
+result = agent.run_sync("Summarise the triage findings for alert A-42 in three bullets.")
 print(result.message)
 ```
 
@@ -70,7 +70,7 @@ converts them to `ModelChunkEvent`s; your `async for` loop reads
 them as they arrive.
 
 ```python
-async for event in agent.run("Write a haiku about latency."):
+async for event in agent.run("Summarise the timeline of alert A-42."):
     if isinstance(event, ModelChunkEvent) and event.content:
         print(event.content, end="", flush=True)
 ```
@@ -101,7 +101,7 @@ agent = Agent(
     model="anthropic:claude-sonnet-4-20250514",
     output_schema=Triage,
 )
-result = agent.run_sync("This page is broken!")
+result = agent.run_sync("Beacon from WIN-7731 to a known C2 endpoint.")
 print(result.parsed)        # Triage(severity='high', needs_human=True)
 ```
 

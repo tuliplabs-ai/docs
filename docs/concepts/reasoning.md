@@ -22,14 +22,14 @@ Each is a single argument on `Agent(...)`. You can combine them.
 | Situation | Add-on |
 |---|---|
 | Agent loops endlessly or stacks tool calls on a wrong premise | `reflexion=True` |
-| Customer-facing answers where hallucinated facts cost money (drug names, prices, account numbers) | `grounding=True` |
-| Multi-step diagnosis or root-cause analysis where one bad assumption poisons the chain | `causal=True` |
-| All three apply — production research agent, compliance-sensitive answer | turn them all on |
-| Quick prototype, low-stakes Q&A | leave them off — extra model calls are wasted |
+| Analyst-facing findings where a hallucinated fact drives a wrong action (indicator values, hostnames, CVE ids) | `grounding=True` |
+| Multi-step investigation or root-cause analysis where one bad assumption poisons the chain | `causal=True` |
+| All three apply — production triage agent, audit-sensitive finding | turn them all on |
+| Quick prototype, low-stakes lookup | leave them off — extra model calls are wasted |
 
 The cost is more model round-trips. The win is fewer wrong answers.
 For short tasks the math doesn't pencil out. For runs of 5+ tool calls
-or anything that ships to a customer, it almost always does.
+or anything that ships to an analyst, it almost always does.
 
 ## Getting started
 
@@ -41,11 +41,11 @@ Self-evaluate per turn.
 from tulip.agent import Agent
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search, summarise],
+    tools=[query_siem, summarise],
     reflexion=True,
 )
 
-result = agent.run_sync("Find Q3 revenue and explain the YoY change.")
+result = agent.run_sync("Find the lateral-movement events for INC-92 and explain the spread.")
 print(result.metrics.reflexion_iterations)
 ```
 
@@ -62,11 +62,11 @@ Verify claims before answering.
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_pricing, lookup_inventory],
+    tools=[enrich_indicator, lookup_hash],
     grounding=True,
 )
 
-result = agent.run_sync("What's the cheapest GPU instance with 80GB?")
+result = agent.run_sync("Is the hash 44d88612... associated with known malware?")
 for claim in result.grounding_report.unsupported:
     print(f"DROPPED: {claim.text}")
 ```
@@ -84,11 +84,11 @@ Track cause-effect chains.
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[fetch_logs, query_metrics, traceback],
+    tools=[fetch_logs, query_siem, traceback],
     causal=True,
 )
 
-result = agent.run_sync("Why is checkout p99 latency up 4x since 14:00?")
+result = agent.run_sync("How did the attacker reach the domain controller from 192.0.2.10?")
 print(result.causal_chain.root_causes)
 ```
 

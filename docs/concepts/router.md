@@ -1,10 +1,11 @@
 # Router — pick the orchestration shape from a natural-language task
 
-You hand the router a sentence like *"Diagnose the checkout API
-slowdown."* It picks one of eight orchestration shapes — direct answer,
-plan-execute-validate pipeline, parallel specialist fan-out, debate,
-code-gen-with-tests loop, approval-gated execution, handoff chain, or
-remote A2A delegation — and runs that shape against your tools.
+You hand the router a sentence like *"Scan subnet 192.0.2.0/24 for the
+new CVE-2024-99999 exposure."* It picks one of eight orchestration
+shapes — direct answer, plan-execute-validate pipeline, parallel
+specialist fan-out, debate, code-gen-with-tests loop, approval-gated
+execution, handoff chain, or remote A2A delegation — and runs that shape
+against your tools.
 
 You describe *what* you want; the router decides *how* to coordinate
 the agents. The LLM only fills a typed schema (a `GoalFrame`) — it
@@ -51,10 +52,10 @@ from tulip.router import Complexity, GoalFrame, Risk, TaskType
 
 frame = GoalFrame(
     primary_goal=TaskType.DIAGNOSE,
-    domain="observability",
+    domain="vuln_management",
     complexity=Complexity.HIGH,
-    risk=Risk.MEDIUM,
-    required_capabilities=["metric_probe", "alert_list"],
+    risk=Risk.HIGH,   # an active subnet scan touches production hosts
+    required_capabilities=["scan_subnet", "lookup_cve"],
 )
 ```
 
@@ -70,7 +71,7 @@ from tulip.router import ProtocolRegistry, builtin_protocols
 protocols = ProtocolRegistry()
 protocols.register_many(builtin_protocols())
 
-chosen = protocols.select(frame, available_capabilities={"metric_probe", "alert_list"})
+chosen = protocols.select(frame, available_capabilities={"scan_subnet", "lookup_cve"})
 # chosen.id == "specialist_fanout"
 ```
 
@@ -84,13 +85,13 @@ then ranks candidates by complexity-fit + cost. It never asks the LLM.
 from tulip.router import CapabilityIndex
 from tulip.tools.registry import create_registry
 
-tools = create_registry(kb_search, get_metric, list_alerts)
+tools = create_registry(lookup_cve, scan_subnet, query_siem)
 caps = CapabilityIndex(tools)
 caps.annotate(
-    "metric_probe",
-    tool_name="get_metric",
-    description="Latest value for a named metric.",
-    domain="observability",
+    "scan_subnet",
+    tool_name="scan_subnet",
+    description="Active port + service scan across a CIDR range.",
+    domain="vuln_management",
 )
 ```
 
@@ -111,9 +112,11 @@ verdict = gate.check(frame, chosen)
 # verdict.allow / verdict.require_approval / verdict.reason
 ```
 
-The gate produces one of three verdicts. Approval-flagged runnables
-are wrapped with a callback that the workbench's interrupt UI (or your
-own approval flow) can drive.
+The gate produces one of three verdicts. With this config a HIGH-risk
+`scan_subnet` frame is allowed but flagged for approval, while a LOW-risk
+*"Summarise the latest advisory for CVE-2024-99999"* frame runs straight
+through. Approval-flagged runnables are wrapped with a callback that the
+workbench's interrupt UI (or your own approval flow) can drive.
 
 ### 5. CognitiveCompiler — composition, not codegen
 
@@ -127,7 +130,7 @@ compiler = CognitiveCompiler(
     model=model,
 )
 router = Router(extractor=extractor, compiler=compiler)
-result = await router.dispatch("Diagnose the checkout slowdown.")
+result = await router.dispatch("Scan subnet 192.0.2.0/24 for CVE-2024-99999.")
 print(result.protocol_id, result.text)
 ```
 
@@ -255,10 +258,10 @@ compiler = CognitiveCompiler(
 )
 ```
 
-When a user dispatches a request with `domain="observability"`, every
+When a user dispatches a request with `domain="vuln_management"`, every
 emitted Agent (planner / executor / validator for
 `plan_execute_validate`; each fan-out leg for `specialist_fanout`;
-etc.) sees the observability-tagged skills catalog and can activate
+etc.) sees the vuln-management-tagged skills catalog and can activate
 any one of them on demand.
 
 ## A2A delegation
@@ -305,8 +308,8 @@ protocols.register(
 )
 ```
 
-The same `Router` instance can serve multiple domains (observability,
-codegen, support) by swapping `CapabilityIndex` content — protocols
+The same `Router` instance can serve multiple domains (vuln management,
+threat intel, SOC triage) by swapping `CapabilityIndex` content — protocols
 themselves are domain-agnostic.
 
 ## Error handling
@@ -347,7 +350,7 @@ from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
     sub = asyncio.create_task(_print_events(rid))
-    result = await router.dispatch("Diagnose the checkout slowdown.")
+    result = await router.dispatch("Scan subnet 192.0.2.0/24 for CVE-2024-99999.")
     await sub
 
 async def _print_events(rid):

@@ -21,8 +21,8 @@ others.
 | Tool args from the model are sometimes malformed | Validation — already on; nothing to do |
 | Public-facing agent — block prompt injection, SQL/command/path-traversal patterns, cap input length | `GuardrailsHook` with the default `GuardrailConfig` |
 | Customer-facing answer where leaking PII (emails, SSN, credit cards, IPs) is a compliance issue | `GuardrailsHook` with PII patterns enabled |
-| High-stakes tools (`send_email`, `transfer_funds`, `delete_*`) — want a second model to sanity-check the call | `SteeringHook` with a judge model and a policy string |
-| Domain restriction — *"the user came in for flights, reject anything else"* | `SteeringHook` with that policy verbatim |
+| High-stakes tools (`isolate_host`, `block_indicator`, `delete_*`) — want a second model to sanity-check the call | `SteeringHook` with a judge model and a policy string |
+| Domain restriction — *"the user came in to triage this alert, reject anything else"* | `SteeringHook` with that policy verbatim |
 | Internal-only agent, trusted prompts, low-stakes tools | none of the above; default validation is enough |
 
 ## Getting started
@@ -43,7 +43,7 @@ config = GuardrailConfig(
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search, summarise],
+    tools=[query_siem, summarise],
     hooks=[GuardrailsHook(config=config)],
 )
 ```
@@ -96,28 +96,28 @@ from tulip.hooks.builtin.steering import SteeringHook
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_flights, send_email, transfer],
+    tools=[query_siem, block_indicator, isolate_host],
     hooks=[
         SteeringHook(
             judge_model="anthropic:claude-sonnet-4-6",
             policy=(
-                "The user came in to book a flight. "
-                "Reject any tool call unrelated to flights."
+                "The user came in to triage alert A-4271. "
+                "Reject any tool call unrelated to that alert."
             ),
         ),
     ],
 )
 ```
 
-Before `send_email` or `transfer` fires, the judge sees the system
-prompt, the user goal, and the proposed tool call. Three possible
+Before `block_indicator` or `isolate_host` fires, the judge sees the
+system prompt, the user goal, and the proposed tool call. Three possible
 verdicts:
 
 - **approve** — the call goes through.
 - **reject** — the call is replaced with an error the model sees,
   triggering a re-plan.
 - **rewrite** — the judge can hand back modified arguments (for
-  scoping a query, redacting a recipient, etc).
+  scoping a query, narrowing a block to a single indicator, etc).
 
 Use the smallest model that gives reliable verdicts — a `mini` /
 `flash` / `haiku` is usually enough.
@@ -132,12 +132,12 @@ to write any of that defensively.
 
 ```python
 @tool
-def book(flight_id: str, customer_id: str, seat_class: Literal["Y", "C", "F"]) -> dict:
+def isolate_host(host_id: str, incident_id: str, mode: Literal["full", "soft", "audit"]) -> dict:
     ...
 ```
 
-A model call with `seat_class="business"` is rejected before the body
-runs; the model sees the typed-error message and retries with `"C"`.
+A model call with `mode="quarantine"` is rejected before the body
+runs; the model sees the typed-error message and retries with `"full"`.
 
 ## Common gotchas
 

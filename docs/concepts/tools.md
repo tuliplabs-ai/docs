@@ -1,8 +1,8 @@
 # Tools
 
 Tools are how an Tulip agent
-affects the world. The model decides *"call `search` with query='hnsw'"*;
-the SDK runs your `search` function, captures the return value, and
+affects the world. The model decides *"call `query_siem` with query='src_ip:192.0.2.10'"*;
+the SDK runs your `query_siem` function, captures the return value, and
 feeds it back. From your side, a tool is **a regular Python function
 with a `@tool` decorator** — the SDK introspects the signature and
 docstring to build the schema the model sees.
@@ -14,9 +14,9 @@ the rest of the framework gets out of your way.
 
 | You want… | Write a tool |
 |---|---|
-| The model to call your API / database / file system | ✓ |
-| Side-effecting actions the model should be able to invoke | ✓ |
-| Read-only lookups (catalogue search, status checks) | ✓ |
+| The model to call your SIEM / threat-intel API / EDR | ✓ |
+| Side-effecting actions the model should be able to invoke (host isolation, blocking) | ✓ |
+| Read-only lookups (indicator reputation, alert status checks) | ✓ |
 | To mutate the agent's *internal* state (system prompt, config) | use a [hook](hooks.md), not a tool |
 | To intercept *every* tool call (logging, retry) | use a [hook](hooks.md) |
 
@@ -27,9 +27,9 @@ the rest of the framework gets out of your way.
 ```python
 from tulip.tools import tool
 @tool
-def search(query: str, limit: int = 10) -> list[str]:
-    """Search the knowledge base for ``query``, up to ``limit`` results."""
-    return backend.search(query, limit)
+def query_siem(query: str, limit: int = 10) -> list[str]:
+    """Search the SIEM for events matching ``query``, up to ``limit`` results."""
+    return siem.search(query, limit)
 ```
 
 The docstring becomes the tool description the model reads. Type
@@ -39,21 +39,21 @@ mark optional parameters.
 ### 2. Pass to the agent
 
 ```python
-agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[search])
+agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[query_siem])
 ```
 
-That's the wiring. The model now sees `search` in its tool list and
+That's the wiring. The model now sees `query_siem` in its tool list and
 can call it whenever it decides to.
 
 ### 3. Run it
 
 ```python
-result = agent.run_sync("Find documents about HNSW.")
+result = agent.run_sync("Pull all events for src_ip 192.0.2.10 in the last hour.")
 ```
 
-If the model decides to call `search("hnsw")`, the SDK invokes your
-function with that argument, captures the return value, and feeds it
-into the next model turn. You write Python; the SDK handles the
+If the model decides to call `query_siem("src_ip:192.0.2.10")`, the SDK
+invokes your function with that argument, captures the return value, and
+feeds it into the next model turn. You write Python; the SDK handles the
 schema marshalling.
 
 ## What you get out of the box
@@ -61,16 +61,16 @@ schema marshalling.
 ### Idempotent tools — the model can retry; the side effect can't
 
 This is the SDK's flagship tool primitive. Some side-effecting tools
-must run *exactly once* per logical request — bookings, charges,
-emails, paging. Mark them `idempotent=True`:
+must run *exactly once* per logical request — host isolation, paging
+on-call, blocking an indicator. Mark them `idempotent=True`:
 
 ```python
 @tool(idempotent=True)
-def book_flight(flight_id: str, customer_id: str) -> dict:
-    """Book the flight. Re-issuing the same (flight_id, customer_id)
-    within a single run returns the prior result; the body is not
-    re-executed."""
-    return billing.charge_and_book(flight_id, customer_id)
+def isolate_host(host_id: str, incident_id: str) -> dict:
+    """Isolate the host from the network. Re-issuing the same
+    (host_id, incident_id) within a single run returns the prior
+    result; the body is not re-executed."""
+    return edr.isolate(host_id, incident_id)
 ```
 
 When the model re-issues a tool call with the same
@@ -94,13 +94,13 @@ is never blocked.
 
 ```python
 @tool
-def add(a: int, b: int) -> int:
-    return a + b                        # sync — runs in thread pool
+def score_severity(cvss: float, exposure: float) -> float:
+    return cvss * exposure              # sync — runs in thread pool
 
 @tool
-async def fetch(url: str) -> str:
+async def lookup_hash(sha256: str) -> str:
     async with httpx.AsyncClient() as c:
-        return (await c.get(url)).text   # async — runs on the loop
+        return (await c.get(f"https://ti.example/hash/{sha256}")).text  # async — runs on the loop
 ```
 
 ### Parallel by default — fast when the model wants multiple things
@@ -108,13 +108,13 @@ async def fetch(url: str) -> str:
 ```python
 agent = Agent(
     model=...,
-    tools=[search_a, search_b, search_c],
+    tools=[enrich_indicator, lookup_hash, query_siem],
     tool_execution="concurrent",   # default
 )
 ```
 
 When the model emits multiple tool calls in one turn, the SDK runs
-them concurrently via `asyncio.gather`. Three independent searches
+them concurrently via `asyncio.gather`. Three independent enrichments
 finish in `max(t1, t2, t3)`, not `t1+t2+t3`.
 
 If your tools have side effects that must be ordered, switch to
@@ -129,14 +129,14 @@ try a different tool, or report to the user.
 
 ```python
 @tool
-def lookup_by_id(id: str) -> dict:
-    record = db.get(id)
+def lookup_alert(alert_id: str) -> dict:
+    record = siem.get_alert(alert_id)
     if record is None:
-        raise ValueError(f"no record with id={id}")
+        raise ValueError(f"no alert with id={alert_id}")
     return record
 ```
 
-The model sees `"no record with id=42"` and decides what to do.
+The model sees `"no alert with id=A-4271"` and decides what to do.
 Behind the scenes, the SDK chains the original exception as the cause
 on a `ToolExecutionError` for your structured logs.
 
@@ -146,12 +146,12 @@ Override the auto-derived defaults when the function name doesn't
 read well to the model:
 
 ```python
-@tool(name="find_customer", description="Look up a customer by email address.")
-async def _find_customer_internal(email: str) -> Customer:
+@tool(name="enrich_indicator", description="Look up reputation and context for an IOC.")
+async def _enrich_indicator_internal(indicator: str) -> Indicator:
     ...
 ```
 
-The model sees `find_customer`; your code keeps the internal name.
+The model sees `enrich_indicator`; your code keeps the internal name.
 
 ## Practical recipes
 
@@ -159,9 +159,9 @@ The model sees `find_customer`; your code keeps the internal name.
 
 ```python
 @tool
-def get_order_status(order_id: str) -> dict:
-    """Return the current status and shipment info for an order."""
-    return orders.get(order_id)
+def get_alert_status(alert_id: str) -> dict:
+    """Return the current triage status and assignment for an alert."""
+    return alerts.get(alert_id)
 ```
 
 No need for `idempotent=True` — read-only calls are safe to repeat.
@@ -170,9 +170,9 @@ No need for `idempotent=True` — read-only calls are safe to repeat.
 
 ```python
 @tool(idempotent=True)
-def submit_po(vendor_id: str, line_items: list[dict]) -> dict:
-    """Submit a purchase order. Re-fires return the cached PO id."""
-    return procurement.submit(vendor_id, line_items)
+def block_indicator(indicator: str, scope: str) -> dict:
+    """Push a block for an indicator to the firewall. Re-fires return the cached block id."""
+    return firewall.block(indicator, scope)
 ```
 
 ### A tool that's also exposed via MCP
@@ -186,7 +186,7 @@ through `TulipMCPServer` — same `@tool`, no rewrite. See
 | Symptom | Likely cause |
 |---|---|
 | Model never calls the tool | Description / docstring isn't telling the model when to use it. Be explicit: *"Use this tool when the user asks about X."* |
-| Tool fires twice on the same input | You're seeing the model retry. Add `idempotent=True`. |
+| Tool fires twice on the same input | You're seeing the model retry. Add `idempotent=True` (a host gets isolated once, not twice). |
 | `TypeError: missing 1 required positional argument` at call time | Function signature has a parameter without a default that you didn't surface in the docstring; the model omitted it. Add a default or explain the parameter. |
 | Tool returns Python objects but the model echoes `<__main__.X object at 0x…>` | Tool return value isn't JSON-serialisable. Return a dict / Pydantic model / list of strings, not arbitrary objects. |
 | Async tool blocks the event loop | The "async" body is calling sync I/O. Wrap the blocking call in `asyncio.to_thread(...)` or use an async client. |

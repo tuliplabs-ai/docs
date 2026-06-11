@@ -7,13 +7,13 @@ hide:
 <div class="tulip-hero" markdown>
 <div class="tulip-hero__copy" markdown>
 
-<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>Multi-Agent SDK</p>
+<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the agent SDK for security work</p>
 
-# Agent teams that <span class="accent">show their work.</span>
+# Security agents that <span class="accent">show their work.</span>
 
-Give Tulip a goal and it assembles the right coordination shape — a single agent, a pipeline, a debate, an approval gate — then writes every decision to a typed event stream you can rewind, inspect, and test against.
+Build agent teams for security work where every finding is traced to evidence, every action is a typed event you can replay, and every risky step is gated. An ungrounded finding is a false positive *by construction* — Tulip won't let an agent ship one.
 
-<div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[direct&nbsp;answer](concepts/router.md)</span> · <span style="white-space:nowrap">[pipeline](concepts/multi-agent/composition.md)</span> · <span style="white-space:nowrap">[fan&#8209;out](concepts/multi-agent/composition.md)</span> · <span style="white-space:nowrap">[debate](concepts/multi-agent/composition.md)</span> · <span style="white-space:nowrap">[code&nbsp;+&nbsp;test](concepts/multi-agent/composition.md)</span> · <span style="white-space:nowrap">[approval&nbsp;gate](concepts/interrupts.md)</span> · <span style="white-space:nowrap">[A2A](concepts/multi-agent/a2a.md)</span> · <span style="white-space:nowrap">[handoff](concepts/multi-agent/handoff.md)</span></div>
+<div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[MITRE&nbsp;ATLAS](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;LLM&nbsp;Top&nbsp;10](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;ASI](concepts/security.md)</span> · <span style="white-space:nowrap">[NIST&nbsp;AI&nbsp;RMF](concepts/security.md)</span></div>
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
@@ -34,189 +34,165 @@ from tulip.tools import tool
 from tulip.observability import run_context, get_event_bus
 
 @tool
-def get_metric(name: str) -> float:
-    """Current value of a named SRE metric."""
-    return monitoring.read(name)
+def enrich_indicator(value: str) -> dict:
+    """Reputation, first-seen, and category for an IP / domain / hash."""
+    return intel.lookup(value)
 
 @tool
-def fetch_runbook(topic: str) -> str:
-    """Pull the runbook section for a topic."""
-    return wiki.fetch(topic)
+def query_siem(query: str) -> list[dict]:
+    """Run a detection query against the SIEM."""
+    return siem.search(query)
 
 @tool(idempotent=True)
-def page_oncall(reason: str) -> str:
-    """Page the on-call engineer. Fires exactly once per reason."""
-    return pager.send(reason)
+def isolate_host(host: str) -> str:
+    """Network-isolate a host. Fires exactly once per host."""
+    return edr.isolate(host)
 
 agent = Agent(
     model="openai:gpt-4o",
-    tools=[get_metric, fetch_runbook, page_oncall],
-    reflexion=True,        # self-evaluates every turn
-    grounding=True,        # claims verified against tool output
+    tools=[enrich_indicator, query_siem, isolate_host],
+    grounding=True,        # every claim verified against tool output
+    system_prompt="You are a SOC triage analyst. Cite evidence for every verdict.",
 )
 
 async with run_context() as rid:
     result = await agent.run(
-        "p99 on checkout-api spiked to 4.2s — investigate and page if critical."
+        "Outbound beaconing from 192.0.2.14 to a domain "
+        "registered yesterday — triage and contain if warranted."
     )
     async for ev in get_event_bus().subscribe(rid):
         match ev.event_type:
-            case "agent.tool.started":   print("🔧", ev.data["tool_name"])
-            case "agent.tokens.used":    print("🪙", ev.data["total_tokens"])
-            case "agent.terminate":      print("✓", ev.data["final_message_preview"])
+            case "agent.tool.started": print("🔧", ev.data["tool_name"])
+            case "agent.terminate":    print("✓", ev.data["final_message_preview"])
 ```
 
 </div>
 </div>
 
-## A working agent in five lines
+## Grounded, or it doesn't ship
+
+Security is the one domain where a hallucinated claim isn't an
+embarrassment — it's a false positive that burns an analyst's night, or
+a false negative that ships a breach. `tulip.security` turns a GSAR
+evidence partition into a typed `Finding` **only** when it clears the
+grounding threshold; otherwise you get an auditable `Abstention`, never
+a finding. There is no public constructor that builds a `Finding`
+without a score.
 
 ```python
-from tulip.agent import Agent
+from tulip.security import ground_finding, Severity, is_finding
+from tulip.reasoning.gsar import Claim, EvidenceType, Partition
 
-agent = Agent(model="openai:gpt-4o")
-print(agent.run_sync("What is the capital of France?").text)
-# → Paris
-```
-
-Construction, the model call, retries, and the reply all live behind
-that one class. Point `model=` at `anthropic:claude-sonnet-4-6`
-instead and nothing else moves.
-
-Hand it a tool and it starts reasoning in turns — thinking, calling,
-thinking again — until it has an answer:
-
-```python
-from tulip.tools import tool
-
-@tool
-def get_weather(city: str) -> str:
-    """Return the current weather for a city."""
-    return weather_api.fetch(city)
-
-agent = Agent(
-    model="openai:gpt-4o",
-    tools=[get_weather],
-    system_prompt="You are a helpful travel assistant.",
+result = ground_finding(
+    title="Expired TLS certificate on 192.0.2.10:443",
+    description="Serving endpoint presents an expired certificate.",
+    severity=Severity.HIGH,
+    asset="192.0.2.10:443",
+    remediation="Rotate the certificate; enforce automated renewal.",
+    partition=Partition(grounded=[
+        Claim(text="cert expired 2026-05-30", type=EvidenceType.TOOL_MATCH,
+              evidence_refs=["tool:tls_scan:not_after=2026-05-30"]),
+    ]),
 )
-print(agent.run_sync("Should I bring an umbrella to Tokyo tomorrow?").text)
+print(result.title if is_finding(result) else f"withheld: {result.reason}")
+# Grounded partition → a typed Finding. Ungrounded → an Abstention.
 ```
 
-[Cookbook · your first agent →](notebooks/notebook_06_basic_agent.md)
+Findings carry **MITRE ATLAS** (`AML.Txxxx`), **OWASP Top 10 for LLM
+Applications**, and **OWASP Top 10 for Agentic Applications** tags, so
+they drop into a SIEM or a **NIST AI RMF** report without translation.
+
+[The security layer →](concepts/security.md) · [GSAR grounding →](concepts/gsar.md)
 
 ## What Tulip gives you
 
 <div class="grid cards tulip-feature-cards" markdown>
 
-- :material-graph:{ .lg .middle } **[Multi-agent coordination](concepts/multi-agent.md)**
+- :material-shield-search:{ .lg .middle } **[Grounded findings](concepts/security.md)**
 
     ---
-    Seven in-process patterns plus A2A: Sequential, Parallel, Loop,
-    Orchestrator, Swarm, Handoff, StateGraph, plus DeepAgent. One
-    `Agent` class, one event stream.
+    `ground_finding()` emits a typed `Finding` only above the GSAR
+    threshold — else an auditable `Abstention`. Ungrounded is
+    unshippable by construction. Tagged to ATLAS · OWASP LLM · OWASP ASI.
 
-- :material-routes:{ .lg .middle } **[Cognitive router](concepts/router.md)**
-
-    ---
-    Describe a task in plain language. The router extracts a typed
-    `GoalFrame`, picks one of eight built-in protocols, and compiles
-    it onto a real `Agent` / `Pipeline` / `Orchestrator`.
-
-- :material-chart-timeline-variant:{ .lg .middle } **[Grounded reasoning](concepts/reasoning.md)**
+- :material-radar:{ .lg .middle } **[AI-threat coverage](notebooks/index.md)**
 
     ---
-    Reflexion, Grounding, and Causal are first-class `Think → Execute → Reflect`
-    nodes. Claims that don't hold up against tool output get dropped or
-    re-researched before the user ever sees them.
+    Prompt injection, jailbreaks, RAG and memory poisoning, model
+    extraction, excessive agency, and timing side-channel inference
+    fingerprinting — the latter with a cookbook pattern for dispatching
+    probes to dedicated GPU clusters. Plus a classic SOC/IR track.
 
-- :material-shield-check:{ .lg .middle } **[Idempotent tools](concepts/idempotency.md)**
+- :material-routes:{ .lg .middle } **[Risk-gated routing](concepts/router.md)**
+
+    ---
+    The cognitive router ranks each task by risk; HIGH-risk actions
+    (isolate a host, block a domain) compile to an approval gate that
+    survives restarts. The model classifies; it never authors topology.
+
+- :material-shield-check:{ .lg .middle } **[Idempotent containment](concepts/idempotency.md)**
 
     ---
     `@tool(idempotent=True)` deduplicates on `(name, args)` inside the
-    Execute node. No double-charge, double-book, or double-page — even
+    Execute node. No double-isolate, double-page, or double-block — even
     on model retry or checkpoint resume.
 
-- :material-eye:{ .lg .middle } **[In-process observability](concepts/observability.md)**
+- :material-eye:{ .lg .middle } **[Audit trail by default](concepts/observability.md)**
 
     ---
-    Opt-in `EventBus` with an agent yield bridge. One `run_context()`
-    streams 60+ canonical events from every layer — agent, multi-agent,
-    router, RAG, memory. Zero allocations when unused.
+    One `run_context()` streams 60+ canonical events from every layer.
+    Every model call, tool call, guardrail verdict, and approval is an
+    immutable event you can ship to a SIEM and replay in a postmortem.
 
-- :material-code-braces:{ .lg .middle } **[Termination algebra](concepts/termination.md)**
+- :material-graph:{ .lg .middle } **[Multi-agent coordination](concepts/multi-agent.md)**
 
     ---
-    `MaxIterations(10) | TextMention("DONE") & ConfidenceMet(0.9)` is
-    real Python — `__or__` / `__and__` overloads on typed classes.
-    Greppable, unit-testable, serialisable.
+    Eight shapes — pipeline, fan-out, debate, orchestrator, swarm,
+    handoff, StateGraph, A2A — for IR war-rooms, tiered escalation, and
+    red-team-vs-detection. One `Agent` class, one event stream.
 
 </div>
 
-## Eight protocols, one dispatch call
+## Risk decides what runs
 
-Once you have an agent, the next question is *which shape* to use.
-The cognitive router picks for you:
+Describe the task in plain language. The cognitive router extracts a
+typed `GoalFrame` (intent · domain · complexity · **risk**), picks one
+of eight protocols, and compiles it onto real primitives — and the
+PolicyGate, not the model's confidence, decides whether a step
+auto-runs or waits for a human.
 
-| Protocol | Compiled shape | Best for |
+| Protocol | Compiled shape | Security use |
 |---|---|---|
-| `direct_response` | Single `Agent` | `ANSWER`, `EXPLAIN` |
-| `plan_execute_validate` | `SequentialPipeline` (planner → executor → validator) | `PLAN`, `BUILD`, `MODIFY` |
-| `specialist_fanout` | `ParallelPipeline` of N tool-bound Agents | `DIAGNOSE`, `MONITOR` |
-| `debate` | Two debaters + judge `Agent` | `COMPARE` |
-| `codegen_test_validate` | `LoopAgent` (stops on `PASS`) | `GENERATE_CODE` |
-| `approval_gated_execution` | `Agent` wrapped in approval interrupt | `ESCALATE`, `REMEDIATE` |
-| `handoff_chain` | `SequentialPipeline` of one-tool Agents | `COORDINATE` |
-| `a2a_delegate` | Cross-process A2A call (opt-in) | distributed meshes |
+| `direct_response` | Single `Agent` | summarise an advisory |
+| `plan_execute_validate` | `SequentialPipeline` | roll out a detection / MFA change |
+| `specialist_fanout` | `ParallelPipeline` of probes | triage a failed-login spike |
+| `debate` | Two debaters + judge | adjudicate true-positive vs false-positive |
+| `codegen_test_validate` | `LoopAgent` (stops on `PASS`) | write a detection rule + test it |
+| `approval_gated_execution` | `Agent` + approval interrupt | scan a subnet · isolate a host |
+| `handoff_chain` | `SequentialPipeline` of one-tool Agents | L1 → L2 → L3 escalation |
+| `a2a_delegate` | Cross-process A2A | cross-org threat-intel sharing |
 
 ```python
-result = await router.dispatch("Diagnose the checkout API slowdown.")
-print(result.protocol_id)   # "specialist_fanout"
-print(result.text)          # findings from 3 parallel probes
+result = await router.dispatch("Authorized scan of 192.0.2.0/24; isolate hosts beaconing out.")
+print(result.protocol_id)   # "approval_gated_execution"  → held for a human
 ```
 
 [Cognitive router →](concepts/router.md)
 
-## Vendor-neutral backends
+## Walk the cookbook
 
-RAG, memory, and persistence are small contracts — pick any backend that
-implements them, with no lock-in and a free/local test path for most.
+Every example is a single self-contained file under [`examples/`][gh-examples]
+with a matching docs page. **AI-security is the primary track**; classic
+SOC/IR is the second.
 
-```python
-from tulip.rag import OpenAIEmbeddings, QdrantVectorStore, RAGRetriever
-from tulip.rag.reranker import CrossEncoderReranker
-
-retriever = RAGRetriever(
-    embedder=OpenAIEmbeddings(model="text-embedding-3-small"),
-    store=QdrantVectorStore(location=":memory:", dimension=1536),  # or a server URL
-    reranker=CrossEncoderReranker(top_n=5),                        # local, offline
-)
-await retriever.add_documents(corpus)
-hits = await retriever.retrieve("…", limit=5)
-```
-
-Vector stores: **pgvector · Qdrant · Chroma · OpenSearch · in-memory**.
-Checkpointers: **Redis · Postgres · MySQL · OpenSearch · S3 / MinIO ·
-file · in-memory · HTTP**. Long-term memory: **Mem0** or `LLMMemoryManager`
-over any `BaseStore`.
-
-[RAG concept page →](concepts/rag.md)
-
-## Walk the notebooks
-
-The fastest way to learn Tulip is to run the notebooks. Each one is a
-single self-contained file under [`examples/`][gh-examples] with a
-matching docs page — start at the topic you want, click through to
-the source from there.
-
-| What | Notebooks (click any one) |
+| Track | Start here |
 |---|---|
-| Agent + ReAct loop | [13 — Basic agent](notebooks/notebook_06_basic_agent.md) · [14 — Agent with tools](notebooks/notebook_07_agent_with_tools.md) · [17 — Lifecycle hooks](notebooks/notebook_12_agent_hooks.md) |
-| Cognitive router (PRISM) | [57 — Cognitive router](notebooks/notebook_58_cognitive_router.md) · [39 — Emergent routing](notebooks/notebook_34_emergent_routing.md) |
-| Multi-agent shapes | [21 — Basic graph](notebooks/notebook_16_basic_graph.md) · [26 — Composition](notebooks/notebook_21_composition.md) · [29 — Swarm](notebooks/notebook_24_swarm_multiagent.md) · [30 — Handoff](notebooks/notebook_25_agent_handoff.md) · [31 — Orchestrator](notebooks/notebook_26_orchestrator_pattern.md) · [33 — A2A](notebooks/notebook_28_a2a_protocol.md) |
-| Observability | [16 — Streaming events](notebooks/notebook_11_agent_streaming.md) · [58 — Observability basics](notebooks/notebook_59_observability_basics.md) · [61 — Event catalogue](notebooks/notebook_62_event_catalogue.md) |
-| Idempotent tools · termination | [14 — Agent with tools](notebooks/notebook_07_agent_with_tools.md) · [20 — Termination](notebooks/notebook_15_termination.md) |
-| RAG · vector stores | [38 — RAG basics](notebooks/notebook_38_rag_basics.md) · [39 — RAG providers](notebooks/notebook_39_rag_providers.md) · [40 — RAG agents](notebooks/notebook_40_rag_agents.md) |
-| Memory · checkpointers | [08 — Conversation memory](notebooks/notebook_08_agent_memory.md) · [52 — Checkpoint backends](notebooks/notebook_52_checkpoint_backends.md) |
+| **Grounded findings (flagship)** | [GSAR typed grounding](notebooks/notebook_37_gsar_typed_grounding.md) · [typed findings](notebooks/notebook_35_structured_output.md) |
+| **Prompt injection · red-team** | [injection guardrails](notebooks/notebook_50_guardrails_security.md) · [purple-team patterns](notebooks/notebook_20_advanced_patterns.md) · [report vs. skeptic](notebooks/notebook_31_supervisor_critic_loop.md) |
+| **Inference fingerprinting** | [forensics specialist](notebooks/notebook_27_specialist_agents.md) · [security MCP tooling](notebooks/notebook_45_mcp_integration.md) |
+| **Threat-intel · RAG poisoning** | [ATLAS knowledge base](notebooks/notebook_38_rag_basics.md) · [advisory KB](notebooks/notebook_39_rag_providers.md) · [intel copilot](notebooks/notebook_40_rag_agents.md) |
+| **SOC triage · IR** | [triage agent](notebooks/notebook_06_basic_agent.md) · [IR war-room](notebooks/notebook_24_swarm_multiagent.md) · [containment approval](notebooks/notebook_19_human_in_the_loop.md) · [incident response](notebooks/notebook_63_incident_response.md) |
+| **Audit · compliance** | [forensic event trail](notebooks/notebook_59_observability_basics.md) · [vendor security review](notebooks/notebook_64_procurement_approval.md) · [DPA review](notebooks/notebook_65_contract_review.md) |
 
 Full catalog → [Notebooks index](notebooks/index.md) · [Capabilities matrix](capabilities.md) · [API reference](api/agent.md)
 
@@ -224,4 +200,4 @@ Full catalog → [Notebooks index](notebooks/index.md) · [Capabilities matrix](
 
 ---
 
-**Vendor-neutral. Production-tested. Open to everyone.**
+**Evidence-grounded. Standards-aligned. Open to everyone.**

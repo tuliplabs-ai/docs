@@ -6,7 +6,7 @@ strings, not `dict[str, Any]` blobs — designed to drop into a `match`
 statement that your type checker can verify exhaustively:
 
 ```python
-async for event in agent.run("Plan a trip to Paris."):
+async for event in agent.run("Triage alert SOC-4821."):
     match event:
         case ThinkEvent(reasoning=r) if r:
             print(f"💭 {r}")
@@ -16,10 +16,10 @@ async for event in agent.run("Plan a trip to Paris."):
             print(f"\n✅ {m}")
 ```
 
-This is the surface a UI consumes (live token rendering, tool-call
-indicators, reasoning bubbles), the surface telemetry hooks observe,
-and the surface `AgentServer` re-emits over Server-Sent Events for
-browsers.
+This is the surface a SOC console consumes (live token rendering,
+tool-call indicators, reasoning bubbles), the surface telemetry hooks
+observe, and the surface `AgentServer` re-emits over Server-Sent Events
+for browsers.
 
 ## When to consume the event stream
 
@@ -35,7 +35,7 @@ browsers.
 ### 1. Use `agent.run(prompt)` instead of `run_sync`
 
 ```python
-async for event in agent.run("Plan a trip to Paris."):
+async for event in agent.run("Triage alert SOC-4821."):
     print(event)
 ```
 
@@ -54,7 +54,7 @@ from tulip.core.events import (
     TerminateEvent,
 )
 
-async for event in agent.run("Plan a trip to Paris."):
+async for event in agent.run("Triage alert SOC-4821."):
     match event:
         case ThinkEvent(reasoning=r) if r:
             print(f"💭 {r}")
@@ -106,8 +106,8 @@ the value's wrong. The SDK's frozen events make that impossible.
 ## Sync wrapper — when you don't need the stream
 
 ```python
-result = agent.run_sync("What is 2+2?")
-print(result.message)        # 'Four.'
+result = agent.run_sync("What severity is alert SOC-4821?")
+print(result.message)        # 'High.'
 print(result.metrics.iterations)
 ```
 
@@ -119,7 +119,7 @@ and scripts where the trace doesn't matter.
 ## Practical recipe — render to a terminal UI
 
 ```python
-async for event in agent.run("Find Q3 revenue and email it to me."):
+async for event in agent.run("Enrich indicator 198.51.100.7 and isolate the host if it's malicious."):
     match event:
         case ToolStartEvent(tool_name=n):
             print(f"\n🔧 {n}", end="", flush=True)

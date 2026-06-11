@@ -77,14 +77,14 @@ def submit_research(result: ResearchResult) -> str:
 agent = create_deepagent(
     model="anthropic:claude-sonnet-4-6",
     tools=[search_kb, submit_research],
-    system_prompt="You are a research agent. Submit when confident.",
+    system_prompt="You are a threat-intel research agent. Submit when confident.",
     output_schema=ResearchResult,
     submit_tool="submit_research",
     min_confidence=0.85,
     max_iterations=20,
 )
 
-result = agent.run_sync("Summarise our Q3 pipeline coverage.")
+result = agent.run_sync("Summarise the infrastructure behind CVE-2024-99999 exploitation.")
 report: ResearchResult = result.parsed  # Pydantic-typed structured output
 ```
 
@@ -131,17 +131,17 @@ gives the caller a live view after the run.
 ```python
 from tulip.deepagent import SubAgentDef
 
-symbol_analyst = SubAgentDef(
-    name="symbol_analyst",
-    description="Deep-dives on a single module's public API.",
-    system_prompt="Inspect the given module and return its public symbols.",
-    tools=[inspect_module],
+indicator_analyst = SubAgentDef(
+    name="indicator_analyst",
+    description="Deep-dives on a single indicator's reputation and pivots.",
+    system_prompt="Enrich the given indicator and return its reputation and related infrastructure.",
+    tools=[enrich_indicator],
     max_iterations=4,
 )
 
 agent = create_deepagent(
     # model=..., tools=..., system_prompt=... (required)
-    subagents=[symbol_analyst],
+    subagents=[indicator_analyst],
 )
 ```
 
@@ -176,10 +176,10 @@ retriever = RAGRetriever(
 agent = create_deepagent(
     # model=..., tools=..., system_prompt=... (required)
     datastores={
-        "medical": {
+        "threat_intel": {
             "retriever": retriever,
-            "description": "clinical knowledge: anemia, hemochromatosis, "
-                           "iron diagnostics and treatment",
+            "description": "threat intel corpus: malware families, "
+                           "C2 infrastructure, ATT&CK techniques, IOCs",
             "top_k": 6,
         },
         # additional named stores — agent routes between them
@@ -236,7 +236,7 @@ SSE events stream out whenever a `run_context` is active:
 from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
-    result = agent.run_sync("Research the observability module.")
+    result = agent.run_sync("Research the C2 infrastructure for this campaign.")
 
     async for ev in get_event_bus().subscribe(rid):
         match ev.event_type:
@@ -259,18 +259,18 @@ async with run_context() as rid:
 
 ## KnowledgeProvider — multi-item scans
 
-For research that iterates over a discoverable surface (e.g. every table
-in a database schema), implement `KnowledgeProvider`:
+For research that iterates over a discoverable surface (e.g. every host
+in an asset inventory), implement `KnowledgeProvider`:
 
 ```python
 from tulip.deepagent import KnowledgeProvider, KnowledgeRow, ItemRef
 
-class SchemaProvider(KnowledgeProvider):
+class AssetInventoryProvider(KnowledgeProvider):
     def list_items(self) -> list[ItemRef]:
-        return [ItemRef(id=t, label=t) for t in db.list_tables()]
+        return [ItemRef(id=h, label=h) for h in inventory.list_hosts()]
 
     def describe_item(self, ref: ItemRef) -> str:
-        return db.describe_table(ref.id)
+        return inventory.describe_host(ref.id)
 
     def to_row(self, ref: ItemRef, result: ResearchResult) -> KnowledgeRow:
         return KnowledgeRow(id=ref.id, data=result.model_dump())
@@ -312,13 +312,13 @@ class Report(BaseModel):
 
 workflow = create_research_workflow(
     model=get_model(),
-    tools=[search_kb, inspect_record, submit_research],
+    tools=[search_kb, enrich_indicator, submit_research],
     output_schema=Report,
     grounding_threshold=0.65,   # accept summary when ≥ 65% claims grounded
     max_replans=2,               # retry up to 2× with focused re-plan
 )
 
-result = await workflow.execute({"prompt": "Investigate FUSION.AP_INVOICES_ALL"})
+result = await workflow.execute({"prompt": "Investigate indicator 198.51.100.7"})
 report: Report = result.final_state["structured_output"]
 print(f"grounding: {result.final_state['grounding_score']:.0%}")
 print(f"replans used: {result.final_state['replan_count']}")
@@ -334,7 +334,7 @@ workflow = create_research_workflow(
     model=...,
     tools=[],
     output_schema=Report,
-    datastores={"medical": {"retriever": medical_retriever, "top_k": 6}},
+    datastores={"threat_intel": {"retriever": threat_intel_retriever, "top_k": 6}},
     grounding_threshold=0.65,
 )
 ```

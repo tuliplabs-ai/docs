@@ -2,7 +2,10 @@
 
 The agent keeps conversation state in `AgentState`. Pass a
 `BaseCheckpointer` and the same `thread_id` across invocations to
-resume a conversation — even across process restarts.
+resume a conversation — even across process restarts. This is what
+keeps a multi-day investigation durable: an analyst can pick up the
+same incident thread tomorrow, on a different worker, with the full
+history intact.
 
 ## 1. Pick a backend
 
@@ -80,11 +83,11 @@ agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[...], checkpointer=che
 ## 3. Use a stable thread_id
 
 ```python
-# First turn — new thread
-await agent.run("Plan a trip to Paris.", thread_id="user-42").__anext__()
+# First turn — new investigation thread
+await agent.run("Open investigation INC-4821 for the web-01 compromise.", thread_id="inc-4821").__anext__()
 
-# Second turn, possibly a different process instance
-await agent.run("Now book the flights.", thread_id="user-42").__anext__()
+# Second turn, possibly a different process instance (next shift)
+await agent.run("Now correlate the new SIEM hits against the same host.", thread_id="inc-4821").__anext__()
 ```
 
 The agent calls `checkpointer.load(thread_id)` at the start of every
@@ -111,12 +114,12 @@ prior conversation:
 
 ```python
 agent1 = Agent(..., checkpointer=checkpointer)
-await agent1.run("I'm Alex.", thread_id="t1").__anext__()
+await agent1.run("This is investigation INC-4821.", thread_id="t1").__anext__()
 del agent1
 
-# Simulates a process restart / different worker.
+# Simulates a process restart / different worker (e.g. the next shift).
 agent2 = Agent(..., checkpointer=checkpointer)
-await agent2.run("Who am I?", thread_id="t1").__anext__()
+await agent2.run("Which investigation are we on?", thread_id="t1").__anext__()
 # The model sees the earlier user turn.
 ```
 
