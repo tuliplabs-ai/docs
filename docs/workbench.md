@@ -1,4 +1,4 @@
-<p class="tulip-product-name">Multi-Agent SDK</p>
+<p class="tulip-product-name">the cybersecurity agent SDK</p>
 
 # Workbench
 
