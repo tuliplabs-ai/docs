@@ -51,7 +51,7 @@ theme:
   - search.suggest
 
 extra_css:
-- https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap
+- https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&display=swap
 - stylesheets/tulip.css
 
 extra_javascript:

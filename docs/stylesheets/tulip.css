@@ -1369,7 +1369,7 @@ form.md-header__option {
    Dark:  deep header. Pink->orange gradient as a thin hairline + the
    logo + accents; tulip-rose links/CTAs, warm-orange hover.
    =================================================================== */
-:root { --tulip-grad: linear-gradient(90deg, #ED2F7E 0%, #F7651E 100%); }
+:root { --tulip-grad: linear-gradient(90deg, #D6336C 0%, #AD2E5C 100%); }
 
 /* ---- Light scheme: white header, ink text/icons ---- */
 [data-md-color-scheme="default"] {
@@ -1426,7 +1426,7 @@ form.md-header__option {
    (mark + gradient headline + CTAs, code in a card below), and
    bordered hover-lift feature cards.
    =================================================================== */
-:root { --tulip-display: "Space Grotesk", "Inter", system-ui, -apple-system, sans-serif; }
+:root { --tulip-display: "Fraunces", Georgia, "Times New Roman", serif; }
 
 /* Display font on headings, hero, header wordmark, tabs, footer brand. */
 .md-typeset h1, .md-typeset h2, .md-typeset h3,
