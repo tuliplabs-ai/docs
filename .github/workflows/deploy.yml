@@ -71,20 +71,10 @@ jobs:
       - name: Build site
         run: hatch run build
 
-      # Serve the project landing at the root and the docs under /docs.
-      # landing/ carries the root index.html + styles + CNAME; the mkdocs
-      # build (site/) goes under publish/docs/.
-      - name: Assemble landing (root) + docs (/docs)
-        run: |
-          set -eu
-          rm -rf publish && mkdir -p publish/docs
-          cp -r landing/. publish/
-          cp -r site/. publish/docs/
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: publish
+          path: site
 
   deploy:
     needs: build
