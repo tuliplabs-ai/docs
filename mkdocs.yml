@@ -160,6 +160,8 @@ nav:
     - GSAR (typed grounding): concepts/gsar.md
   - Security:
     - Grounded findings: concepts/security.md
+    - Threat scenarios: concepts/threat-scenarios.md
+    - Cloud-posture agent: concepts/cloud-posture.md
   - Memory:
     - Checkpointers & Store: concepts/checkpointers.md
     - Long-term Memory Manager: concepts/memory-manager.md
@@ -253,6 +255,7 @@ nav:
     - Live vendor integrations: notebooks/notebook_70_vendor_integrations.md
     - LiteLLM AI Gateway: notebooks/notebook_71_litellm_gateway.md
     - LiteLLM AI Gateway — cost tracking: notebooks/notebook_72_litellm_gateway_cost.md
+    - Grounded cloud-posture agent: notebooks/notebook_73_cloud_posture_agent.md
   - Guides:
     - Deploy: how-to/deploy.md
     - Persist conversations: how-to/persist-conversations.md
