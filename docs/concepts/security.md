@@ -64,6 +64,9 @@ from tulip.security import AtlasTechnique, OwaspLLM
 taxonomy = [OwaspLLM.PROMPT_INJECTION, AtlasTechnique.PROMPT_INJECTION]  # LLM01 / AML.T0051
 ```
 
+Every ID in these three catalogues maps to a runnable defense gist — see the
+[threat-scenarios coverage matrix](threat-scenarios.md).
+
 ## Inference fingerprinting
 
 `ground_fingerprint()` is the same admit/abstain contract for the
@@ -221,6 +224,10 @@ ships a finding mapped to compliance controls.
 
 ## Where it shows up
 
+- Applied end-to-end: [cloud-posture agent](cloud-posture.md) — grounded,
+  read-only AWS auditing built on `ground_finding`.
+- Complete defense catalogue: [threat scenarios](threat-scenarios.md) — every
+  OWASP LLM / OWASP ASI / MITRE ATLAS ID mapped to a runnable gist.
 - Cookbook flagship: [GSAR typed grounding](../notebooks/notebook_37_gsar_typed_grounding.md)
 - Prompt-injection findings: [guardrails](../notebooks/notebook_50_guardrails_security.md)
 - Fingerprinting: [forensics specialist](../notebooks/notebook_27_specialist_agents.md)

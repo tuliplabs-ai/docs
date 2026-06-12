@@ -139,6 +139,37 @@ def isolate_host(host_id: str, incident_id: str, mode: Literal["full", "soft", "
 A model call with `mode="quarantine"` is rejected before the body
 runs; the model sees the typed-error message and retries with `"full"`.
 
+## Structural guardrails — restrict the tool, not just the call
+
+The strongest guardrail is a tool that *cannot* perform the dangerous action
+in the first place. Hooks and steering inspect a call and decide; a
+capability-restricted tool removes the capability, so there is nothing to
+decide. The two compose — but when you can constrain the tool, do that first.
+
+The [cloud-posture agent](cloud-posture.md) is the worked example. Its
+`use_aws` tool admits an operation only if its name starts with a read verb
+(`Describe` / `List` / `Get` / …), and it checks **before** any API call:
+
+```python
+from tulip.security import use_aws
+
+use_aws("iam", "CreateUser", {"UserName": "x"})
+# PermissionError: refused: iam:CreateUser is not a read-only operation.
+```
+
+The principle is **defense in depth across a trust boundary**: pair an
+in-process gate (fast, explicit intent) with an out-of-process backstop that
+doesn't trust your code at all —
+
+| In-process gate | Out-of-process backstop |
+|---|---|
+| read-verb allowlist in `use_aws` | read-only IAM identity (`SecurityAudit` + `ViewOnlyAccess`) |
+| `block_dangerous_tools` in `GuardrailsHook` | container without the binary; seccomp profile |
+| SQL-shape detection in tool inputs | database role with `SELECT`-only grants |
+
+If the gate is ever bypassed, the backstop still refuses. Neither layer trusts
+the model — and the backstop doesn't trust the gate either.
+
 ## Common gotchas
 
 | Symptom | Likely cause |
@@ -161,3 +192,5 @@ runs; the model sees the typed-error message and retries with `"full"`.
 - [Hooks](hooks.md) — how `GuardrailsHook` and `SteeringHook` plug into the lifecycle.
 - [Tools](tools.md) — the `@tool` decorator and its schema validation.
 - [Reasoning: grounding](reasoning.md#grounding) — the answer-side analogue, claim-by-claim.
+- [Cloud-posture agent](cloud-posture.md) — read-only-by-construction tools in practice.
+- [Threat scenarios](threat-scenarios.md) — which guardrail defends which OWASP / ATLAS item.
