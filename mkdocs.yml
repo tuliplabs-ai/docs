@@ -1,6 +1,6 @@
 site_name: tulip agents
 site_description: The cybersecurity agent SDK — agent teams whose findings are grounded in evidence (GSAR), whose actions are typed replayable events, and whose risky steps are approval-gated. Mapped to MITRE ATLAS, OWASP LLM, and OWASP ASI.
-site_url: https://tulipagents.ai/
+site_url: https://tulipagents.ai/docs/
 repo_url: https://github.com/tuliplabs-ai/sdk-python
 repo_name: tuliplabs-ai/sdk-python
 edit_uri: ""   # docs live in their own repo; edit button disabled
