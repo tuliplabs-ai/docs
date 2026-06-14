@@ -1,0 +1,117 @@
+# Copyright 2026 Tulip Labs
+# SPDX-License-Identifier: Apache-2.0
+#
+# Pre-merge quality gates for the docs. deploy.yml only runs on push to main,
+# so nothing validated a branch before it shipped. This builds the docs in
+# --strict mode on every PR (catching broken links, bad nav refs, missing
+# snippet includes, and mkdocstrings import errors), lints the build scripts,
+# and scans for secrets.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: mkdocs build (strict)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out docs
+        uses: actions/checkout@v4
+
+      # The API reference imports the `tulip` package and notebook pages embed
+      # cookbook source, so the strict build needs the SDK checked out too.
+      # SDK_DEPLOY_KEY is a read-only deploy key on the (private) sdk-python
+      # repo — same auth deploy.yml uses. Once the SDK is public, drop it.
+      - name: Check out the SDK (for the API reference and snippets)
+        uses: actions/checkout@v4
+        with:
+          repository: tuliplabs-ai/sdk-python
+          path: .sdk
+          fetch-depth: 0
+          ssh-key: ${{ secrets.SDK_DEPLOY_KEY }}
+          token: ${{ secrets.SDK_READ_TOKEN || github.token }}
+
+      # Build against the newest release tag (what `pip install` gives users),
+      # falling back to main while no v* tag exists.
+      - name: Pin the SDK to the latest release
+        working-directory: .sdk
+        run: |
+          ref="$(git tag --list 'v*' --sort=-v:refname | head -n1)"
+          if [ -n "$ref" ]; then
+            echo "Building against SDK ref: $ref"
+            git checkout -q "$ref"
+          else
+            echo "No v* tag yet — building against main"
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install toolchain + SDK
+        run: |
+          python -m pip install --upgrade pip hatch
+          TULIP_SDK_DIR=./.sdk hatch run sdk
+
+      - name: Build docs (strict)
+        run: hatch run build
+
+  lint:
+    name: Lint scripts (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install ruff==0.15.9
+      - name: Ruff lint
+        run: ruff check scripts/
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Trivy
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl -sSL -o trivy.tar.gz \
+            "https://github.com/aquasecurity/trivy/releases/download/v0.71.0/trivy_0.71.0_Linux-64bit.tar.gz"
+          tar xzf trivy.tar.gz trivy
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Trivy secret scan
+        run: trivy fs --scanners secret --severity HIGH,CRITICAL --exit-code 1 .
+
+  ci-success:
+    name: CI Success
+    needs: [build, lint, secret-scan]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Verify required jobs succeeded
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          set -eu
+          echo "$NEEDS_JSON"
+          if echo "$NEEDS_JSON" | grep -qE '"result":[[:space:]]*"(failure|cancelled)"'; then
+            echo "::error::At least one required job failed or was cancelled."
+            exit 1
+          fi
+          echo "All required jobs passed."
