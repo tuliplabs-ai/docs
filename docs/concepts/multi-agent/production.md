@@ -30,7 +30,7 @@ schema. The workflow's terminal node returns a typed object — `Verdict`,
 your system can consume without a brittle JSON re-parse.
 
 Used by notebooks [44 (debate)][t44], [46 (incident)][t46],
-[47 (procurement)][t47], [48 (contract)][t48].
+[47 (vendor review)][t47], [48 (DPA review)][t48].
 
 → See [Structured output](../structured-output.md).
 
@@ -55,11 +55,11 @@ story.
 
 ```python
 from tulip.agent import Agent, AgentConfig
-from tulip.memory.backends.oci_bucket import S3Backend
+from tulip.memory.backends.s3 import S3Backend
 
 agent = Agent(config=AgentConfig(
     model="anthropic:claude-sonnet-4-6",
-    checkpointer=S3Backend(bucket="tulip-state", namespace="..."),
+    checkpointer=S3Backend(bucket="tulip-state", prefix="..."),
 ))
 ```
 
@@ -179,12 +179,12 @@ A notebook-46-style incident-response graph in production looks like:
 ```python
 from tulip.agent import Agent, AgentConfig
 from tulip.multiagent.graph import StateGraph, GraphConfig
-from tulip.memory.backends.oci_bucket import S3Backend
+from tulip.memory.backends.s3 import S3Backend
 
 graph = StateGraph(config=GraphConfig(
     allow_cycles=True,
     max_iterations=20,
-    checkpointer=S3Backend(bucket="incidents", namespace="..."),
+    checkpointer=S3Backend(bucket="incidents", prefix="..."),
 ))
 # ... nodes use Send for parallel investigation, interrupt() for the
 # severity gate, output_schema=Postmortem for the terminal artifact,

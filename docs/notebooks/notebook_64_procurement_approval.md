@@ -1,32 +1,36 @@
-# Procurement Approval
+# Vendor Security Review
 
-Real procurement workflows have a threshold-based escalation chain::
+Real third-party-risk programs have a tier-based escalation chain::
 
-    Request submitted
+    Vendor intake (questionnaire on file)
        │
        ▼
-    Justifier  (drafts business justification)
+    Questionnaire analyst  (summarises the vendor's security questionnaire)
        │
        ▼
-    Vendor analyst  (validates vendor + pricing)
+    Posture analyst  (assesses data exposure + control posture)
        │
        ▼
-    Tier router   ── < $1k     ──> auto-approve
-                  ── $1k-$10k  ──> manager approval (interrupt)
-                  ── $10k-$100k──> manager + finance approval (two interrupts)
-                  ── > $100k   ──> manager + finance + CFO approval (three interrupts)
+    Risk-tier router  ── score < 25 ──> auto-approve (low risk)
+                      ── 25–49     ──> security-manager approval (interrupt)
+                      ── 50–74     ──> manager + GRC approval (two interrupts)
+                      ── >= 75     ──> manager + GRC + CISO approval (three interrupts)
        │
        ▼
-    PO generator  (emits structured PurchaseOrder)
+    Decision recorder  (emits structured VendorDecision)
 
 Each approval gate is a separate `interrupt()` so a reviewer can come
-back to it later. The workflow ends with a typed `PurchaseOrder`
-Pydantic model that can be filed into an ERP without parsing.
+back to it later. The terminal node is SCRIBE, the SOC's compliance
+reporter: it emits a typed `VendorDecision` Pydantic model that files
+into the vendor-risk register without parsing. Third-party AI services
+widen the agentic supply chain (OWASP ASI04), so the posture step is
+where you weigh attestations (SOC 2, ISO 27001) against what data the
+vendor would actually touch.
 
-- Tier router is a plain conditional edge — no DSL, no policy file.
+- Risk-tier router is a plain conditional edge — no DSL, no policy file.
 - Each gate is its own node — easy to add a tier, easy to re-order,
   easy to swap a human gate for an automated rule.
-- `output_schema=PurchaseOrder` keeps the terminal artifact typed.
+- `output_schema=VendorDecision` keeps the terminal artifact typed.
 
 Run it (defaults to the bundled mock model; set `TULIP_MODEL_PROVIDER` to `openai` / `anthropic` for a live model):
 
@@ -36,7 +40,7 @@ Offline:
 
     TULIP_MODEL_PROVIDER=mock python examples/notebook_64_procurement_approval.py
 
-Pin a strong-enough model for the structured PurchaseOrder schema:
+Pin a strong-enough model for the structured VendorDecision schema:
 
     TULIP_MODEL_ID=openai.gpt-4.1 python examples/notebook_64_procurement_approval.py
 

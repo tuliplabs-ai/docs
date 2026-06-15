@@ -51,7 +51,7 @@ theme:
   - search.suggest
 
 extra_css:
-- https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap
+- https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Quicksand:wght@400;500;600;700&display=swap
 - stylesheets/tulip.css
 
 extra_javascript:
@@ -159,7 +159,10 @@ nav:
     - Overview: concepts/reasoning.md
     - GSAR (typed grounding): concepts/gsar.md
   - Security:
+    - Agentic AI-security: concepts/agentic-ai-security.md
     - Grounded findings: concepts/security.md
+    - Threat scenarios: concepts/threat-scenarios.md
+    - Cloud-posture agent: concepts/cloud-posture.md
   - Memory:
     - Checkpointers & Store: concepts/checkpointers.md
     - Long-term Memory Manager: concepts/memory-manager.md
@@ -253,6 +256,7 @@ nav:
     - Live vendor integrations: notebooks/notebook_70_vendor_integrations.md
     - LiteLLM AI Gateway: notebooks/notebook_71_litellm_gateway.md
     - LiteLLM AI Gateway — cost tracking: notebooks/notebook_72_litellm_gateway_cost.md
+    - Grounded cloud-posture agent: notebooks/notebook_73_cloud_posture_agent.md
   - Guides:
     - Deploy: how-to/deploy.md
     - Persist conversations: how-to/persist-conversations.md
@@ -260,6 +264,14 @@ nav:
     - Add a checkpointer backend: how-to/custom-checkpointer.md
     - LiteLLM AI Gateway: how-to/litellm-gateway.md
     - Environment variables: how-to/environment-variables.md
+- Integrations:
+  - Overview: integrations/index.md
+  - Build an integration: integrations/build.md
+  - Security:
+    - Splunk (SIEM): integrations/splunk.md
+    - Wiz (AI-SPM): integrations/wiz.md
+  - Compute:
+    - RunPod / Lambda (GPU probe): integrations/runpod.md
 - Workbench: workbench.md
 - Reference:
   - Agent: api/agent.md

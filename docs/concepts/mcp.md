@@ -109,7 +109,7 @@ for the full event surface.
 ```python
 from tulip.integrations.fastmcp import TulipMCPServer
 
-server = TulipMCPServer(tools=[search_vendors, submit_po])
+server = TulipMCPServer(tools=[lookup_ioc, isolate_host])
 ```
 
 ### 2. Pick a transport
@@ -138,7 +138,7 @@ For Claude Desktop, edit `~/Library/Application Support/Claude/claude_desktop_co
 }
 ```
 
-Restart Claude Desktop. Your `search_vendors` and `submit_po` tools
+Restart Claude Desktop. Your `lookup_ioc` and `isolate_host` tools
 appear in the model's tool list.
 
 ## What you get out of the box

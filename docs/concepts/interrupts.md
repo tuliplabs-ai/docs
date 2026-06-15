@@ -146,7 +146,7 @@ debugging, or branch off a new thread from the partial conversation.
 - [Notebook 47 — incident response](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py)
   — `interrupt()` as the page-the-human gate after severity
   classification.
-- [Notebook 48 — procurement approval](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
+- [Notebook 48 — vendor security review](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
   — three stacked `interrupt()` gates on the top tier.
 - [Notebook 49 — contract review](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py)
   — `interrupt()` for human counsel inside a refinement loop.
