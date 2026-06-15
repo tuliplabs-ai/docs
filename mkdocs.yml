@@ -51,7 +51,7 @@ theme:
   - search.suggest
 
 extra_css:
-- https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&display=swap
+- https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Quicksand:wght@400;500;600;700&display=swap
 - stylesheets/tulip.css
 
 extra_javascript:
@@ -183,14 +183,6 @@ nav:
     - SSE event catalogue: concepts/sse-events.md
     - Safety & Guardrails: concepts/safety.md
     - Evaluation: concepts/evaluation.md
-- Integrations:
-  - Overview: integrations/index.md
-  - Build an integration: integrations/build.md
-  - Security:
-    - Splunk (SIEM): integrations/splunk.md
-    - Wiz (AI-SPM): integrations/wiz.md
-  - Compute:
-    - RunPod / Lambda (GPU probe): integrations/runpod.md
 - Cookbook:
   - Quickstart: how-to/quickstart.md
   - Overview: notebooks/index.md
@@ -271,6 +263,14 @@ nav:
     - Add a checkpointer backend: how-to/custom-checkpointer.md
     - LiteLLM AI Gateway: how-to/litellm-gateway.md
     - Environment variables: how-to/environment-variables.md
+- Integrations:
+  - Overview: integrations/index.md
+  - Build an integration: integrations/build.md
+  - Security:
+    - Splunk (SIEM): integrations/splunk.md
+    - Wiz (AI-SPM): integrations/wiz.md
+  - Compute:
+    - RunPod / Lambda (GPU probe): integrations/runpod.md
 - Workbench: workbench.md
 - Reference:
   - Agent: api/agent.md
