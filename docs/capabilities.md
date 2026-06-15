@@ -7,6 +7,13 @@ does, and where to find it.
     These are architectural choices no other Python agent framework ships
     together in one coherent stack:
 
+    - **The trust runtime for security AI** — an agent's claim becomes a typed
+      `Finding` only above the GSAR grounding threshold, else it **abstains**;
+      `verify()` challenges the finding, `approve()` weighs it against a
+      `SecurityPolicy`, and `admit()` runs a side-effecting action *only if* the
+      chain clears — recording every decision to a hash-chained audit trail.
+      Grounding → verification → policy → approval → admission → audit, enforced
+      in code, not convention.
     - **Multi-agent SDK** — describe a task; a
       typed registry picks one of eight protocols and instantiates the
       matching SDK primitive. The LLM fills a typed `GoalFrame`; routing is
@@ -38,6 +45,27 @@ does, and where to find it.
       Grok, auto-routed by model id); OpenAI and Anthropic through their
       official SDKs. One `get_model()` call, any
       provider.
+
+## Security — the trust runtime
+
+The reason the SDK exists: point an agent at an AI or at infrastructure, and
+every finding is grounded or abstained, verified, gated, and audited.
+
+| Feature | What it does | Surface |
+|---|---|---|
+| **Grounded findings** | A claim becomes a typed `Finding` only above the GSAR threshold — else an `Abstention`. No ungrounded `Finding` can be constructed. | `ground_finding` · [Grounded findings](concepts/security.md) |
+| **Target** | One handle over any AI under assessment — remote endpoint, in-process `Agent`, A2A peer, or callable | `Target.endpoint/.agent/.a2a/.from_callable` · [Agentic AI-security](concepts/agentic-ai-security.md) |
+| **Red-teaming** | OWASP-ASI / MITRE-ATLAS probe suite → grounded `Finding` or `Abstention` | `red_team(target)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
+| **Assurance** | Grounded guardrail-coverage posture across the suite | `assure(target)` |
+| **Verification** | An independent skeptic challenges a finding's evidence and rescores confidence | `verify(finding) -> Verdict` · [Verify findings](notebooks/notebook_78_verify_findings.md) |
+| **Policy + approval** | Weigh an action against evidence, verification, and a `SecurityPolicy` → allow / require_human / deny | `approve(action, policy=…)` · [SecurityContext](concepts/security-context.md) |
+| **Admission gate** | Run a side-effecting action only if it clears the chain; records the decision to the audit trail; else raises `AdmissionError` | `admit(...)` · `ctx.actions.execute(...)` · [SecurityContext](concepts/security-context.md) |
+| **SecurityContext** | Investigate by domain (logs / endpoint / identity / cloud / threat-intel / actions), not by vendor | `SecurityContext()` · [SecurityContext](concepts/security-context.md) |
+| **Audit trail** | Hash-chained, tamper-evident record of every action; exports JSONL for a SIEM | `AuditTrail` · [Observability](concepts/observability.md) |
+| **Cloud posture (read-only)** | Spec-driven AWS auditing — `describe_aws` introspects botocore models; `use_aws` runs read-only calls, writes refused by construction | `tulip.security.aws` · [Cloud posture](concepts/cloud-posture.md) |
+| **Inference fingerprinting** | Timing side-channel model/hardware fingerprint → grounded `FingerprintFinding` or abstention | `fingerprint_to_finding` · [Grounded findings](concepts/security.md) |
+| **Secure agent** | An `Agent` with grounding + guardrails + audit trail on by default | `secure_agent(...)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
+| **Vendor integrations** | Inject real vendors per domain — Splunk, CrowdStrike, Okta, Auth0, VirusTotal, Wiz | `tulip-integrations` · [Integrations](integrations/index.md) |
 
 ## Agent core
 
