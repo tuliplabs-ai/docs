@@ -188,6 +188,16 @@ nav:
 - Cookbook:
   - Quickstart: how-to/quickstart.md
   - Overview: notebooks/index.md
+  - Agentic AI-security:
+    - Red-team an AI agent: notebooks/notebook_75_agent_red_team.md
+    - Red-team a support bot: notebooks/notebook_76_redteam_support_bot.md
+    - CI security gate: notebooks/notebook_77_ci_security_gate.md
+    - Verify findings: notebooks/notebook_78_verify_findings.md
+    - Investigate with SecurityContext: notebooks/notebook_82_investigate_with_ctx.md
+    - SOC alert triage: notebooks/notebook_79_soc_alert_triage.md
+    - IR with a tamper-evident audit trail: notebooks/notebook_81_ir_audit_trail.md
+    - SOC playbooks: notebooks/notebook_74_security_playbooks.md
+    - Model & hardware fingerprinting: notebooks/notebook_80_model_fingerprint.md
   - First steps:
     - Basic agent: notebooks/notebook_06_basic_agent.md
     - Agent with tools: notebooks/notebook_07_agent_with_tools.md
