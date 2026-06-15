@@ -1,6 +1,19 @@
 # Agentic AI-security
 
-Tulip is the SDK for building agents whose **subject is another AI system** —
+**In plain terms:** you've deployed an AI — a chatbot, an agent with tools, or a
+model behind an API. Can someone jailbreak it, make it leak data, or trick it
+into doing something it shouldn't? Tulip lets you build an agent that checks,
+automatically and continuously, and reports only the flaws it can actually
+**prove**. Think of it as a penetration tester for AI that refuses to cry wolf.
+
+**How it works, in three steps:**
+
+1. **Point** Tulip at a target AI — `Target.endpoint("https://bot.example/chat")`.
+2. **Run** a job — `red_team(target)` attacks it; `assure(target)` scores its defenses.
+3. **Get evidence** — each result is a `Finding` (the attack worked, here's the proof)
+   or an `Abstention` (no proof, so no claim). Never a guess.
+
+More precisely: Tulip builds agents whose **subject is another AI system** —
 agents that **red-team**, **assess**, and **monitor** other AI, and produce
 *evidence*: a grounded `Finding` or an explicit `Abstention`, never a
 hallucinated verdict.
