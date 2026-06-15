@@ -56,6 +56,8 @@ html {
                 Helvetica, system-ui, sans-serif;
   --tulip-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo,
                 Consolas, monospace;
+  /* rounded geometric display — matches the "tuliplabs.ai" logo wordmark */
+  --tulip-display: "Quicksand", var(--tulip-sans);
 }
 
 /* ---------------------------------------------------------------------------
@@ -186,6 +188,14 @@ html {
   font-family: var(--tulip-sans);
 }
 
+/* Brand title — the "tulip agents" header title renders in the logo's
+   rounded geometric wordmark face, not the body sans. */
+.md-header__topic:first-child > .md-ellipsis {
+  font-family: var(--tulip-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
 .md-typeset h1 {
   color: var(--tulip-ink);
   font-weight: 700;
@@ -292,10 +302,11 @@ html {
   margin: 0 0 1.2rem;
 }
 .md-typeset .tulip-hero h1:first-of-type {
+  font-family: var(--tulip-display);   /* match the logo wordmark */
   font-size: 2.9rem;
   line-height: 1.05;
-  letter-spacing: -0.045em;
-  font-weight: 800;
+  letter-spacing: -0.035em;
+  font-weight: 700;
   text-transform: lowercase;
   color: var(--tulip-ink);
   margin: 0 0 0.6rem;
