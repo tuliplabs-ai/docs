@@ -111,6 +111,17 @@ The `AuditTrail` is hash-chained: every action commits to the hash before it,
 so any later edit, deletion, or reorder breaks `verify()`. It exports as JSONL
 for shipping to a SIEM — *every agent action is replayable evidence*.
 
+## Enforce it before it acts
+
+Grounding, verification, and the audit trail make an agent *trustworthy*; the
+**admission gate** makes that trust *binding*. Run a side-effecting action through
+`admit()` (or `ctx.actions.execute()`): it fires only if the action clears the
+policy chain (`approve()` → ALLOW), records the decision either way, and raises
+`AdmissionError` otherwise. That's the line between an agent that *could* be safe
+and a runtime that *enforces* safety — no action reaches production without a
+verified, approved, audited warrant. See
+[SecurityContext](security-context.md#admission-control-the-enforcement-point).
+
 ## Regular cyber — the second pillar
 
 This page covers securing *AI* (pillar B). The same engine, pointed at
