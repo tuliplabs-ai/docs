@@ -42,27 +42,27 @@ exits when the queue empties or `max_iterations` is hit.
 ```python
 from tulip.multiagent import Swarm
 
-researcher = Agent(
+hunter = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_corpus, summarise],
-    system_prompt="You are a researcher. Read, summarise, post follow-ups.",
+    tools=[query_siem, enrich_ioc],
+    system_prompt="You are a threat hunter. Pull alerts, enrich indicators, post follow-ups.",
 )
-fact_checker = Agent(
+forensics = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[verify_claim, search_corpus],
-    system_prompt="You are a fact-checker. Verify claims, flag conflicts.",
+    tools=[pull_edr_timeline, scan_host],
+    system_prompt="You are a forensics analyst. Confirm compromise, scope the blast radius.",
 )
-writer = Agent(
+reporter = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[draft, revise],
-    system_prompt="You are a writer. Take vetted summaries, draft prose.",
+    tools=[draft_notes, revise],
+    system_prompt="You are an incident reporter. Take confirmed findings, draft the IR write-up.",
 )
 
 swarm = Swarm(
-    agents=[researcher, fact_checker, writer],
-    shared_context={"topic": "Q3 launch", "audience": "exec summary"},
+    agents=[hunter, forensics, reporter],
+    shared_context={"incident": "INC-0042", "scope": "ws-0042"},
     max_iterations=12,
-    initial_tasks=["read corpus", "summarise top sources"],
+    initial_tasks=["pull alerts", "enrich top indicators"],
 )
 
 result = swarm.run_sync()
@@ -78,11 +78,11 @@ shared queue:
 ```python
 # inside a tool the agent calls
 @tool
-def summarise_and_followup(text: str, ctx: ToolContext) -> dict:
-    summary = summarise(text)
-    if has_uncited_claims(summary):
-        ctx.swarm.post_task(f"verify claims in: {summary[:200]}…")
-    return {"summary": summary}
+def enrich_and_followup(indicator: str, ctx: ToolContext) -> dict:
+    verdict = enrich_ioc(indicator)
+    if verdict.get("malicious"):
+        ctx.swarm.post_task(f"confirm compromise on host touching: {indicator}")
+    return {"verdict": verdict}
 ```
 
 The next iteration, any qualifying agent (here — the fact-checker)

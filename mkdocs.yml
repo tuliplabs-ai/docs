@@ -183,6 +183,14 @@ nav:
     - SSE event catalogue: concepts/sse-events.md
     - Safety & Guardrails: concepts/safety.md
     - Evaluation: concepts/evaluation.md
+- Integrations:
+  - Overview: integrations/index.md
+  - Build an integration: integrations/build.md
+  - Security:
+    - Splunk (SIEM): integrations/splunk.md
+    - Wiz (AI-SPM): integrations/wiz.md
+  - Compute:
+    - RunPod / Lambda (GPU probe): integrations/runpod.md
 - Cookbook:
   - Quickstart: how-to/quickstart.md
   - Overview: notebooks/index.md

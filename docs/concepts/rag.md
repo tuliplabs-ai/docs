@@ -169,7 +169,7 @@ retriever = RAGRetriever(
 )
 
 # Same call as without a reranker — over-fetch happens behind the scenes.
-hits = await retriever.retrieve("hepcidin in iron homeostasis", limit=5)
+hits = await retriever.retrieve("Log4Shell exploitation in the wild", limit=5)
 ```
 
 Each returned `SearchResult` carries the reranker's relevance score on

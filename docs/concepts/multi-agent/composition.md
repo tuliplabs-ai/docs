@@ -41,15 +41,15 @@ from tulip.agent.composition import (
     SequentialPipeline, ParallelPipeline, LoopAgent,
 )
 
-# Sequential: research → summarise → fact-check → format
+# Sequential: recon → enrich → validate → report
 pipeline = SequentialPipeline(agents=[
-    researcher,
-    summariser,
-    fact_checker,
-    formatter,
+    recon,
+    enrich,
+    validate,
+    report,
 ])
 
-result = pipeline.run_sync("Brief on Q3 launch.")
+result = pipeline.run_sync("Triage the attack surface on 192.0.2.10.")
 ```
 
 ```python
@@ -61,19 +61,19 @@ parallel = ParallelPipeline(agents=[
 ])
 hits = parallel.run_sync("How do I rotate API keys?")
 
-# Loop: revise the brief until confidence ≥ 0.85, max 5 iterations
+# Loop: revise the finding until confidence ≥ 0.85, max 5 iterations
 revise = LoopAgent(agent=reviser_agent, max_iterations=5)
-final = revise.run_sync(initial_draft)
+final = revise.run_sync(initial_finding)
 ```
 
 ```python
 # Compose nested — Sequential of (Parallel + LoopAgent)
 end_to_end = SequentialPipeline(agents=[
-    ParallelPipeline(agents=[researcher, fact_checker]),
-    summariser,
+    ParallelPipeline(agents=[recon, validate]),
+    enrich,
     LoopAgent(agent=reviser, max_iterations=5),
 ])
-result = end_to_end.run_sync("Brief on Q3 launch.")
+result = end_to_end.run_sync("Triage the attack surface on 192.0.2.10.")
 ```
 
 ## Notebooks
