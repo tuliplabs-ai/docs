@@ -161,6 +161,7 @@ nav:
   - Security:
     - Agentic AI-security: concepts/agentic-ai-security.md
     - Grounded findings: concepts/security.md
+    - SecurityContext: concepts/security-context.md
     - Threat scenarios: concepts/threat-scenarios.md
     - Cloud-posture agent: concepts/cloud-posture.md
   - Memory:
