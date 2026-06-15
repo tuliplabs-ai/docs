@@ -47,28 +47,28 @@ from pydantic import BaseModel, Field
 
 class ResearchState(BaseModel):
     prompt: str
-    research_notes: list[str] = Field(default_factory=list)
-    draft: str = ""
+    findings: list[str] = Field(default_factory=list)
+    report: str = ""
     confidence: float = 0.0
 
 graph = StateGraph(state_schema=ResearchState)
 
 graph.add_node("plan", plan_agent)
-graph.add_node("research", research_agent)
-graph.add_node("write", write_agent)
+graph.add_node("investigate", investigate_agent)
+graph.add_node("report", report_agent)
 graph.add_node("review", review_agent)
 
-graph.add_edge("plan", "research")
-graph.add_edge("research", "write")
-graph.add_edge("write", "review")
+graph.add_edge("plan", "investigate")
+graph.add_edge("investigate", "report")
+graph.add_edge("report", "review")
 
 graph.add_conditional_edges(
     "review",
-    lambda state: END if state.confidence >= 0.85 else "research",
+    lambda state: END if state.confidence >= 0.85 else "investigate",
 )
 
-result = graph.compile().run_sync({"prompt": "Write a launch brief."})
-print(result.draft)
+result = graph.compile().run_sync({"prompt": "Triage the phishing report for case INC-0042."})
+print(result.report)
 ```
 
 ## Per-node policies
@@ -77,8 +77,8 @@ print(result.draft)
 from tulip.multiagent.graph import RetryPolicy, CachePolicy
 
 graph.add_node(
-    "research",
-    research_agent,
+    "investigate",
+    investigate_agent,
     retry_policy=RetryPolicy(max_attempts=3, backoff="exponential"),
     cache_policy=CachePolicy(ttl_seconds=3600),
 )

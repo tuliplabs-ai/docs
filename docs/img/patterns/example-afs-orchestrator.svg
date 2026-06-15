@@ -17,7 +17,7 @@
   <!-- ============================================================ -->
   <!-- Title strip                                                  -->
   <!-- ============================================================ -->
-  <text x="40" y="32" font-size="14" font-weight="800" fill="#D6336C" letter-spacing="0.06em">EXAMPLE · THE AFS ORCHESTRATOR GRAPH</text>
+  <text x="40" y="32" font-size="14" font-weight="800" fill="#D6336C" letter-spacing="0.06em">EXAMPLE · THE IR ORCHESTRATOR GRAPH</text>
   <text x="40" y="54" font-size="12" font-weight="500" fill="#9D174D" font-style="italic">Orchestrator nodes coordinate · workflow agents execute</text>
 
   <!-- ============================================================ -->
@@ -72,22 +72,22 @@
 
   <!-- =============== WORKFLOW AGENTS ROW =============== -->
 
-  <!-- WLS -->
+  <!-- SIEM -->
   <g filter="url(#sh)">
     <rect x="80" y="250" width="140" height="46" rx="10" fill="#D6336C"/>
-    <text x="150" y="278" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">WLS</text>
+    <text x="150" y="278" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">SIEM</text>
   </g>
 
-  <!-- OHS -->
+  <!-- EDR -->
   <g filter="url(#sh)">
     <rect x="290" y="250" width="140" height="46" rx="10" fill="#F7A21E"/>
-    <text x="360" y="278" text-anchor="middle" font-size="14" font-weight="800" fill="#3A2A0F">OHS</text>
+    <text x="360" y="278" text-anchor="middle" font-size="14" font-weight="800" fill="#3A2A0F">EDR</text>
   </g>
 
   <!-- DB -->
   <g filter="url(#sh)">
     <rect x="500" y="250" width="140" height="46" rx="10" fill="#9D174D"/>
-    <text x="570" y="278" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">DB</text>
+    <text x="570" y="278" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">Intel</text>
   </g>
 
   <!-- WORKFLOW AGENTS bracket (right side of row) -->

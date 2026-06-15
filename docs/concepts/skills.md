@@ -63,17 +63,17 @@ agent = Agent(config=AgentConfig(
 ```python
 from tulip.skills import Skill
 
-researcher = Skill(
-    name="vendor-research",
-    description="Use when the task is a sourcing decision (vendor, price, RFP).",
+enrichment = Skill(
+    name="ioc-enrichment",
+    description="Use when triaging an indicator of compromise (IP, domain, URL, hash).",
     instructions=(
-        "# Vendor Research\n\n"
-        "1. Look up vendors with `vendor_lookup`.\n"
-        "2. Quote each option with `quote_price`.\n"
-        "3. Compare on (price, lead-time, vendor-rating).\n"
-        "4. Return a recommendation with reasoning.\n"
+        "# IOC Enrichment\n\n"
+        "1. Classify the indicator (IP / domain / URL / hash).\n"
+        "2. Enrich it with `lookup_ioc` and `enrich_domain`.\n"
+        "3. Weigh vendor detections, registrar age, and prior sightings.\n"
+        "4. Return a verdict (malicious / suspicious / benign / unknown) with the evidence.\n"
     ),
-    allowed_tools=["vendor_lookup", "quote_price"],
+    allowed_tools=["lookup_ioc", "enrich_domain"],
 )
 ```
 
@@ -84,30 +84,30 @@ any tool registered with the agent.
 ### Filesystem — drop a `SKILL.md`
 
 ```text
-skills/vendor-research/
+skills/ioc-enrichment/
 ├── SKILL.md
 ├── scripts/
-│   └── compare.py
+│   └── correlate.py
 └── references/
-    └── pricing-tiers.md
+    └── severity-tiers.md
 ```
 
 ```markdown
 ---
-name: vendor-research
-description: Use when the task is a sourcing decision (vendor, price, RFP).
-allowed-tools: vendor_lookup quote_price
+name: ioc-enrichment
+description: Use when triaging an indicator of compromise (IP, domain, URL, hash).
+allowed-tools: lookup_ioc enrich_domain
 metadata:
-  author: ops-team
+  author: soc-team
   version: 1.0
 ---
 
-# Vendor Research
+# IOC Enrichment
 
-Look up vendors, quote each, compare on price / lead-time /
-vendor-rating. Reference `references/pricing-tiers.md` for the
-internal tier-to-discount mapping. Use `scripts/compare.py` if you
-need a structured comparison spreadsheet.
+Classify the indicator, enrich it, and weigh vendor detections,
+registrar age, and prior sightings. Reference
+`references/severity-tiers.md` for the internal score-to-severity
+mapping. Use `scripts/correlate.py` to pull related alerts.
 ```
 
 ### Load and attach
@@ -118,7 +118,7 @@ from tulip.skills import Skill
 
 skills = Skill.from_directory(Path("./skills"))   # all SKILL.md folders
 # …or one at a time:
-single = Skill.from_file("./skills/vendor-research")
+single = Skill.from_file("./skills/ioc-enrichment")
 
 agent = Agent(config=AgentConfig(model=..., skills=skills))
 ```

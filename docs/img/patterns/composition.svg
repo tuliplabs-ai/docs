@@ -20,10 +20,10 @@
   <!-- SequentialPipeline (top half) -->
   <text x="20" y="30" font-size="14" font-weight="800" fill="#1B1620" letter-spacing="-0.01em">SequentialPipeline · linear chain</text>
   <g filter="url(#sh)">
-    <rect x="20"  y="55" width="130" height="60" rx="10" fill="#E2570E"/><text x="85"  y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">researcher</text>
-    <rect x="200" y="55" width="130" height="60" rx="10" fill="#E2570E"/><text x="265" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">summariser</text>
-    <rect x="380" y="55" width="130" height="60" rx="10" fill="#E2570E"/><text x="445" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">fact_checker</text>
-    <rect x="560" y="55" width="130" height="60" rx="10" fill="#D6336C"/><text x="625" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">final report</text>
+    <rect x="20"  y="55" width="130" height="60" rx="10" fill="#E2570E"/><text x="85"  y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">recon</text>
+    <rect x="200" y="55" width="130" height="60" rx="10" fill="#E2570E"/><text x="265" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">validate</text>
+    <rect x="380" y="55" width="130" height="60" rx="10" fill="#E2570E"/><text x="445" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">report</text>
+    <rect x="560" y="55" width="130" height="60" rx="10" fill="#D6336C"/><text x="625" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">the finding</text>
   </g>
   <line x1="155" y1="85" x2="195" y2="85" stroke="#1B1620" stroke-width="2.4" marker-end="url(#a)"/>
   <line x1="335" y1="85" x2="375" y2="85" stroke="#1B1620" stroke-width="2.4" marker-end="url(#a)"/>

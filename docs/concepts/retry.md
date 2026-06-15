@@ -53,12 +53,12 @@ Three options:
 
 ```python
 @tool
-def lookup_inventory(sku: str) -> dict:
-    """Look up inventory for a SKU."""
-    return inventory.get(sku)
+def fetch_alert(alert_id: str) -> dict:
+    """Fetch the details of a SOC alert."""
+    return siem.get(alert_id)
 ```
 
-1. **Let the loop handle it.** When `lookup_inventory` raises, the SDK
+1. **Let the loop handle it.** When `fetch_alert` raises, the SDK
    captures the exception, returns a `ToolErrorEvent` to state, and
    feeds the error message to the next Think. The model can then
    *decide* whether to retry the call, try a different tool, or
@@ -73,7 +73,7 @@ def lookup_inventory(sku: str) -> dict:
    @tool
    @retry(stop=stop_after_attempt(3),
           wait=wait_exponential(multiplier=0.5))
-   def lookup_inventory(sku: str) -> dict: ...
+   def fetch_alert(alert_id: str) -> dict: ...
    ```
 
 3. **Cooperative cancellation.** Long-running tools should poll for
@@ -90,11 +90,12 @@ second time, and the cached receipt is returned.
 
 ```python
 @tool(idempotent=True)
-def submit_po(vendor_id: str, amount_usd: float) -> dict: ...
+def isolate_host(host_id: str) -> dict: ...
 ```
 
 This means you can let the model loop, panic, and retry without
-charging the customer twice. The Execute hash is `(tool_name,
+isolating the same host twice (or paging the on-call twice). The
+Execute hash is `(tool_name,
 kwargs)`, so semantically-different calls aren't accidentally
 deduped.
 
@@ -116,7 +117,7 @@ includes retry waits.
 |---|---|
 | Flaky single calls | default `Agent(...)` retry is enough |
 | Predictable rate limits | `ModelRetryHook(max_attempts=5, retry_on=("rate_limit",))` |
-| Multi-region failover | `OCIChatCompletionsModel(endpoints=[primary, secondary])` |
+| Provider / API-key failover | `CredentialPoolModel(pool=CredentialPool([...]), build_model=…)` rotates keys/endpoints on rate-limit or outage |
 | Customer-facing agents | wrap the *whole agent* in your own outer retry; the inner agent treats one client request = one run |
 
 ## See also

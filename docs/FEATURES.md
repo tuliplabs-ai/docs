@@ -100,7 +100,7 @@ does, and where to find it.
 | `MemoryCheckpointer` | Tests, REPL — in-process dict | `tulip.memory.backends.memory` · [Checkpointers](concepts/checkpointers.md) |
 | `FileCheckpointer` | Local dev — JSON files on disk | `tulip.memory.backends.file` |
 | `HTTPCheckpointer` | A remote checkpoint service you already run | `tulip.memory.backends.http` |
-| **`S3Backend`** | vendor-neutral, lifecycle policies, region replication | `tulip.memory.backends.oci_bucket` |
+| **`S3Backend`** | vendor-neutral, lifecycle policies, region replication | `tulip.memory.backends.s3` |
 | `RedisBackend` | Multi-replica, fast, TTLs (a managed Redis) | `tulip.memory.backends.redis` |
 | `PostgreSQLBackend` | Production DB with metadata queries | `tulip.memory.backends.postgresql` |
 | `MySQLBackend` | Production MySQL with official async Connector/Python | `tulip.memory.backends.mysql` |

@@ -1,18 +1,19 @@
-# Contract Review
+# DPA & Security-Addendum Review
 
-Real contract review involves multiple stakeholders working in
-parallel, then a back-and-forth negotiation phase, then sign-off::
+Reviewing a vendor's Data Processing Agreement involves multiple
+stakeholders working in parallel, then a back-and-forth negotiation
+phase, then sign-off::
 
-    Contract intake
+    DPA intake
        │
        ▼
     Parser  (extracts clauses)
        │
        ▼
     Scatter to 3 parallel reviewers
-       ├── Legal    (regulatory risk, indemnity, termination)
-       ├── Risk     (financial exposure, liability cap)
-       └── Commercial (price, terms, SLAs)
+       ├── Privacy     (breach notice, residency, sub-processors, deletion)
+       ├── Security    (encryption, audit rights, incident response)
+       └── Compliance  (attestations, GDPR Art. 28 terms, liability for fines)
        ▼
     Synthesizer  (consolidated review report)
        │
@@ -26,6 +27,11 @@ parallel, then a back-and-forth negotiation phase, then sign-off::
                                           Sign-off  <───────────────────┘
                                                 ▼
                                           ContractDecision (typed)
+
+The DPA governs a processor in the AI stack's supply chain (OWASP ASI04),
+so a weak breach-notification window or a missing audit right is a real
+control gap, not a paperwork nit. SCRIBE — the SOC's compliance reporter
+— writes the typed sign-off.
 
 - `Send`: three reviewers run concurrently.
 - `add_conditional_edges` with cycles enabled: negotiation can loop
