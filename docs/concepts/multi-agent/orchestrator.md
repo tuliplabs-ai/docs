@@ -22,8 +22,8 @@ Each `Specialist` has:
 
 ## When to use it
 
-- ✅ The work splits cleanly into **expert domains** (Procurement,
-  Compliance, Approval Officer; or Research, Writing, Editing).
+- ✅ The work splits cleanly into **expert domains** (Triage,
+  Containment, Forensics; or Recon, Exploit-check, Reporting).
 - ✅ You want **one place to attribute decisions to** — the coordinator.
 - ✅ Specialists need their **own playbooks, skills, or models** (a
   cheap model for triage, a strong one for compliance).
@@ -41,48 +41,48 @@ Each `Specialist` has:
 ```python
 from tulip.multiagent import Orchestrator, Specialist
 
-procurement = Specialist(
-    name="procurement",
+triage = Specialist(
+    name="triage",
     agent=Agent(
         model="anthropic:claude-sonnet-4-6",
-        tools=[search_vendors, quote_prices],
-        system_prompt="You are the Procurement specialist.",
+        tools=[fetch_alerts, enrich_ioc],
+        system_prompt="You are the Triage specialist.",
     ),
-    description="Reads the catalogue. Quotes prices. Picks vendors.",
+    description="Reads the alerts. Enriches indicators. Scores severity.",
 )
 
-compliance = Specialist(
-    name="compliance",
+forensics = Specialist(
+    name="forensics",
     agent=Agent(
         model="anthropic:claude-sonnet-4-6",
-        tools=[check_soc2, check_iso, search_legal_terms],
-        system_prompt="You are the Compliance specialist.",
+        tools=[pull_edr_timeline, scan_host, search_iocs],
+        system_prompt="You are the Forensics specialist.",
     ),
-    description="Vets vendors against SOC2/ISO posture. Flags red lines.",
+    description="Reconstructs the host timeline. Confirms compromise. Flags blast radius.",
 )
 
-approver = Specialist(
-    name="approver",
+containment = Specialist(
+    name="containment",
     agent=Agent(
         model="anthropic:claude-sonnet-4-6",
-        tools=[submit_po, email_cfo],          # ← idempotent writes
-        system_prompt="You are the Approval Officer.",
+        tools=[isolate_host, page_oncall],     # ← idempotent writes
+        system_prompt="You are the Containment specialist.",
     ),
-    description="Submits the PO and notifies the CFO. Only after approval.",
+    description="Isolates hosts and pages the on-call. Only after triage + forensics agree.",
 )
 
 orchestrator = Orchestrator(
     coordinator_model="anthropic:claude-sonnet-4-6",
-    specialists=[procurement, compliance, approver],
+    specialists=[triage, forensics, containment],
     system_prompt=(
-        "You are the procurement lead. Delegate research to procurement, "
-        "vetting to compliance, and only after both agree call approver."
+        "You are the incident commander. Delegate enrichment to triage, "
+        "host analysis to forensics, and only after both confirm call containment."
     ),
 )
 
 result = orchestrator.run_sync(
-    "Pick three vendors for $2M of cloud spend.",
-    thread_id="po-q3-2026",
+    "Sev-1: ransomware detected on ws-0042. Investigate, contain, and recommend remediation.",
+    thread_id="inc-2026-0042",
 )
 ```
 
@@ -90,8 +90,8 @@ result = orchestrator.run_sync(
 
 Specialists fire **concurrently** when the coordinator dispatches to
 several of them in one turn. So when the coordinator says "in
-parallel: procurement, get me three quotes; compliance, vet our
-existing vendor list" — both specialists run at the same time and
+parallel: triage, enrich the indicators on ws-0042; forensics, pull
+the host's EDR timeline" — both specialists run at the same time and
 their results merge back before the coordinator's next Think.
 
 ## Confidence floors
@@ -101,9 +101,9 @@ sees the decline and tries another expert (or asks the user):
 
 ```python
 Specialist(
-    name="legal",
-    agent=legal_agent,
-    description="Contract review and risk-flagging.",
+    name="malware-rev",
+    agent=malware_agent,
+    description="Reverse-engineers suspicious binaries and flags capabilities.",
     confidence_floor=0.7,    # below 0.7 the specialist returns
                              # ("decline", reason) and the coordinator
                              # routes elsewhere
@@ -117,8 +117,8 @@ Specialist(
 - [`notebook_27_specialist_agents.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_27_specialist_agents.py)
   — confidence floors and per-specialist playbooks.
 - [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
-  — orchestrator-shaped procurement with tiered approval gates and a
-  typed `PurchaseOrder` artifact.
+  — vendor security review with risk-tiered approval gates and a typed
+  `VendorDecision` artifact.
 
 ## Source
 

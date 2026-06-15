@@ -22,7 +22,7 @@ or anything else you already use.
 ## When to use it
 
 - ✅ You think in **`async def` and `asyncio.gather`** already.
-- ✅ The flow is **map/reduce** over agents (vet N vendors in
+- ✅ The flow is **map/reduce** over agents (enrich N IOCs in
   parallel).
 - ✅ You want to **mix agents with non-agent code** — DB writes,
   HTTP calls, file I/O — in the same coroutine.
@@ -46,16 +46,16 @@ import asyncio
 from tulip.multiagent.functional import task, entrypoint
 
 @task
-async def vet_vendor(vendor: dict) -> dict:
-    """Run the compliance agent against one vendor."""
-    return await compliance_agent.run(f"Vet {vendor['name']}.")
+async def enrich_ioc(ioc: dict) -> dict:
+    """Run the triage agent against one indicator."""
+    return await triage_agent.run(f"Enrich {ioc['value']}.")
 
 @entrypoint
-async def vet_all(vendors: list[dict]) -> list[dict]:
-    """Vet every vendor in parallel; gather the results."""
-    return await asyncio.gather(*[vet_vendor(v) for v in vendors])
+async def enrich_all(iocs: list[dict]) -> list[dict]:
+    """Enrich every indicator in parallel; gather the results."""
+    return await asyncio.gather(*[enrich_ioc(i) for i in iocs])
 
-scored = vet_all.run_sync(catalogue)
+scored = enrich_all.run_sync(indicators)
 ```
 
 ## Map/reduce with retries and timeouts
@@ -68,13 +68,13 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 @task
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=0.5))
-async def vet_vendor(vendor: dict) -> dict:
-    return await compliance_agent.run(f"Vet {vendor['name']}.")
+async def enrich_ioc(ioc: dict) -> dict:
+    return await triage_agent.run(f"Enrich {ioc['value']}.")
 
 @entrypoint
-async def vet_all_with_deadline(vendors: list[dict]) -> list[dict]:
+async def enrich_all_with_deadline(iocs: list[dict]) -> list[dict]:
     async with asyncio.timeout(60):                # 60s wall-clock cap
-        return await asyncio.gather(*[vet_vendor(v) for v in vendors])
+        return await asyncio.gather(*[enrich_ioc(i) for i in iocs])
 ```
 
 ## Tasks calling tasks
@@ -84,18 +84,18 @@ including parallel batches inside sequential phases:
 
 ```python
 @task
-async def shortlist_vendors(catalogue: list[dict]) -> list[dict]:
-    return await procurement_agent.run(f"Shortlist 5 from {len(catalogue)}.")
+async def prioritize_alerts(queue: list[dict]) -> list[dict]:
+    return await triage_agent.run(f"Pick the top 5 from {len(queue)}.")
 
 @task
-async def vet(vendor: dict) -> dict:
-    return await compliance_agent.run(f"Vet {vendor['name']}.")
+async def enrich(alert: dict) -> dict:
+    return await triage_agent.run(f"Enrich {alert['ioc']}.")
 
 @entrypoint
-async def end_to_end(catalogue: list[dict]) -> dict:
-    shortlisted = await shortlist_vendors(catalogue)        # phase 1
-    scored = await asyncio.gather(*[vet(v) for v in shortlisted])  # phase 2 (parallel)
-    final = await approval_agent.run(f"Approve from: {scored}")    # phase 3
+async def end_to_end(queue: list[dict]) -> dict:
+    shortlisted = await prioritize_alerts(queue)            # phase 1
+    scored = await asyncio.gather(*[enrich(a) for a in shortlisted])  # phase 2 (parallel)
+    final = await containment_agent.run(f"Recommend containment from: {scored}")  # phase 3
     return final
 ```
 
