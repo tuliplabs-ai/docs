@@ -9,9 +9,9 @@ hide:
 
 <p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the agentic AI-security SDK</p>
 
-# Find the security flaws <span class="accent">in your AI — with proof.</span>
+# Agentic AI for cybersecurity — <span class="accent">grounded in evidence.</span>
 
-Tulip is a Python SDK for building agents that **test other AI systems** — chatbots, AI agents, model endpoints — for security flaws like prompt injection, jailbreaks, and data leaks. You point it at a target; it runs the attacks and hands back **evidence-backed findings**. When it can't prove a flaw, it says so instead of inventing one — so you get real results, not false alarms. *(The same engine, pointed at your infrastructure, also runs classic SOC/IR.)*
+Tulip is a Python SDK for building AI agents that do security work you can trust — because every finding is backed by evidence, or the agent **abstains** instead of guessing. Point it at **another AI** (a chatbot, an agent, a model endpoint) to test it for prompt injection, jailbreaks, and data leaks — its sharpest use today — or point the **same engine** at your infrastructure for SOC triage, incident response, and cloud posture.
 
 <div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[MITRE&nbsp;ATLAS](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;LLM&nbsp;Top&nbsp;10](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;ASI](concepts/security.md)</span> · <span style="white-space:nowrap">[NIST&nbsp;AI&nbsp;RMF](concepts/security.md)</span></div>
 

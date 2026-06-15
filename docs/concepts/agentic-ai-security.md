@@ -111,14 +111,16 @@ The `AuditTrail` is hash-chained: every action commits to the hash before it,
 so any later edit, deletion, or reorder breaks `verify()`. It exports as JSONL
 for shipping to a SIEM — *every agent action is replayable evidence*.
 
-## SOC/IR — the proof vertical
+## Regular cyber — the second pillar
 
-The same engine, pointed at *infrastructure* instead of an AI system, runs
-classic security operations: the bundled SOC-analyst factory, the IR playbooks
-(`phishing_triage`, `ransomware_containment`, `nist_800_61_ir`), and read-only
-cloud-posture auditing. Different target, different taxonomy — same `Target` +
-grounded-`Finding` contract. It proves the abstraction generalises, and it is
-the on-ramp for teams that don't yet think in terms of *agentic* AI-security.
+This page covers securing *AI* (pillar B). The same engine, pointed at
+*infrastructure* instead of an AI system, is the other pillar of "agentic AI for
+cybersecurity": classic security operations — the bundled SOC-analyst factory,
+the IR playbooks (`phishing_triage`, `ransomware_containment`, `nist_800_61_ir`),
+and read-only cloud-posture auditing. Different target, different taxonomy — same
+`Target` + grounded-`Finding` contract. It's first-class, not a demo: grounding
+is exactly what makes an AI SOC agent's verdicts trustworthy, answering the
+false-positive pain teams hit with AI-graded triage.
 
 See also: [Grounded findings](security.md) · [GSAR typed grounding](gsar.md) ·
 [Threat scenarios](threat-scenarios.md) · [Cloud-posture agent](cloud-posture.md).
