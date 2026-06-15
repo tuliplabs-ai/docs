@@ -17,7 +17,7 @@ html {
      - Wordmark is always lowercase "tulip", never capitalized.
      - Type is sans-serif throughout (no serif headings).
      - Wordmark colour:  #1B1620   (warm near-black)
-     - Mark accent:      #D6336C   (tulip red, also accent3)
+     - Mark accent:      #E54867   (tulip red, also accent3)
      - Tagline:          uppercase, weight 500, letter-spacing 0.16em,
                          colour #78716C.
      - Wordmark display: weight 700, letter-spacing -0.04em.
@@ -40,14 +40,14 @@ html {
   --tl-bg-soft:     #F4EFEC;   /* derived: tint of lt2 */
   --tl-rule:        #E5DED9;   /* derived */
 
-  --tl-red:         #D6336C;   /* accent3 — tulip red, also tulip mark accent */
-  --tl-red-deep:    #AD2E5C;   /* derived */
-  --tl-red-light:   #E86A98;   /* derived */
+  --tl-red:         #E54867;   /* warm rose-coral — primary accent, on the logo gradient */
+  --tl-red-deep:    #C2384F;   /* derived (warm) */
+  --tl-red-light:   #F07E94;   /* derived (warm) */
 
-  --tl-teal:        #E2570E;   /* accent1 */
-  --tl-link:        #D6336C;   /* hlink */
-  --tl-mauve:       #AD2E5C;   /* accent2 */
-  --tl-sand:        #F7A21E;   /* accent4 */
+  --tl-teal:        #E2570E;   /* accent1 — warm orange */
+  --tl-link:        #E54867;   /* hlink — warm rose-coral */
+  --tl-mauve:       #C2384F;   /* accent2 (warm) */
+  --tl-sand:        #F7A21E;   /* accent4 — amber (the gradient's warm end) */
   --tl-sage-teal:   #F4A6C2;   /* accent5 */
   --tl-sage-green:  #16A34A;   /* accent6 */
 
@@ -71,7 +71,7 @@ html {
   --md-primary-bg-color--light: #FFFFFFcc;
 
   --md-accent-fg-color:         var(--tl-link);
-  --md-accent-fg-color--transparent: rgba(214, 51, 108, 0.10);
+  --md-accent-fg-color--transparent: rgba(229, 72, 103, 0.10);
   --md-accent-bg-color:         #FFFFFF;
 
   --md-default-bg-color:        var(--tl-bg);
@@ -107,7 +107,7 @@ html {
   --tulip-paper:      #1B1A18;
   --tulip-surface:    #1F1D1A;
   --tulip-table-stripe: rgba(240, 235, 230, 0.04);
-  --tulip-code-inline: #E86A98;
+  --tulip-code-inline: #F2849A;
 
   --tl-text:          #F0EBE6;
   --tl-text-soft:     #c9c4be;
@@ -117,22 +117,22 @@ html {
   --tl-surface:       #1F1D1A;
   --tl-rule:          #36332E;
 
-  /* Red stays tulip red; deep variant lightens in dark (matches workbench) */
-  --tl-red:           #D6336C;
-  --tl-red-deep:      #C2185B;
-  --tl-red-light:     #E86A98;
-  /* Sage teal becomes the link colour in dark (matches workbench) */
-  --tl-teal:          #F4A6C2;
-  --tl-link:          #E86A98;
-  --tl-mauve:         #B07A85;
+  /* Warm rose-coral primary; lighter in dark for contrast (matches workbench) */
+  --tl-red:           #EC5A77;
+  --tl-red-deep:      #D14A66;
+  --tl-red-light:     #F2849A;
+  /* Warm rose becomes the link colour in dark */
+  --tl-teal:          #F7A21E;
+  --tl-link:          #F2849A;
+  --tl-mauve:         #C98591;
   --tl-sand:          #F7A21E;
   --tl-sage-teal:     #F4A6C2;
   --tl-sage-green:    #16A34A;
 
   /* Material overrides */
-  --md-primary-fg-color:        #D6336C;
-  --md-primary-fg-color--light: #E86A98;
-  --md-primary-fg-color--dark:  #AD2E5C;
+  --md-primary-fg-color:        #E54867;
+  --md-primary-fg-color--light: #F2849A;
+  --md-primary-fg-color--dark:  #C2384F;
   --md-primary-bg-color:        #1B1A18;
   --md-primary-bg-color--light: #1B1A18cc;
 
@@ -430,7 +430,7 @@ html {
 }
 .md-typeset .grid.cards.tulip-feature-cards > ul > li:hover,
 .md-typeset .grid.cards.tulip-feature-cards > ol > li:hover {
-  background-color: var(--tl-surface-hover, rgba(214, 51, 108, 0.05));
+  background-color: var(--tl-surface-hover, rgba(229, 72, 103, 0.05));
   transform: translateY(-1px);
 }
 .md-typeset .grid.cards.tulip-feature-cards p {
@@ -443,7 +443,7 @@ html {
   font-size: 1rem;
   display: block;
   margin-bottom: 0.25rem;
-  color: var(--tl-accent, #D6336C);
+  color: var(--tl-accent, #E54867);
 }
 /* Make the whole card clickable: stretch the title's <a> over the card
    surface so anywhere inside the <li> opens the linked concept page. */
@@ -459,7 +459,7 @@ html {
 }
 .md-typeset .grid.cards.tulip-feature-cards > ul > li:focus-within,
 .md-typeset .grid.cards.tulip-feature-cards > ol > li:focus-within {
-  outline: 2px solid var(--tl-accent, #D6336C);
+  outline: 2px solid var(--tl-accent, #E54867);
   outline-offset: 2px;
 }
 @media (max-width: 76em) {
@@ -701,9 +701,9 @@ form.md-header__option {
   transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .md-header__source.md-header__brand:hover {
-  background-color: rgba(214, 51, 108, 0.08);
+  background-color: rgba(229, 72, 103, 0.08);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px -2px rgba(214, 51, 108, 0.25);
+  box-shadow: 0 2px 8px -2px rgba(229, 72, 103, 0.25);
 }
 /* Header rounded mark — 32×32 square. */
 .md-header__brand-mark {
@@ -948,7 +948,7 @@ form.md-header__option {
 }
 .md-typeset .admonition.warning > .admonition-title,
 .md-typeset details.warning > summary {
-  background-color: rgba(214, 51, 108, 0.08);
+  background-color: rgba(229, 72, 103, 0.08);
   color: var(--tl-red-deep);
 }
 .md-typeset .admonition.tip,
@@ -1070,7 +1070,7 @@ form.md-header__option {
 .md-search__input:focus,
 .md-search__input:hover {
   background-color: var(--tulip-surface);
-  box-shadow: 0 0 0 2px rgba(214, 51, 108, 0.20);
+  box-shadow: 0 0 0 2px rgba(229, 72, 103, 0.20);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1093,12 +1093,12 @@ form.md-header__option {
 .md-typeset details.sdk-distinctive {
   border-color: var(--tl-red);
   background: linear-gradient(135deg,
-    rgba(214, 51, 108, 0.04) 0%,
+    rgba(229, 72, 103, 0.04) 0%,
     rgba(247, 162, 30, 0.04) 100%);
 }
 .md-typeset .sdk-distinctive > .admonition-title,
 .md-typeset .sdk-distinctive > summary {
-  background-color: rgba(214, 51, 108, 0.08);
+  background-color: rgba(229, 72, 103, 0.08);
   color: var(--tl-red-deep);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -1380,7 +1380,7 @@ form.md-header__option {
    Dark:  deep header. Pink->orange gradient as a thin hairline + the
    logo + accents; tulip-rose links/CTAs, warm-orange hover.
    =================================================================== */
-:root { --tulip-grad: linear-gradient(90deg, #D6336C 0%, #AD2E5C 100%); }
+:root { --tulip-grad: linear-gradient(135deg, #ED2F7E 0%, #F7A21E 100%); }
 
 /* ---- Light scheme: white header, ink text/icons ---- */
 [data-md-color-scheme="default"] {
@@ -1411,12 +1411,12 @@ form.md-header__option {
 .md-header__topic > .md-ellipsis { font-weight: 700; letter-spacing: -0.02em; }
 
 /* Links + active/hover. */
-.md-typeset a { color: #D6336C; }
-.md-nav__link--active, .md-nav__item .md-nav__link--active { color: #D6336C; }
+.md-typeset a { color: #E54867; }
+.md-nav__link--active, .md-nav__item .md-nav__link--active { color: #E54867; }
 
 /* Primary CTA → rose, hover → warm orange. */
 .md-typeset .md-button--primary {
-  background-color: #D6336C; border-color: #D6336C; color: #FFFFFF;
+  background-color: #E54867; border-color: #E54867; color: #FFFFFF;
 }
 .md-typeset .md-button--primary:hover {
   background-color: #EA6A1E; border-color: #EA6A1E; color: #FFFFFF;
@@ -1530,11 +1530,11 @@ form.md-header__option {
 .md-typeset .grid.cards.tulip-feature-cards > ol > li:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 40px -16px rgba(20,16,24,0.18);
-  border-color: rgba(214,51,108,0.40);
+  border-color: rgba(229,72,103,0.40);
   background: var(--md-default-bg-color);
 }
 .md-typeset .grid.cards.tulip-feature-cards strong { color: var(--tulip-ink); }
-.md-typeset .grid.cards.tulip-feature-cards .lg.middle { color: #D6336C; }
+.md-typeset .grid.cards.tulip-feature-cards .lg.middle { color: #E54867; }
 
 @media (max-width: 60em) {
   .md-typeset .tulip-hero--center h1:first-of-type { font-size: 2.4rem; }
@@ -1555,7 +1555,7 @@ form.md-header__option {
   opacity: 1;
   color: var(--tulip-mute);
 }
-.tulip-product-name .tpn-brand { color: #D6336C; font-weight: 600; }
+.tulip-product-name .tpn-brand { color: #E54867; font-weight: 600; }
 .tulip-product-name .tpn-sep   { color: var(--tulip-mute); opacity: 0.5; }
 
 /* ===================================================================
