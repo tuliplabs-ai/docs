@@ -131,15 +131,15 @@ Cognitive router + opt-in EventBus telemetry.
 
 ## 57–61 · Real-world workflows
 
-End-to-end use cases — incident response, contract review, audio chat.
+End-to-end use cases — incident response, vendor security review, DPA review, spoken advisories.
 
 | # | Notebook |
 |---|---|
 | 57 | [On-call incident response][t57] |
-| 58 | [Tiered procurement approval][t58] |
-| 59 | [Contract review + negotiation][t59] |
-| 60 | [Voice output (TTS)][t60] |
-| 61 | [Voice in → voice out (gpt-audio)][t61] |
+| 58 | [Vendor security review with risk-tiered approval][t58] |
+| 59 | [DPA & security-addendum review][t59] |
+| 60 | [Spoken security advisory (TTS)][t60] |
+| 61 | [Security-hotline voice assistant (voice in → voice out)][t61] |
 
 ## 62–66 · Server, pipelines & integrations
 

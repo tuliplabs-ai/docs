@@ -11,7 +11,7 @@ format used by Strands, ADK, and Google's reference SDKs — so an
 SDK-built agent can call a non-SDK A2A peer (or be called by one)
 without an adapter.
 
-![A2A pattern — two processes (Process A team-research with A2AServer; Process B team-finance with A2AClient), connected by an HTTP+SSE arc, agents inside each process](../../img/patterns/a2a.svg){ .diagram }
+![A2A pattern — two processes (Process A threat-intel team with A2AServer; Process B SOC-triage team with A2AClient), connected by an HTTP+SSE arc, agents inside each process](../../img/patterns/a2a.svg){ .diagram }
 
 ## Wire surface
 
@@ -67,29 +67,29 @@ shape (`text`, `raw`, `url`, `data`) and back.
 from tulip.agent import Agent
 from tulip.a2a import A2AServer, AgentSkill
 
-research_agent = Agent(
+intel_agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_corpus, summarise, cite],
-    system_prompt="You read the vendor catalogue and quote prices.",
+    tools=[lookup_ioc, enrich_domain, cite],
+    system_prompt="You enrich indicators of compromise and summarise the intel.",
 )
 
 server = A2AServer(
-    agent=research_agent,
-    name="vendor_research",
-    description="Reads the vendor catalogue. Quotes prices.",
-    url="https://research.example.com",
+    agent=intel_agent,
+    name="threat_intel",
+    description="Enriches indicators of compromise. Cites the source of each detection.",
+    url="https://intel.example.com",
     skills=[
         AgentSkill(
-            id="vendor_lookup",
-            name="Vendor lookup",
-            description="Find vendors by name or capability tag.",
-            tags=["catalogue", "vendor"],
+            id="threat_intel",
+            name="Threat intel",
+            description="Look up an indicator against intel feeds and known campaigns.",
+            tags=["intel", "ioc"],
         ),
         AgentSkill(
-            id="price_quote",
-            name="Price quote",
-            description="Quote three options for a target spend.",
-            tags=["pricing"],
+            id="ioc_enrichment",
+            name="IOC enrichment",
+            description="Enrich an IP / domain / hash with reputation and first-seen data.",
+            tags=["enrichment"],
         ),
     ],
     api_key="rotate-this-secret",
@@ -98,7 +98,7 @@ server.run(host="0.0.0.0", port=7421)
 ```
 
 The Agent Card is now reachable at
-`https://research.example.com/.well-known/agent-card.json` (with the
+`https://intel.example.com/.well-known/agent-card.json` (with the
 required bearer token).
 
 ### Client side — fetch the card and send a message
@@ -106,7 +106,7 @@ required bearer token).
 ```python
 from tulip.a2a import A2AClient, Message, TextPart
 
-client = A2AClient(url="https://research.example.com", api_key="rotate-this-secret")
+client = A2AClient(url="https://intel.example.com", api_key="rotate-this-secret")
 
 # Read the public card to learn the agent's skills + capabilities.
 card = await client.get_agent_card()
@@ -116,7 +116,7 @@ print(card.name, [s.id for s in card.skills])
 task = await client.send_message(
     Message(
         role="user",
-        parts=[TextPart(text="Quote three options for $2M cloud spend.")],
+        parts=[TextPart(text="Enrich 198.51.100.7 and tell me if alert A-101 is a true positive.")],
         messageId="m-1",
     )
 )
@@ -137,7 +137,7 @@ helpers.
 async for event in client.send_message_streaming(
     Message(
         role="user",
-        parts=[TextPart(text="Quote three options for $2M cloud spend.")],
+        parts=[TextPart(text="Enrich 198.51.100.7 and tell me if alert A-101 is a true positive.")],
         messageId="m-2",
     )
 ):
@@ -216,7 +216,7 @@ The pre-spec endpoints are still served:
 
 ```python
 # Legacy: flat string-in / string-out — bypass the JSON-RPC envelope.
-reply = await client.invoke("Quote three options...")
+reply = await client.invoke("Enrich 198.51.100.7...")
 ```
 
 Anything that imported `A2AMessage` / `A2ARequest` / `A2AResponse` from

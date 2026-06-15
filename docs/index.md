@@ -7,11 +7,11 @@ hide:
 <div class="tulip-hero" markdown>
 <div class="tulip-hero__copy" markdown>
 
-<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the cybersecurity agent SDK</p>
+<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the agentic AI-security SDK</p>
 
-# Security agents that <span class="accent">show their work.</span>
+# Agentic AI for cybersecurity — <span class="accent">grounded in evidence.</span>
 
-Build agent teams for security work where every finding is traced to evidence, every action is a typed event you can replay, and every risky step is gated. An ungrounded finding is a false positive *by construction* — Tulip won't let an agent ship one.
+Tulip is a Python SDK for building AI agents that do security work you can trust — because every finding is backed by evidence, or the agent **abstains** instead of guessing. Point it at **another AI** (a chatbot, an agent, a model endpoint) to test it for prompt injection, jailbreaks, and data leaks — its sharpest use today — or point the **same engine** at your infrastructure for SOC triage, incident response, and cloud posture.
 
 <div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[MITRE&nbsp;ATLAS](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;LLM&nbsp;Top&nbsp;10](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;ASI](concepts/security.md)</span> · <span style="white-space:nowrap">[NIST&nbsp;AI&nbsp;RMF](concepts/security.md)</span></div>
 
@@ -29,41 +29,23 @@ pip install "tulip-agents[openai]"   # OpenAI · Anthropic
 <div class="tulip-hero__code" markdown>
 
 ```python
-from tulip.agent import Agent
-from tulip.tools import tool
-from tulip.observability import run_context, get_event_bus
+from tulip.security import Target, red_team, assure, is_finding
 
-@tool
-def enrich_indicator(value: str) -> dict:
-    """Reputation, first-seen, and category for an IP / domain / hash."""
-    return intel.lookup(value)
+# Point at the AI system under assessment — a remote endpoint, an
+# in-process tulip.Agent, or an A2A peer.
+target = Target.endpoint("https://support-bot.example/chat")
 
-@tool
-def query_siem(query: str) -> list[dict]:
-    """Run a detection query against the SIEM."""
-    return siem.search(query)
+# Red-team it against the OWASP-ASI / MITRE-ATLAS suite.
+report = await red_team(target, suite="owasp-asi")
+for r in report:
+    if is_finding(r):
+        print(f"[{r.severity.value}] {r.title}  {r.taxonomy}")
+    else:
+        # No evidence -> no claim: the abstain-by-construction guarantee.
+        print(f"[abstain] {r.candidate_title} — {r.reason}")
 
-@tool(idempotent=True)
-def isolate_host(host: str) -> str:
-    """Network-isolate a host. Fires exactly once per host."""
-    return edr.isolate(host)
-
-agent = Agent(
-    model="openai:gpt-4o",
-    tools=[enrich_indicator, query_siem, isolate_host],
-    grounding=True,        # every claim verified against tool output
-    system_prompt="You are a SOC triage analyst. Cite evidence for every verdict.",
-)
-
-async with run_context() as rid:
-    result = await agent.run(
-        "Outbound beaconing from 192.0.2.14 to a domain "
-        "registered yesterday — triage and contain if warranted."
-    )
-    async for ev in get_event_bus().subscribe(rid):
-        match ev.event_type:
-            case "agent.tool.started": print("🔧", ev.data["tool_name"])
-            case "agent.terminate":    print("✓", ev.data["final_message_preview"])
+# Assess its posture: grounded guardrail coverage across the suite.
+posture = await assure(target)
 ```
 
 </div>

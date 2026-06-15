@@ -34,19 +34,19 @@
   <!-- Specialists row (3) -->
   <g filter="url(#sh)">
     <rect x="40"  y="200" width="180" height="70" rx="10" fill="#E2570E"/>
-    <text x="130" y="225" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Procurement</text>
-    <text x="130" y="247" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">vendor catalogue</text>
-    <text x="130" y="261" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">price quoting</text>
+    <text x="130" y="225" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Triage</text>
+    <text x="130" y="247" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">fetch_alerts</text>
+    <text x="130" y="261" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">enrich_ioc</text>
 
     <rect x="270" y="200" width="180" height="70" rx="10" fill="#E2570E"/>
-    <text x="360" y="225" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Compliance</text>
-    <text x="360" y="247" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">SOC2 / ISO posture</text>
-    <text x="360" y="261" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">contract review</text>
+    <text x="360" y="225" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Forensics</text>
+    <text x="360" y="247" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">host timeline</text>
+    <text x="360" y="261" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">scan_host</text>
 
     <rect x="500" y="200" width="180" height="70" rx="10" fill="#E2570E"/>
-    <text x="590" y="225" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Approval Officer</text>
-    <text x="590" y="247" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">submit_po</text>
-    <text x="590" y="261" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">email_cfo</text>
+    <text x="590" y="225" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Containment</text>
+    <text x="590" y="247" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">isolate_host</text>
+    <text x="590" y="261" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">page_oncall</text>
   </g>
 
   <!-- Dispatch arrows -->
