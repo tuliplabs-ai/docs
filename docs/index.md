@@ -51,6 +51,30 @@ posture = await assure(target)
 </div>
 </div>
 
+## The trust chain
+
+A security agent that *finds* something still must not *act* on its own
+authority. Tulip gives you the whole chain — and an admission gate that makes it
+**enforceable, not advisory**:
+
+**evidence → grounding → verification → policy → approval → admission → audit**
+
+- **Grounding** — a claim becomes a typed `Finding` only above the GSAR
+  threshold, else an `Abstention`. Enforced by the type: no ungrounded `Finding`
+  can be constructed.
+- **Verification** — `verify()` independently challenges the finding and rescores it.
+- **Policy + approval** — `approve()` weighs a `SecurityPolicy` (verification
+  score, blast radius, `require_human_for`).
+- **Admission** — `admit()` (or `ctx.actions.execute()`) runs a side-effecting
+  action **only if** approval allows, recording the decision to the audit trail
+  either way; otherwise it raises `AdmissionError`.
+
+That last gate is what makes Tulip a *runtime*, not a library: route an action
+through it and "no action without a verified, approved warrant" stops being a
+convention and becomes enforced code.
+
+[The security layer →](concepts/security.md) · [SecurityContext →](concepts/security-context.md)
+
 ## Grounded, or it doesn't ship
 
 Security is the one domain where a hallucinated claim isn't an
@@ -105,13 +129,13 @@ they drop into a SIEM or a **NIST AI RMF** report without translation.
     "critical" is refuted before it drives an action. Works on **any
     agent's** findings, not just Tulip's.
 
-- :material-shield-lock:{ .lg .middle } **[Verified before it acts](concepts/security-context.md)**
+- :material-shield-lock:{ .lg .middle } **[Admission gate](concepts/security-context.md)**
 
     ---
-    `approve()` weighs a `SecurityPolicy` — blast radius, verification
-    score, `require_human_for={"production"}` — before any response
-    action. Investigate by domain with `SecurityContext`; swap Splunk,
-    Okta, or CrowdStrike without touching the logic.
+    `approve()` weighs a `SecurityPolicy` (blast radius, verification
+    score, `require_human_for={"production"}`); `admit()` then **runs the
+    action only if that decision allows** — else raises `AdmissionError` —
+    and records the attempt to the audit trail either way.
 
 - :material-radar:{ .lg .middle } **[AI-threat coverage](notebooks/index.md)**
 

@@ -30,10 +30,10 @@ handle is the same whether the provider is the offline reference or a live vendo
 | `ctx.identity` | identity provider (the surface most attacks touch) | `get_user`, `risk`, `signins`, `disable` |
 | `ctx.cloud` | cloud control-plane evidence (read-only) | `describe`, `events` |
 | `ctx.threat_intel` | IOC reputation / enrichment | `enrich` |
-| `ctx.actions` | gate a response action against evidence + policy | `request_approval(action, finding=…, verdict=…)` |
+| `ctx.actions` | decide on **and run** a response action | `request_approval(action, finding=…, verdict=…)` · `execute(action, perform, finding=…, verdict=…)` |
 
 Reads are plain domain calls. **Writes** — `endpoint.isolate`, `identity.disable` —
-are real-world actions: gate them through `ctx.actions` first (see below).
+are real-world actions: run them through the [admission gate](#admission-control-the-enforcement-point) so they fire only after the chain clears.
 
 ## Zero-config by default
 
@@ -140,6 +140,36 @@ convenience wrapper around it.
 finding-shaped dict** produced by any other agent (LangGraph, CrewAI, anything),
 which is what lets Tulip sit *above* the stack as the verification layer rather
 than competing with the frameworks below it.
+
+## Admission control — the enforcement point
+
+`request_approval()` returns a *decision*; it doesn't run anything. To make the
+decision binding, run the action through the **admission gate** — `admit()`, or
+`ctx.actions.execute()` on the facade. The side effect fires **only if** the
+chain clears (`approve()` → ALLOW); otherwise it raises `AdmissionError`, and the
+attempt is recorded to the audit trail either way:
+
+```python
+from tulip.security import Action, AdmissionError, verify
+
+verdict = await verify(finding)
+try:
+    await ctx.actions.execute(
+        Action(name="disable_user", asset="mallory@corp.com", environment="production"),
+        lambda: ctx.identity.disable("mallory@corp.com"),   # the side effect
+        finding=finding,
+        verdict=verdict,
+    )
+except AdmissionError as exc:
+    route_to_human(exc.decision)   # production → require_human, so the disable never fired
+```
+
+This is what turns the chain from *advisory* into *enforced*: there is no path
+through `execute()` to a side effect that skips evidence, verification, and
+policy — and nothing reaches production without leaving an audit record. It's the
+admission-controller pattern (think Kubernetes admission webhooks) applied to
+agent actions, and it's what makes Tulip a *runtime* rather than a library of
+trust functions.
 
 ## From facade to agent — `ctx.toolset()`
 
