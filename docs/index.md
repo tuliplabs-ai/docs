@@ -97,6 +97,22 @@ they drop into a SIEM or a **NIST AI RMF** report without translation.
     threshold — else an auditable `Abstention`. Ungrounded is
     unshippable by construction. Tagged to ATLAS · OWASP LLM · OWASP ASI.
 
+- :material-check-decagram:{ .lg .middle } **[Verification](notebooks/notebook_78_verify_findings.md)**
+
+    ---
+    `verify()` puts a finding through an independent skeptic that
+    challenges its evidence and scores confidence — a hallucinated
+    "critical" is refuted before it drives an action. Works on **any
+    agent's** findings, not just Tulip's.
+
+- :material-shield-lock:{ .lg .middle } **[Verified before it acts](concepts/security-context.md)**
+
+    ---
+    `approve()` weighs a `SecurityPolicy` — blast radius, verification
+    score, `require_human_for={"production"}` — before any response
+    action. Investigate by domain with `SecurityContext`; swap Splunk,
+    Okta, or CrowdStrike without touching the logic.
+
 - :material-radar:{ .lg .middle } **[AI-threat coverage](notebooks/index.md)**
 
     ---
