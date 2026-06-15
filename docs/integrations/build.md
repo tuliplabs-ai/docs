@@ -3,8 +3,11 @@
 An integration is a small module that implements the core **`SecurityAdapter`**
 contract and reuses the core toolkit. It lives in a separate distribution
 (`tulip-integrations` or your own), depends one-way on `tulip-agents`, and is
-discovered by explicit import. Copy `tulip_integrations/security/splunk.py` as
-the template.
+discovered by explicit import.
+
+Place it in the **domain package that fits your vendor** — `siem/`, `edr/`,
+`identity/`, `threat_intel/`, `vuln/`, `cloud/`, or `compute/` — one canonical
+home per integration. Copy `tulip_integrations/siem/splunk.py` as the template.
 
 ## The contract
 
@@ -36,7 +39,7 @@ the `langchain-tests` analog):
 
 ```python
 from tulip.security.testing import assert_adapter_conformance, assert_tool_returns_json
-from tulip_integrations.security.acme import acme_adapter, acme_tool
+from tulip_integrations.siem.acme import acme_adapter, acme_tool   # your domain package
 
 def test_conforms():
     assert_adapter_conformance(acme_adapter())
@@ -45,14 +48,15 @@ async def test_tool_json():
     await assert_tool_returns_json(acme_tool, "…")   # offline path
 ```
 
-Passing the kit is what earns the **✅ verified / 🧪 offline** badge in the
-[catalog](index.md#catalog).
+Passing the kit — plus exercising the live path in `tests/test_live_paths.py` —
+is what earns the **✅ live-verified / 🔌 live-path verified** badge in the
+[catalog](index.md).
 
 ## Wire it in
 
 ```python
 from tulip.security import security_toolset
-from tulip_integrations.security.acme import acme_adapter
+from tulip_integrations.siem.acme import acme_adapter
 
 tools = security_toolset(extra=acme_adapter().tools())
 ```
