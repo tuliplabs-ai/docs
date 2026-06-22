@@ -1,6 +1,6 @@
 # GSAR Typed Grounding
 
-GSAR (Grounded Structured Answer Reasoning) is the Tulip layer from
+GSAR (typed grounding) is the Tulip layer from
 [arXiv:2604.23366 (2026)](https://arxiv.org/abs/2604.23366).
 It partitions an answer's claims into four buckets, scores them
 against evidence, and decides whether to proceed, regenerate, or

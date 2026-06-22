@@ -4,7 +4,7 @@
   <defs>
     <linearGradient id="tulipGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ED2F7E"/>
-      <stop offset="1" stop-color="#F7A21E"/>
+      <stop offset="1" stop-color="#D6336C"/>
     </linearGradient>
   </defs>
   <rect width="1280" height="640" fill="#1E1B17"/>

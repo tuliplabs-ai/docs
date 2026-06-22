@@ -14,13 +14,15 @@ automatically and continuously, and reports only the flaws it can actually
    or an `Abstention` (no proof, so no claim). Never a guess.
 
 More precisely: Tulip builds agents whose **subject is another AI system** —
-agents that **red-team**, **assess**, and **monitor** other AI, and produce
-*evidence*: a grounded `Finding` or an explicit `Abstention`, never a
-hallucinated verdict.
+agents that **red-team** and **assess** other AI (continuous **monitoring** is
+on the roadmap), and produce *evidence*: a grounded `Finding` or an explicit
+`Abstention`, never a hallucinated verdict.
 
 > **A cybersecurity agent** = a *target* (an AI system) × a *job*
-> (red-team · assure · monitor) × an *output* (grounded `Finding` |
+> (red-team · assure; monitor is roadmap) × an *output* (grounded `Finding` |
 > `Abstention`) × being *itself trustworthy by construction*.
+
+![The trust chain: a Target is probed by red_team or assure, grounded by GSAR into a Finding or an Abstention, and only an approved action passes the admission gate](../img/patterns/trust-chain.svg){ .diagram }
 
 ## Why this, and why now
 
@@ -103,7 +105,7 @@ tamper-evident audit trail — and returns it alongside that trail.
 from tulip.security import secure_agent
 
 secured = secure_agent(model="openai:gpt-4o", tools=[...])
-result = await secured.run_sync("...")
+result = secured.run_sync("...")
 assert secured.audit_trail.verify()   # the action record is intact
 ```
 

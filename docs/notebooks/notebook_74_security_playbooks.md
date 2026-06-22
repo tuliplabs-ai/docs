@@ -1,4 +1,4 @@
-# Notebook 74: SOC playbooks over the security toolset
+# SOC playbooks over the security toolset
 
 The SDK ships curated IR / SOC playbooks (``phishing_triage``,
 ``nist_800_61_ir``, ``ransomware_containment``, ``cloud_posture_audit``) and the

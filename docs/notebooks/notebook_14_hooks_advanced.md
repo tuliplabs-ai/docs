@@ -1,6 +1,6 @@
 # Advanced Hooks
 
-Notebook 12 covered hook basics. This one focuses on the safety
+The agent-hooks notebook covered hook basics. This one focuses on the safety
 properties Tulip enforces on the event objects hooks see, and on the
 control levers a hook can pull mid-flight: `event.cancel` to skip a tool
 call, and `event.retry` to re-issue a model call.
@@ -26,7 +26,7 @@ Uses the bundled mock model by default. Set `TULIP_MODEL_PROVIDER` to
 openai / anthropic for a live model; keep `TULIP_MODEL_PROVIDER=mock`
 for offline runs.
 
-Prerequisite: notebook 12.
+Prerequisite: the agent-hooks notebook.
 
 ## Source
 

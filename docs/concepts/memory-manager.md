@@ -2,9 +2,9 @@
 
 A Tulip SDK agent is stateless
 between sessions by default. Checkpointing preserves the full message
-history for one conversation thread, but facts learned in thread A are
-invisible in thread B — and when a thread is deleted, everything in it
-is gone.
+history for one investigation thread, but the TTPs learned hunting
+threat actor A are invisible when triaging incident B — and when a
+thread is deleted, every hard-won attacker pattern in it is gone.
 
 `MemoryManager` fills that gap. It runs two lifecycle hooks
 on every agent invocation:
@@ -14,7 +14,8 @@ on every agent invocation:
 | `on_session_start` | Before the first model call | Retrieve stored memories → inject into system prompt |
 | `on_session_end` | After the agent stops | Extract durable facts from the conversation → persist to store |
 
-The result: the agent accumulates knowledge across sessions without the
+The result: a SOC analyst agent accumulates IR playbooks, attacker
+TTPs, and tuned SIEM queries across investigations — without the
 context window ever filling up with raw history.
 
 ## Where memories live
@@ -48,10 +49,10 @@ fact under the same key **updates** the record, not duplicates it.
 
 | Type | What to store | Decays? |
 |---|---|---|
-| `user` | Role, expertise, working style | Rarely |
-| `feedback` | Behavioural rules — what to do/avoid and *why* | Rarely |
-| `project` | Active investigations, containment decisions | Fast — include a *Why* |
-| `reference` | Pointers to external systems (SIEM, threat-intel feeds, runbooks) | Medium |
+| `user` | Analyst role, tier, shift, expertise | Rarely |
+| `feedback` | Containment rules, IR playbook steps — what to do/avoid and *why* | Rarely |
+| `project` | Active investigations, attacker TTPs, containment decisions | Fast — include a *Why* |
+| `reference` | Pointers to external systems, tuned SIEM queries, threat-intel feeds, runbooks | Medium |
 
 ## Quick start
 

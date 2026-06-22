@@ -5,18 +5,19 @@ Opus for the hardest problems, Sonnet as the everyday workhorse,
 Haiku for high-volume cheap calls — and want to talk to Anthropic
 without going through an intermediary.
 
-Two things make this provider distinct: **prompt caching** (long
-system prompts and tool blocks pay 1/10th the input cost on repeat
-turns) and **extended thinking** (Claude 4 surfaces its reasoning as
-a stream of typed events your UI can render).
+Two things make this provider distinct: **prompt caching** (a long
+threat-intel block or SOC playbook reused across an investigation pays
+1/10th the input cost on repeat turns) and **extended thinking** (Claude
+surfaces its reasoning as a stream of typed events — useful for showing
+forensic depth on a hard triage call).
 
 ## When to pick Anthropic
 
 | You want… | This is the right provider |
 |---|---|
 | Claude Opus / Sonnet / Haiku from Anthropic directly | ✓ |
-| Long system prompts amortised across many turns | ✓ — built-in prompt caching |
-| Extended-thinking models with visible reasoning | ✓ — `ThinkEvent` stream |
+| Threat-intel context / SOC playbooks amortised across a long investigation | ✓ — built-in prompt caching |
+| Forensic reasoning surfaced for the analyst to audit | ✓ — `ThinkEvent` stream |
 
 ## Getting started
 
@@ -31,15 +32,14 @@ export ANTHROPIC_API_KEY=sk-ant-...
 ```python
 from tulip.agent import Agent
 agent = Agent(
-    model="anthropic:claude-sonnet-4-20250514",
+    model="anthropic:claude-sonnet-4-6",
     system_prompt="You are a SOC triage analyst.",
 )
 ```
 
-The string `"anthropic:claude-sonnet-4-20250514"` tells the SDK the
+The string `"anthropic:claude-sonnet-4-6"` tells the SDK the
 provider (`anthropic:`) and the exact model id. Any model id
-Anthropic accepts, the SDK accepts — including the dated revision
-suffixes (`-20250514`).
+Anthropic accepts, the SDK accepts.
 
 ### 3. Run it
 
@@ -59,9 +59,9 @@ Whatever Anthropic ships, you can address by name:
 
 | Model | When to pick it |
 |---|---|
-| `claude-opus-4-…` | Hardest problems — code archaeology, deep research, multi-step reasoning |
-| `claude-sonnet-4-…` | Everyday workhorse — fast enough, smart enough, cheap enough |
-| `claude-haiku-4-…` | High-volume cheap calls — classification, routing, simple summaries |
+| `claude-opus-4-8` | Hardest problems — incident timeline reconstruction, deep threat hunting, multi-step forensics |
+| `claude-sonnet-4-6` | Everyday workhorse — fast enough, smart enough, cheap enough for routine triage |
+| `claude-haiku-4-5` | High-volume cheap calls — alert classification, indicator routing, log summaries |
 
 ### Real SSE streaming
 
@@ -98,7 +98,7 @@ class Triage(BaseModel):
     needs_human: bool
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-20250514",
+    model="anthropic:claude-sonnet-4-6",
     output_schema=Triage,
 )
 result = agent.run_sync("Beacon from WIN-7731 to a known C2 endpoint.")
@@ -108,7 +108,9 @@ print(result.parsed)        # Triage(severity='high', needs_human=True)
 ### Prompt caching — opt in for long prompts
 
 This is the biggest cost saver if your system prompt or tool block is
-long (skills, playbooks, RAG context). Anthropic's prompt-caching
+long (SOC playbooks, threat-intel feeds, detection rules). Re-feeding
+the same threat-intel context on every turn of an investigation is the
+common case — and the expensive one. Anthropic's prompt-caching
 mechanism marks a span of the request as cacheable; subsequent turns
 within the cache window pay **1/10th** the input cost on the cached
 span.
@@ -124,11 +126,11 @@ from tulip.models.native.anthropic import AnthropicModel
 
 agent = Agent(
     model=AnthropicModel(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         prompt_cache=True,
     ),
     tools=[...],
-    system_prompt="<a long system prompt — skills, playbooks, RAG context>",
+    system_prompt="<a long system prompt — SOC playbooks, threat-intel context, detection rules>",
 )
 
 result = agent.run_sync("...")
@@ -152,10 +154,12 @@ and the cost saved.
 
 ### Extended thinking — visible reasoning
 
-Claude 4 models with `thinking_enabled` think before answering, the
-way the OpenAI o-series does. Anthropic surfaces those thinking
-blocks in the response; the SDK emits a `ThinkEvent` for each one so
-your UI can show what the model is working on:
+Claude models with `thinking_enabled` reason before answering — worth
+the extra tokens when a triage call hinges on forensic depth (correlating
+a beacon against process lineage, weighing weak signals before escalating).
+Anthropic surfaces those thinking blocks in the response; the SDK emits a
+`ThinkEvent` for each one so the analyst can audit how the model reached a
+finding:
 
 ```python
 async for event in agent.run("..."):
@@ -171,7 +175,7 @@ async for event in agent.run("..."):
 | Symptom | Likely cause |
 |---|---|
 | `401 authentication_error` | `ANTHROPIC_API_KEY` not set, or set to a key without console access |
-| `404 not_found_error` on the model id | Dated revision suffix is wrong; check `https://docs.anthropic.com/en/docs/about-claude/models/all-models` |
+| `404 not_found_error` on the model id | Model id is wrong; check `https://docs.anthropic.com/en/docs/about-claude/models/all-models` |
 | `429 overloaded_error` | Anthropic capacity; the `ModelRetryHook` re-tries with backoff if installed |
 | Prompt caching not visible in usage stats | Cache window expired (5 min ephemeral) or prompt below the threshold |
 | `ThinkEvent`s never fire | Model not in the extended-thinking subset, or `thinking_enabled` not set in `model_config` |

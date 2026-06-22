@@ -2,7 +2,7 @@
 
 An orchestrator routes a task to a chosen set of specialist agents, runs
 them in parallel under a semaphore, then correlates their outputs into a
-single summary. Compared with a swarm (Notebook 25), the decision of who
+single summary. Compared with a swarm, the decision of who
 does what is centralised here instead of emerging from capability tags.
 
 This notebook covers:
@@ -20,8 +20,8 @@ This notebook covers:
 
 ## Prerequisites
 
-- Notebook 08 (Agent basics).
-- Notebook 25 (Swarm) for the unsupervised counterpoint.
+- Agent basics.
+- The swarm multi-agent notebook for the unsupervised counterpoint.
 
 ## Run
 

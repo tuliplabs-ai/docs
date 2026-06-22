@@ -1,4 +1,4 @@
-# Notebook 82: Investigate an incident with SecurityContext
+# Investigate an incident with SecurityContext
 
 The point of ``SecurityContext`` is that you reason in *domains*, not vendors.
 The whole investigation below never says "Splunk" or "Okta" or "CrowdStrike" — it

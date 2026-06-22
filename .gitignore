@@ -12,3 +12,7 @@ venv/
 *.swp
 .idea/
 .vscode/
+
+# Local credentials — never commit (home: ~/Projects/tuliplabs/secrets.env)
+.env
+secrets.env

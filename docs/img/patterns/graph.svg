@@ -26,32 +26,32 @@
   <!-- plan -->
   <g filter="url(#sh)">
     <rect x="200" y="35" width="130" height="50" rx="10" fill="#F4A6C2"/>
-    <text x="265" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2828">plan</text>
+    <text x="265" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2828">triage</text>
   </g>
 
   <!-- research -->
   <g filter="url(#sh)">
     <rect x="395" y="35" width="130" height="50" rx="10" fill="#F4A6C2"/>
-    <text x="460" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2828">investigate</text>
+    <text x="460" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2828">verify indicators</text>
   </g>
 
   <!-- write -->
   <g filter="url(#sh)">
     <rect x="395" y="155" width="130" height="50" rx="10" fill="#F4A6C2"/>
-    <text x="460" y="185" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2828">report</text>
+    <text x="460" y="185" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2828">assess</text>
   </g>
 
   <!-- review -->
   <g filter="url(#sh)">
     <rect x="200" y="155" width="130" height="50" rx="10" fill="#F4A6C2"/>
-    <text x="265" y="185" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2828">review</text>
+    <text x="265" y="185" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2828">confidence gate</text>
   </g>
 
   <!-- decision diamond -->
   <g filter="url(#sh)">
-    <polygon points="80,170 120,200 80,230 40,200" fill="#F7A21E"/>
-    <text x="80" y="198" text-anchor="middle" font-size="10" font-weight="700" fill="#3A2A0F">conf</text>
-    <text x="80" y="210" text-anchor="middle" font-size="10" font-weight="700" fill="#3A2A0F">≥ 0.85?</text>
+    <polygon points="80,170 120,200 80,230 40,200" fill="#D6336C"/>
+    <text x="80" y="198" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">conf</text>
+    <text x="80" y="210" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">≥ 0.85?</text>
   </g>
 
   <!-- END -->

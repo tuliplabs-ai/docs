@@ -48,7 +48,7 @@ from tulip.multiagent.functional import task, entrypoint
 @task
 async def enrich_ioc(ioc: dict) -> dict:
     """Run the triage agent against one indicator."""
-    return await triage_agent.run(f"Enrich {ioc['value']}.")
+    return triage_agent.run_sync(f"Enrich {ioc['value']}.").message
 
 @entrypoint
 async def enrich_all(iocs: list[dict]) -> list[dict]:
@@ -69,7 +69,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 @task
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=0.5))
 async def enrich_ioc(ioc: dict) -> dict:
-    return await triage_agent.run(f"Enrich {ioc['value']}.")
+    return triage_agent.run_sync(f"Enrich {ioc['value']}.").message
 
 @entrypoint
 async def enrich_all_with_deadline(iocs: list[dict]) -> list[dict]:
@@ -85,17 +85,17 @@ including parallel batches inside sequential phases:
 ```python
 @task
 async def prioritize_alerts(queue: list[dict]) -> list[dict]:
-    return await triage_agent.run(f"Pick the top 5 from {len(queue)}.")
+    return triage_agent.run_sync(f"Pick the top 5 from {len(queue)}.").message
 
 @task
 async def enrich(alert: dict) -> dict:
-    return await triage_agent.run(f"Enrich {alert['ioc']}.")
+    return triage_agent.run_sync(f"Enrich {alert['ioc']}.").message
 
 @entrypoint
 async def end_to_end(queue: list[dict]) -> dict:
     shortlisted = await prioritize_alerts(queue)            # phase 1
     scored = await asyncio.gather(*[enrich(a) for a in shortlisted])  # phase 2 (parallel)
-    final = await containment_agent.run(f"Recommend containment from: {scored}")  # phase 3
+    final = containment_agent.run_sync(f"Recommend containment from: {scored}").message  # phase 3
     return final
 ```
 

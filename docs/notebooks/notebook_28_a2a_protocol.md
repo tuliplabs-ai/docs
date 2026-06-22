@@ -26,7 +26,7 @@ This notebook covers:
 ## Prerequisites
 
 - `pip install fastapi uvicorn` for the server side.
-- Notebook 08 (Agent basics). The wire format is provider-agnostic.
+- Agent basics. The wire format is provider-agnostic.
 
 ## Run
 

@@ -43,9 +43,8 @@ agent = Agent(
 ```
 
 Either way, every integration follows the same rules: **bring-your-own
-credentials** from the environment, a deterministic **offline sample** when none
-are set (so it runs in CI), JSON-returning tools, and findings routed through
-GSAR `ground_finding` so an ungrounded result abstains.
+credentials** from the environment, JSON-returning tools, and findings routed
+through GSAR `ground_finding` so an ungrounded result abstains.
 
 ## What each integration does
 
@@ -63,16 +62,5 @@ GSAR `ground_finding` so an ungrounded result abstains.
 
 Writes — `endpoint.isolate`, `identity.disable` — are real actions: gate them
 through `ctx.actions` / `approve()` first.
-
-## Verification status — the honesty signal
-
-| Status | Meaning | Integrations |
-|---|---|---|
-| ✅ **live-verified** | run against a real API / tenant | AWS, OSV, **VirusTotal**, **Auth0** |
-| 🔌 **live-path verified** | the live HTTP request + response parsing is exercised and asserted against a mocked transport ([`test_live_paths.py`](https://github.com/tuliplabs-ai/tulip-integrations/blob/main/tests/test_live_paths.py)); the offline sample runs in CI; not yet run against a real instance | **Splunk, CrowdStrike, Okta, Wiz** |
-
-CrowdStrike and Wiz have no free tier, so they stay 🔌 (we won't fake a
-real-tenant verification). VirusTotal and Auth0 have free tiers and are hit for
-real in their own `test_live_*.py` (which skip without credentials).
 
 → [Build your own integration](build.md) · [SecurityContext](../concepts/security-context.md)

@@ -1,5 +1,21 @@
 # Legal notices
 
+## About &amp; disclaimer
+
+**tulip is developed 100% by Tulip Labs, an independent AI-security research group.** No third party contributed to its development. It is built for **independent, open-source AI-security research**.
+
+**Organizations and corporations are welcome to use tulip at production grade, at no cost**, under the Apache License, Version 2.0.
+
+### Disclaimer of warranty and liability
+
+The software is provided **"AS IS", without warranty of any kind**, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. **Tulip Labs accepts no liability** for any claim, damages, or other consequence arising from the software or its use. **Use is entirely at your own risk.** You are **solely responsible** for ensuring that your use is lawful, authorized, and compliant with all applicable obligations — including security, privacy, export-control, and any policies that govern the systems and data you touch.
+
+### Responsible use
+
+tulip ships offensive-capable security tooling — red-team agents, model and hardware fingerprinting, and similar reconnaissance capabilities. **Use it only against systems you own or are explicitly authorized to test.** Running these capabilities against systems you do not own or have not been authorized to assess may be unlawful.
+
+*This page is not legal advice. Consult your own counsel.*
+
 ## License
 
 tulip is released under the **Apache License, Version 2.0**.
