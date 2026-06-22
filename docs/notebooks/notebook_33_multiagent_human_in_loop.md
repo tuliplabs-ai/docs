@@ -1,6 +1,6 @@
 # Multi-Agent HITL
 
-Notebook 20 covered HITL for a single agent. Production systems
+The single-agent HITL notebook covered HITL for a single agent. Production systems
 typically combine a triage agent, several specialists, and a human
 gate for irreversible actions. This notebook walks three combinations.
 
@@ -27,8 +27,8 @@ gate for irreversible actions. This notebook walks three combinations.
 
 ## Prerequisites
 
-- Notebook 17 (basic graph).
-- Notebook 20 (single-agent HITL).
+- Basic graph.
+- Single-agent HITL.
 
 ## Run
 

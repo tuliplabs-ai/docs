@@ -11,6 +11,8 @@ observed. Here an ungrounded claim *cannot* become a `Finding` — it abstains �
 so the report is trustworthy by construction, and the agent is read-only by
 construction, so the auditor can't become the incident.
 
+![The SOC analyst gathers read-only AWS API facts as evidence, then ground_report ships findings that cite an API fact and abstains on inference-only claims](../img/patterns/cloud-posture.svg){ .diagram }
+
 ## Two spec-driven tools
 
 Instead of one hand-written tool per AWS service, the agent gets two generic
@@ -130,7 +132,7 @@ pip install 'tulip-agents[aws]'
 
 ## Where it shows up
 
-- Cookbook: [Notebook 73 — grounded cloud-posture agent](../notebooks/notebook_73_cloud_posture_agent.md)
+- Notebooks: [grounded cloud-posture agent](../notebooks/notebook_73_cloud_posture_agent.md)
   (Part 1 runs the grounding decision fully offline).
 - [Security layer](security.md) — the `ground_finding` primitive this builds on.
 - [Threat scenarios](threat-scenarios.md) — the catalogue the findings tag into

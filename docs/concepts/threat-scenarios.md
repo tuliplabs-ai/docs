@@ -7,6 +7,8 @@ for LLM Applications (2025)**, the **OWASP Top 10 for Agentic Applications
 **scenario gist** — it states one threat, shows an agent hitting it, and shows
 the Tulip defense stopping it.
 
+![Each OWASP LLM, OWASP ASI and MITRE ATLAS ID maps to a runnable scenario gist — threat, agent, defense — that produces a grounded Finding or an Abstention](../img/patterns/threat-coverage.svg){ .diagram }
+
 Every gist is **runnable offline with no credentials**. Together they map
 *every* ID in all three catalogues to at least one runnable example, and a
 single runner keeps that mapping honest:

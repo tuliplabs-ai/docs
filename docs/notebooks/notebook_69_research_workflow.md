@@ -18,10 +18,9 @@ grounding, and recover when the score is low.
 
 ## Prerequisites
 
-Notebook 64 builds on the agent loop (notebook 08), tools (09),
-streaming events (11), graphs (16), DeepAgent (29), and SSE
-observability (53). Read those first if any of the pieces look
-unfamiliar.
+This workflow builds on the agent loop, tools, streaming events,
+graphs, DeepAgent, and SSE observability. Read those first if any of
+the pieces look unfamiliar.
 
 ## Run it
 

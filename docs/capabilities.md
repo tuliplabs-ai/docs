@@ -22,12 +22,12 @@ does, and where to find it.
       (ParallelPipeline), `debate` (two debaters + judge),
       `codegen_test_validate` (LoopAgent), `approval_gated_execution`
       (Agent + interrupt), `a2a_delegate`, `handoff_chain`.
-    - **Seven native multi-agent patterns plus A2A** — Composition
+    - **Seven native multi-agent shapes** — Composition
       (Sequential / Parallel / Loop), Orchestrator + Specialists, Swarm,
-      Handoff, StateGraph, Functional API (`@task` / `@entrypoint`), DeepAgent,
-      cross-process A2A. Use them directly, or let the cognitive router
-      dispatch to them. Every pattern shares the same `Agent` class and event
-      stream.
+      Handoff, StateGraph, Functional API (`@task` / `@entrypoint`), and
+      cross-process A2A — plus DeepAgent (a research factory built on top).
+      Use them directly, or let the cognitive router dispatch to them. Every
+      pattern shares the same `Agent` class and event stream.
     - **In-process observability** — opt-in `EventBus` with agent yield
       bridge. One `run_context()` streams 60+ canonical events from every
       layer (agent, multi-agent, router, RAG, memory, A2A). Zero allocations
@@ -67,12 +67,42 @@ every finding is grounded or abstained, verified, gated, and audited.
 | **Secure agent** | An `Agent` with grounding + guardrails + audit trail on by default | `secure_agent(...)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
 | **Vendor integrations** | Inject real vendors per domain — Splunk, CrowdStrike, Okta, Auth0, VirusTotal, Wiz | `tulip-integrations` · [Integrations](integrations/index.md) |
 
+```python
+# A finding only exists above the GSAR bar — else it abstains. No public
+# path constructs an ungrounded Finding.
+from tulip.security import ground_finding, Severity, is_finding
+
+result = ground_finding(
+    title="Expired TLS certificate on 192.0.2.10:443",
+    severity=Severity.HIGH, asset="192.0.2.10:443",
+    partition=partition,  # GSAR claim partition from tool evidence
+)
+if is_finding(result):
+    print("SHIPPED", result.title, result.gsar_score)
+else:
+    print("ABSTAINED", result.decision, "—", result.reason)
+```
+
+```python
+# The action chain: investigate → verify → policy → admission gate.
+# isolate_host fires only if the chain clears; production → require_human.
+from tulip.security import Action, SecurityContext, verify
+
+ctx = SecurityContext()
+verdict = await verify(finding)
+await ctx.actions.execute(
+    Action(name="isolate_host", asset="WS-0142", environment="production"),
+    lambda: ctx.endpoint.isolate("WS-0142"),   # side effect, gated
+    finding=finding, verdict=verdict,
+)   # raises AdmissionError if policy denies — recorded either way
+```
+
 ## Agent core
 
 | Feature | What it does | Surface |
 |---|---|---|
 | **Agent** + `AgentConfig` + `AgentResult` | The Think → Execute → Reflect → Terminate loop | `tulip.agent` · [Agent loop](concepts/agent-loop.md) |
-| **Termination algebra** | Compose stop conditions with `&` and `\|` operator overloads | `tulip.core.termination` · [Termination](concepts/termination.md) |
+| **Termination algebra** | Security stop conditions — `(ToolCalled("isolate_host") & ConfidenceMet(0.9)) \| TextMention(r"\bESCALATE\b") \| MaxIterations(10)` caps a live incident | `tulip.core.termination` · [Termination](concepts/termination.md) |
 | **Idempotent tools** | `@tool(idempotent=True)` dedupes repeat calls inside the loop — exactly-once side effects | `tulip.tools.decorator` · [Idempotency](concepts/idempotency.md) |
 | **Reflexion** | Self-evaluation node in the ReAct cycle; rewrites the next turn when the last one was wrong | `Agent(reflexion=True)` · [Reasoning](concepts/reasoning.md) |
 | **Grounding** | LLM-as-judge claim verification against tool results; below-threshold triggers replanning | `Agent(grounding=True)` · [Reasoning](concepts/reasoning.md) |
@@ -84,34 +114,66 @@ every finding is grounded or abstained, verified, gated, and audited.
 | **Hooks** | before/after × invocation × tool × model lifecycle observation + steering | `tulip.hooks.provider` · [Hooks](concepts/hooks.md) |
 | **Plugins** | Bundle hooks + tools as one drop-in unit | `tulip.hooks.plugin` · [Hooks](concepts/hooks.md) |
 
-## Multi-agent
+## Multi-agent — SOC shapes
 
-| Shape | What it does | Surface |
+Every pattern maps to a real SOC workflow. The shape *is* the
+escalation discipline: who runs in parallel, who hands off, who must
+agree before a host is touched.
+
+| Shape | Security mapping | Surface |
 |---|---|---|
-| **Composition** | Linear chain · fan-out + merge — the simplest multi-agent shape | `tulip.multiagent.composition` · [Composition](concepts/multi-agent/composition.md) |
-| **Orchestrator** | One coordinator dispatches specialists in parallel | `tulip.multiagent.orchestrator` · [Orchestrator](concepts/multi-agent/orchestrator.md) |
-| **Swarm** | Open-ended peer-to-peer collaboration | `tulip.multiagent.swarm` · [Swarm](concepts/multi-agent/swarm.md) |
-| **Handoff** | Specialist-to-specialist context transfer with chain-of-custody | `tulip.multiagent.handoff` · [Handoff](concepts/multi-agent/handoff.md) |
-| **StateGraph** | Cycles, conditional edges, subgraphs — when DAG isn't enough | `tulip.multiagent.graph` · [StateGraph](concepts/multi-agent/graph.md) |
-| **Functional API** | Map / reduce over agents with `@task` and `@entrypoint` | `tulip.multiagent.functional` · [Functional](concepts/multi-agent/functional.md) |
-| **A2A** | Cross-process agent meshes — `AgentCard` discovery + HTTP/SSE transport | `tulip.a2a` · [A2A](concepts/multi-agent/a2a.md) |
+| **Composition** | Sequential L1 → L2 → L3 escalation; parallel fail-open fingerprinting / enrichment fan-out | `tulip.multiagent.composition` · [Composition](concepts/multi-agent/composition.md) |
+| **Orchestrator** | One coordinator dispatches triage → forensics → containment specialists | `tulip.multiagent.orchestrator` · [Orchestrator](concepts/multi-agent/orchestrator.md) |
+| **Swarm** | Consensus red-team — peers vote a jailbreak grounded before it ships | `tulip.multiagent.swarm` · [Swarm](concepts/multi-agent/swarm.md) |
+| **Handoff** | SOC escalation with chain-of-custody — L1 hands the case + evidence to L2 | `tulip.multiagent.handoff` · [Handoff](concepts/multi-agent/handoff.md) |
+| **StateGraph** | Cyclic IR playbook — re-investigate until contained, conditional containment edges | `tulip.multiagent.graph` · [StateGraph](concepts/multi-agent/graph.md) |
+| **Functional API** | Map enrichment over N indicators, reduce to one verdict | `tulip.multiagent.functional` · [Functional](concepts/multi-agent/functional.md) |
+| **A2A** | Cross-process escalation to a remote IR or threat-intel mesh | `tulip.a2a` · [A2A](concepts/multi-agent/a2a.md) |
 
-## Cognitive Router
+```python
+# Orchestrator triage → forensics → containment. Containment owns the
+# write tools; isolate_host stays gated until triage + forensics agree.
+from tulip.multiagent import Orchestrator, Specialist
 
-Most agent frameworks force a choice: hand-code the topology (predictable
-but brittle) or let the LLM pick it (flexible but unpredictable). The
-cognitive router takes a third path — **bounded graph generation**. The LLM fills exactly
-one typed `GoalFrame`; a typed registry selects from eight
-named protocols; a compiler instantiates real SDK primitives. The
-output is always one of the eight proven shapes — never an ad-hoc topology
-the model invented.
+containment = Specialist(
+    name="containment",
+    agent=Agent(model="anthropic:claude-sonnet-4-6",
+                tools=[isolate_host, block_indicator]),  # idempotent writes
+    description="Isolates hosts. Only after triage + forensics agree.",
+)
+soc = Orchestrator(coordinator_model="anthropic:claude-sonnet-4-6",
+                   specialists=[triage, forensics, containment])
+```
+
+## Cognitive Router — risk-gated dispatch
+
+A SOC request carries risk. A log query is safe to auto-run; a host
+isolation or an indicator block is not. The router reads the request
+into one typed `GoalFrame`, scores its `Risk`, then a `PolicyGate`
+**auto-runs low-risk scans and gates containment for human approval** —
+the model never invents a topology or skips the gate.
+
+```python
+from tulip.router import GoalFrame, PolicyGate, Risk, TaskType
+
+# Auto-run reads; require a human before any containment action.
+gate = PolicyGate(max_risk=Risk.HIGH, require_approval_above=Risk.MEDIUM)
+
+frame = GoalFrame(primary_goal=TaskType.DIAGNOSE, domain="soc",
+                  risk=Risk.LOW, required_capabilities=["query_siem"])
+verdict = gate.check(frame, chosen)
+# LOW-risk SIEM query → verdict.allow; an isolate_host frame at HIGH
+# risk → verdict.require_approval, wrapped in the approval interrupt.
+
+result = await router.dispatch("Triage the failed-login spike on WS-0142.")
+```
 
 | Feature | What it does | Surface |
 |---|---|---|
-| **`Router`** | `dispatch(NL)` → extract GoalFrame → select protocol → compile → execute | `tulip.router.Router` · [Router](concepts/router.md) |
-| **`GoalFrame`** | Typed schema the LLM extractor fills — 13 `TaskType`s, `Risk`, `Complexity`, domain, capabilities | `tulip.router.GoalFrame` |
+| **`Router`** | `dispatch(NL)` → extract GoalFrame → select protocol → compile → execute the SOC task | `tulip.router.Router` · [Router](concepts/router.md) |
+| **`GoalFrame`** | Typed schema the LLM extractor fills — 13 `TaskType`s, `Risk` (gates containment), `Complexity`, domain, capabilities | `tulip.router.GoalFrame` |
 | **`ProtocolRegistry`** | Typed filter (`handles ∋ goal`, `risk_max ≥ frame.risk`) + four-tier ranking (distance · canonical · cost · specificity) | `tulip.router.ProtocolRegistry` |
-| **`PolicyGate`** | Two thresholds: `max_risk` (hard deny) and `require_approval_above` (human-in-the-loop gate) | `tulip.router.PolicyGate` |
+| **`PolicyGate`** | `max_risk` hard-denies above the ceiling; `require_approval_above` sends isolation / block actions to a human | `tulip.router.PolicyGate` |
 | **`CognitiveCompiler`** | Instantiates real SDK primitives from frame + protocol; emits a `Runnable` adapter | `tulip.router.CognitiveCompiler` |
 | **`builtin_protocols()`** | 8 v1 protocols: `direct_response` · `plan_execute_validate` · `specialist_fanout` · `debate` · `codegen_test_validate` · `approval_gated_execution` · `a2a_delegate` · `handoff_chain` | `tulip.router.builtin_protocols` |
 | **`CapabilityIndex`** | Domain + risk overlay on `ToolRegistry` — no parallel storage | `tulip.router.CapabilityIndex` |
@@ -163,7 +225,6 @@ the model invented.
 | `PostgreSQLBackend` | Production DB with metadata queries | `tulip.memory.backends.postgresql` |
 | `MySQLBackend` | Production MySQL with official async Connector/Python | `tulip.memory.backends.mysql` |
 | `OpenSearchBackend` | Full-text search across past runs | `tulip.memory.backends.opensearch` |
-| `RedisBackend` | Redis key/value store | `tulip.memory.backends.redis` |
 
 ## Memory — context management
 
@@ -201,8 +262,8 @@ the model invented.
 
 | Component | Options | Surface |
 |---|---|---|
-| Vector stores | pgvector · OpenSearch · pgvector · in-memory | `tulip.rag.stores` · [RAG](concepts/rag.md) |
-| Embeddings | `OpenAIEmbeddings` (Cohere) · `OpenAIEmbeddings` | `tulip.rag.embeddings` |
+| Vector stores | pgvector · OpenSearch · Qdrant · Chroma · in-memory | `tulip.rag.stores` · [RAG](concepts/rag.md) |
+| Embeddings | `OpenAIEmbeddings` · `CohereEmbeddings` | `tulip.rag.embeddings` |
 | Multimodal processors | Text · PDF (text + OCR) · Image (OCR) · Audio (transcription) | `tulip.rag.multimodal` |
 | Tool wiring | `create_rag_tool(retriever)` exposes the retriever as a `@tool` | `tulip.rag.tools` |
 

@@ -11,9 +11,11 @@ hide:
 
 # Agentic AI for cybersecurity — <span class="accent">grounded in evidence.</span>
 
-Tulip is a Python SDK for building AI agents that do security work you can trust — because every finding is backed by evidence, or the agent **abstains** instead of guessing. Point it at **another AI** (a chatbot, an agent, a model endpoint) to test it for prompt injection, jailbreaks, and data leaks — its sharpest use today — or point the **same engine** at your infrastructure for SOC triage, incident response, and cloud posture.
+Tulip is an AI security SDK for agents you can trust. Every claim must be backed by evidence — if the evidence isn't there, the agent **abstains** instead of guessing.
 
-<div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[MITRE&nbsp;ATLAS](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;LLM&nbsp;Top&nbsp;10](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;ASI](concepts/security.md)</span> · <span style="white-space:nowrap">[NIST&nbsp;AI&nbsp;RMF](concepts/security.md)</span></div>
+Red-team **other AI systems** for prompt injection, jailbreaks, and data leakage, or run **enterprise SOC** triage, incident response, and cloud posture work. Either way, Tulip replaces **confidence** with **evidence**.
+
+<div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[MITRE&nbsp;ATLAS](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;LLM&nbsp;Top&nbsp;10](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;ASI](concepts/security.md)</span></div>
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
@@ -29,23 +31,28 @@ pip install "tulip-agents[openai]"   # OpenAI · Anthropic
 <div class="tulip-hero__code" markdown>
 
 ```python
-from tulip.security import Target, red_team, assure, is_finding
+from tulip.security import (
+    Target, red_team, is_finding)
 
-# Point at the AI system under assessment — a remote endpoint, an
-# in-process tulip.Agent, or an A2A peer.
-target = Target.endpoint("https://support-bot.example/chat")
+# A customer-support chatbot in production.
+bot = Target.endpoint(
+    "https://chat.acme-support.ai/chat",
+    build_payload=lambda m: {
+        "message": m,
+        "conversation_id": new_thread()},
+    response_path="reply")
 
-# Red-team it against the OWASP-ASI / MITRE-ATLAS suite.
-report = await red_team(target, suite="owasp-asi")
-for r in report:
+# Run the OWASP-ASI red-team suite. Every
+# probe is grounded: a finding ships only
+# with evidence — otherwise it abstains.
+for r in await red_team(bot):
     if is_finding(r):
-        print(f"[{r.severity.value}] {r.title}  {r.taxonomy}")
+        print(r.severity, r.title)
     else:
-        # No evidence -> no claim: the abstain-by-construction guarantee.
-        print(f"[abstain] {r.candidate_title} — {r.reason}")
+        print("abstain", r.candidate_title)
 
-# Assess its posture: grounded guardrail coverage across the suite.
-posture = await assure(target)
+# → 5 probes · 0 findings: the bot held.
+#   nothing proven, so nothing claimed.
 ```
 
 </div>
@@ -106,7 +113,7 @@ print(result.title if is_finding(result) else f"withheld: {result.reason}")
 
 Findings carry **MITRE ATLAS** (`AML.Txxxx`), **OWASP Top 10 for LLM
 Applications**, and **OWASP Top 10 for Agentic Applications** tags, so
-they drop into a SIEM or a **NIST AI RMF** report without translation.
+they drop into a SIEM without translation.
 
 [The security layer →](concepts/security.md) · [GSAR grounding →](concepts/gsar.md)
 
@@ -142,7 +149,7 @@ they drop into a SIEM or a **NIST AI RMF** report without translation.
     ---
     Prompt injection, jailbreaks, RAG and memory poisoning, model
     extraction, excessive agency, and timing side-channel inference
-    fingerprinting — the latter with a cookbook pattern for dispatching
+    fingerprinting — the latter with a notebook pattern for dispatching
     probes to dedicated GPU clusters. Plus a classic SOC/IR track.
 
 - :material-routes:{ .lg .middle } **[Risk-gated routing](concepts/router.md)**
@@ -169,9 +176,10 @@ they drop into a SIEM or a **NIST AI RMF** report without translation.
 - :material-graph:{ .lg .middle } **[Multi-agent coordination](concepts/multi-agent.md)**
 
     ---
-    Eight shapes — pipeline, fan-out, debate, orchestrator, swarm,
-    handoff, StateGraph, A2A — for IR war-rooms, tiered escalation, and
-    red-team-vs-detection. One `Agent` class, one event stream.
+    Seven shapes — composition (pipeline / fan-out / loop), orchestrator,
+    swarm, handoff, StateGraph, functional, and cross-process A2A — for IR
+    war-rooms, tiered escalation, and red-team-vs-detection. One `Agent`
+    class, one event stream.
 
 </div>
 
@@ -201,7 +209,7 @@ print(result.protocol_id)   # "approval_gated_execution"  → held for a human
 
 [Cognitive router →](concepts/router.md)
 
-## Walk the cookbook
+## Walk the notebooks
 
 Every example is a single self-contained file under [`examples/`][gh-examples]
 with a matching docs page. **AI-security is the primary track**; classic

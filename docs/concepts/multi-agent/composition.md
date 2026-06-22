@@ -23,9 +23,11 @@ the same event stream.
 
 - ✅ The flow is **describable as a function** — "do A, then B, then C".
 - ✅ Fan-out is **symmetric** — all branches do similar work on the same
-  input (e.g., multi-source RAG).
-- ✅ You need **revise-until-confidence** — wrap the writer in a `LoopAgent`
-  with a stop condition.
+  input (e.g., enrich one indicator across SIEM, EDR, and threat intel).
+- ✅ The flow is an **incident triage chain** — recon → enrich → validate →
+  report, each step feeding the next.
+- ✅ You need **revise-until-confidence** — wrap the finding writer in a
+  `LoopAgent` until the abstention clears.
 - ✅ You don't need cycles, conditional branches, or per-node retry policies.
 
 ## When NOT to use it
@@ -53,15 +55,17 @@ result = pipeline.run_sync("Triage the attack surface on 192.0.2.10.")
 ```
 
 ```python
-# Parallel: hit three retrievers, merge results
+# Parallel: enrich one indicator across SIEM, EDR, and threat intel
 parallel = ParallelPipeline(agents=[
-    vector_search,
-    keyword_search,
-    knowledge_graph_search,
+    siem_query,
+    edr_timeline,
+    threat_intel,
 ])
-hits = parallel.run_sync("How do I rotate API keys?")
+enrichment = parallel.run_sync(
+    "Enrich 198.51.100.7: in our SIEM? EDR matches? known-bad campaigns?"
+)
 
-# Loop: revise the finding until confidence ≥ 0.85, max 5 iterations
+# Loop: revise the finding until the abstention clears, max 5 iterations
 revise = LoopAgent(agent=reviser_agent, max_iterations=5)
 final = revise.run_sync(initial_finding)
 ```

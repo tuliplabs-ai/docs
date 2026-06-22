@@ -23,7 +23,7 @@ openai / anthropic for a live model; keep `TULIP_MODEL_PROVIDER=mock`
 for an offline run. Tool-calling also works
 against OpenAI, Anthropic.
 
-Prerequisite: notebook 08.
+Prerequisite: the agent-basics notebook.
 
 ## Source
 

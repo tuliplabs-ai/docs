@@ -7,7 +7,7 @@
   hover.
 #}
 {% block htmltitle %}
-  {% set tab_title = "tulip agents — the cybersecurity agent SDK" %}
+  {% set tab_title = "tulip agents — the agentic AI-security SDK" %}
   {% if page and page.title and not page.is_homepage %}
     <title>{{ page.title | striptags }} - {{ tab_title }}</title>
   {% else %}
@@ -25,24 +25,24 @@
   matches the brand assets the team designed.
 #}
 {% block extrahead %}
-  {% set page_title = page.title | striptags if page and page.title and not page.is_homepage else "The cybersecurity agent SDK" %}
+  {% set page_title = page.title | striptags if page and page.title and not page.is_homepage else "The agentic AI-security SDK" %}
   {% set page_desc = page.meta.description if page and page.meta and page.meta.description else config.site_description %}
   {% set page_url = page.canonical_url if page and page.canonical_url else config.site_url %}
   {% set og_image = (config.site_url ~ "/img/tuliplabs-logo.png") | replace("//img/", "/img/") %}
 
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="tulip agents — the cybersecurity agent SDK">
+  <meta property="og:site_name" content="tulip agents — the agentic AI-security SDK">
   <meta property="og:title" content="{{ page_title }}">
   <meta property="og:description" content="{{ page_desc }}">
   <meta property="og:url" content="{{ page_url }}">
   <meta property="og:image" content="{{ og_image }}">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="640">
-  <meta property="og:image:alt" content="Tulip — the cybersecurity agent SDK · pip install tulip-agents · github.com/tuliplabs-ai/sdk-python">
+  <meta property="og:image:alt" content="Tulip — the agentic AI-security SDK · pip install tulip-agents · github.com/tuliplabs-ai/sdk-python">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ page_title }}">
   <meta name="twitter:description" content="{{ page_desc }}">
   <meta name="twitter:image" content="{{ og_image }}">
-  <meta name="twitter:image:alt" content="Tulip — the cybersecurity agent SDK · pip install tulip-agents · github.com/tuliplabs-ai/sdk-python">
+  <meta name="twitter:image:alt" content="Tulip — the agentic AI-security SDK · pip install tulip-agents · github.com/tuliplabs-ai/sdk-python">
 {% endblock %}

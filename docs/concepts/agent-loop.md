@@ -119,17 +119,19 @@ score, and emits a `ReflectEvent` carrying the judgment text and
 new confidence. The next Think sees the reflection in its message
 stream.
 
-Two complementary reasoning add-ons share the Reflect node:
+Two complementary reasoning add-ons:
 
-- **Grounding** — scores the agent's recent claims against tool
-  results (rule-based by default; LLM-as-judge when configured).
-- **Causal** — builds a graph of cause-effect relations from the
-  tool-execution trace and surfaces cycles or contradictions.
+- **Grounding** — shares the Reflect node; scores the agent's recent
+  claims against tool results (rule-based by default; LLM-as-judge when
+  configured). Off by default; switch on via `Agent(grounding=True)`.
+- **Causal** — a standalone `build_causal_chain()` builder that turns
+  the events your agent surfaced into a cause-effect graph and flags
+  cycles or contradictions. Run it over a finished trace; it isn't an
+  `Agent(...)` flag.
 
-Both are off by default and switch on via `Agent(grounding=True)` /
-`Agent(causal=True)`. Source:
+Source:
 [`GroundingEvaluator` `reasoning/grounding.py:106`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/grounding.py#L106) ·
-[`CausalChain` `reasoning/causal.py:160`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/causal.py#L160).
+[`build_causal_chain` `reasoning/causal.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/causal.py).
 
 ## Terminate
 

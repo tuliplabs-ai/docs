@@ -1,4 +1,4 @@
-# Notebook 79: SOC alert triage with SIEM-grounded verdicts
+# SOC alert triage with SIEM-grounded verdicts
 
 A commodity AI SOC agent emits a verdict for every alert it sees, whether or not
 it can back that verdict with evidence. Here, the SOC analyst grounds every

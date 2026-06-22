@@ -61,29 +61,35 @@ agent = Agent(
 
 ### 1. Build a `Playbook` in Python
 
+A runnable NIST SP 800-61 IR flow — **detection → analysis →
+containment** — wired to the real security toolset. Containment never
+fires before the IOCs are enriched:
+
 ```python
 from tulip.playbooks import Playbook, PlaybookStep
 
-containment = Playbook(
-    id="containment-flow",
-    name="Containment flow",
-    description="Isolate a host only after confirming the host and the open case.",
+nist_ir = Playbook(
+    id="nist-800-61-ir",
+    name="NIST 800-61 incident response",
+    description="Detect from the SIEM, analyze the IOCs, then contain.",
     steps=[
         PlaybookStep(
-            id="verify_host",
-            description="Look up the host and confirm it's in scope for this case.",
-            expected_tools=["lookup_host"],
+            id="detection",
+            description="Pull the alert and its correlated events from the SIEM.",
+            expected_tools=["query_siem"],
+            hints=["Filter on the alert's src_ip", "Last hour first"],
             required=True,
         ),
         PlaybookStep(
-            id="verify_case",
-            description="Look up the case and confirm the host belongs to it.",
-            expected_tools=["lookup_case"],
+            id="analysis",
+            description="Enrich every IOC from detection; confirm it's malicious.",
+            expected_tools=["enrich_indicator"],
+            hints=["Do not contain on an unenriched indicator"],
             required=True,
         ),
         PlaybookStep(
-            id="isolate_host",
-            description="Isolate the host from the network.",
+            id="containment",
+            description="Isolate the affected host from the network.",
             expected_tools=["isolate_host"],
             required=True,
         ),
@@ -112,25 +118,25 @@ For checked-in playbooks, use the loader:
 ```python
 from tulip.playbooks import load_playbook
 
-containment = load_playbook("playbooks/containment.yaml")
+nist_ir = load_playbook("playbooks/nist_800_61_ir.yaml")
 ```
 
 ```yaml
-# playbooks/containment.yaml
-id: containment-flow
-name: Containment flow
-description: Isolate a host only after confirming the host and the open case.
+# playbooks/nist_800_61_ir.yaml
+id: nist-800-61-ir
+name: NIST 800-61 incident response
+description: Detect from the SIEM, analyze the IOCs, then contain.
 strict_sequence: true
 allow_extra_tools: false
 steps:
-  - id: verify_host
-    description: Look up the host and confirm it's in scope for this case.
-    expected_tools: [lookup_host]
-  - id: verify_case
-    description: Look up the case and confirm the host belongs to it.
-    expected_tools: [lookup_case]
-  - id: isolate_host
-    description: Isolate the host from the network.
+  - id: detection
+    description: Pull the alert and its correlated events from the SIEM.
+    expected_tools: [query_siem]
+  - id: analysis
+    description: Enrich every IOC from detection; confirm it's malicious.
+    expected_tools: [enrich_indicator]
+  - id: containment
+    description: Isolate the affected host from the network.
     expected_tools: [isolate_host]
 ```
 
@@ -141,18 +147,19 @@ from tulip.playbooks.hook import PlaybookEnforcerHook
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[lookup_host, lookup_case, isolate_host],
-    hooks=[PlaybookEnforcerHook(playbook=containment)],
+    tools=[query_siem, enrich_indicator, isolate_host],
+    hooks=[PlaybookEnforcerHook(playbook=nist_ir)],
 )
 
-result = agent.run_sync("Isolate host 192.0.2.45 under case INC-7.")
+result = agent.run_sync("Triage alert ALT-7 (host WS-014) and contain if malicious.")
 ```
 
 The hook injects step descriptions and hints into the agent's
-context, validates each tool call against the current step, and
-records the executions. If the agent tries to skip ahead or call a
-tool not in `expected_tools` while `allow_extra_tools=False`, the
-hook rejects the call.
+context, validates each tool call against the current step's
+`expected_tools`, and records the executions. The detection →
+analysis → containment order is enforced: an `isolate_host` call
+during the `detection` step is rejected, so the host can't be
+contained before its IOCs are enriched.
 
 ## Strict vs lenient enforcement
 

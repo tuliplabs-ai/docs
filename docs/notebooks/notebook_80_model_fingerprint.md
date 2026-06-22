@@ -1,4 +1,4 @@
-# Notebook 80: Model & hardware fingerprinting via timing side-channels
+# Model & hardware fingerprinting via timing side-channels
 
 A CISO is about to sign a $2M/year contract with a vendor claiming to serve
 "GPT-4o on H100 clusters." Before signing, she wants to verify: is the model

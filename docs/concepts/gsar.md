@@ -8,7 +8,7 @@ the outage."* Vanilla `Agent(grounding=True)` — a single LLM-as-judge
 scalar over the answer as a whole — often misses this. Each *claim* is
 grounded; the *conclusion* over-reaches.
 
-**GSAR** (Grounding-Stratified Adaptive Replanning, from
+**GSAR** (typed grounding, from
 [arXiv:2604.23366 (2026)](https://arxiv.org/abs/2604.23366))
 is the upgrade. It
 breaks the synthesis into claims, partitions them four ways, scores
@@ -25,6 +25,8 @@ diagnostics, anything where the "evidence fine, conclusion loose"
 failure mode is a real cost. Use vanilla `grounding=True` for
 everything else; binary verdicts are cheaper and good enough most
 of the time.
+
+![GSAR partitions a synthesis into grounded, ungrounded, contradicted and complementary claims, scores them, and decides proceed, regenerate, or replan](../img/patterns/gsar-decision.svg){ .diagram }
 
 ## What it adds
 

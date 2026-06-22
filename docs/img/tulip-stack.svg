@@ -5,10 +5,10 @@
      preserveAspectRatio="xMidYMid meet">
 
   <!-- ===== tuliplabs palette =====
-       accent1 #E2570E  deep teal     — Router · Think
+       accent1 #1B1620  neutral dark  — Router · Think
        accent3 #D6336C  tulip pink    — Execute · agent-loop frame
        accent5 #F4A6C2  sage teal     — Reflect · orchestration shapes
-       accent4 #F7A21E  sand          — Terminate · foundations
+       accent4 #D6336C  tulip pink    — Terminate · foundations
        accent2 #9D174D  mauve         — pgvector · loop-back arrow -->
 
   <defs>
@@ -47,7 +47,7 @@
 
   <!-- ============ LAYER 1: COGNITIVE ROUTER ============ -->
   <g filter="url(#card-shadow)">
-    <rect x="40" y="48" width="1020" height="86" rx="12" ry="12" fill="#E2570E"/>
+    <rect x="40" y="48" width="1020" height="86" rx="12" ry="12" fill="#1B1620"/>
     <text x="550" y="80" text-anchor="middle" font-size="22" font-weight="800"
           fill="#FFFFFF" letter-spacing="-0.01em">PRISM · Cognitive Router</text>
     <text x="550" y="104" text-anchor="middle" font-size="12.5" font-weight="600"
@@ -120,7 +120,7 @@
 
   <!-- Think -->
   <g filter="url(#card-shadow)">
-    <rect x="70" y="402" width="220" height="92" rx="10" ry="10" fill="#E2570E"/>
+    <rect x="70" y="402" width="220" height="92" rx="10" ry="10" fill="#1B1620"/>
     <text x="180" y="430" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF" letter-spacing="-0.01em">Think</text>
     <text x="180" y="453" text-anchor="middle" font-size="10.5" font-weight="600" fill="#FFFFFF" opacity="0.86" letter-spacing="0.05em">THE MODEL DECIDES</text>
     <text x="180" y="471" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.78">next action / final answer</text>
@@ -150,10 +150,10 @@
 
   <!-- Terminate? ★ -->
   <g filter="url(#card-shadow)">
-    <rect x="835" y="402" width="220" height="92" rx="10" ry="10" fill="#F7A21E"/>
-    <text x="945" y="430" text-anchor="middle" font-size="18" font-weight="800" fill="#3A2A0F" letter-spacing="-0.01em">Terminate?</text>
-    <text x="945" y="453" text-anchor="middle" font-size="10.5" font-weight="600" fill="#3A2A0F" opacity="0.86" letter-spacing="0.05em">ALGEBRA: AND · OR</text>
-    <text x="945" y="471" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.78">composable stops, just data</text>
+    <rect x="835" y="402" width="220" height="92" rx="10" ry="10" fill="#D6336C"/>
+    <text x="945" y="430" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF" letter-spacing="-0.01em">Terminate?</text>
+    <text x="945" y="453" text-anchor="middle" font-size="10.5" font-weight="600" fill="#FFFFFF" opacity="0.86" letter-spacing="0.05em">ALGEBRA: AND · OR</text>
+    <text x="945" y="471" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.78">composable stops, just data</text>
   </g>
 
   <!-- loop-back arrow -->
@@ -169,34 +169,34 @@
 
   <!-- ============ LAYER 4: FOUNDATIONS ============ -->
   <g filter="url(#card-shadow)">
-    <rect x="40" y="584" width="196" height="84" rx="10" ry="10" fill="#F7A21E"/>
-    <text x="138" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#3A2A0F">Model Providers</text>
-    <text x="138" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.85">V1 · SDK · Responses transports</text>
-    <text x="138" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.78">90+ models · day-0</text>
+    <rect x="40" y="584" width="196" height="84" rx="10" ry="10" fill="#D6336C"/>
+    <text x="138" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">Model Providers</text>
+    <text x="138" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.85">V1 · SDK · Responses transports</text>
+    <text x="138" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.78">90+ models · day-0</text>
   </g>
   <g filter="url(#card-shadow)">
-    <rect x="244" y="584" width="196" height="84" rx="10" ry="10" fill="#F7A21E"/>
-    <text x="342" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#3A2A0F">Memory</text>
-    <text x="342" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.85">9 checkpoint backends</text>
-    <text x="342" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.78">durable threads · long-term store</text>
+    <rect x="244" y="584" width="196" height="84" rx="10" ry="10" fill="#D6336C"/>
+    <text x="342" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">Memory</text>
+    <text x="342" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.85">9 checkpoint backends</text>
+    <text x="342" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.78">durable threads · long-term store</text>
   </g>
   <g filter="url(#card-shadow)">
-    <rect x="448" y="584" width="196" height="84" rx="10" ry="10" fill="#F7A21E"/>
-    <text x="546" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#3A2A0F">RAG</text>
-    <text x="546" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.85">4 vector stores · multimodal</text>
-    <text x="546" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.78">embeddings · rerank · hybrid</text>
+    <rect x="448" y="584" width="196" height="84" rx="10" ry="10" fill="#D6336C"/>
+    <text x="546" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">RAG</text>
+    <text x="546" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.85">4 vector stores · multimodal</text>
+    <text x="546" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.78">embeddings · rerank · hybrid</text>
   </g>
   <g filter="url(#card-shadow)">
-    <rect x="652" y="584" width="196" height="84" rx="10" ry="10" fill="#F7A21E"/>
-    <text x="750" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#3A2A0F">Observability</text>
-    <text x="750" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.85">40+ typed events · EventBus</text>
-    <text x="750" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.78">OpenTelemetry · SSE · hooks</text>
+    <rect x="652" y="584" width="196" height="84" rx="10" ry="10" fill="#D6336C"/>
+    <text x="750" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">Observability</text>
+    <text x="750" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.85">40+ typed events · EventBus</text>
+    <text x="750" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.78">OpenTelemetry · SSE · hooks</text>
   </g>
   <g filter="url(#card-shadow)">
-    <rect x="856" y="584" width="196" height="84" rx="10" ry="10" fill="#F7A21E"/>
-    <text x="954" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#3A2A0F">Tools · MCP · Skills</text>
-    <text x="954" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.85">@tool · idempotent · MCP both-ways</text>
-    <text x="954" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#3A2A0F" opacity="0.78">guardrails · steering · evaluation</text>
+    <rect x="856" y="584" width="196" height="84" rx="10" ry="10" fill="#D6336C"/>
+    <text x="954" y="610" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">Tools · MCP · Skills</text>
+    <text x="954" y="630" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.85">@tool · idempotent · MCP both-ways</text>
+    <text x="954" y="647" text-anchor="middle" font-size="10.5" font-weight="500" fill="#FFFFFF" opacity="0.78">guardrails · steering · evaluation</text>
   </g>
 
   <line x1="550" y1="678" x2="550" y2="710" stroke="#1B1620"

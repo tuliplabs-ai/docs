@@ -1,6 +1,6 @@
 # Termination
 
-When does an agent stop? Tulip
+When does a SOC agent stop working an incident? Tulip
 answers that with a typed, composable **algebra of stop conditions** —
 small classes that each return `True` when the run should end, combined
 with `&` (and) and `|` (or).
@@ -11,28 +11,30 @@ from tulip.core.termination import (
 )
 
 termination = (
-    (ToolCalled("send_summary") & ConfidenceMet(0.9))
-    | TextMention(r"\bDONE\b")
+    (ToolCalled("isolate_host") & ConfidenceMet(0.9))
+    | TextMention(r"\bESCALATE\b")
     | MaxIterations(10)
 )
 ```
 
-Read it left to right: *stop when we sent the summary and we're
-confident, **or** the model said "DONE", **or** we hit ten iterations*.
+Read it left to right: *stop when the host is isolated and we're
+confident in the call, **or** the model flagged it for analyst review
+("ESCALATE"), **or** we hit ten iterations* — the last branch caps
+runaway tool calls during a live incident.
 
 This is one of the SDK's signature primitives. Every stop condition is
 inspectable, unit-testable, and serialisable — no hand-rolled `if`
-ladders sprinkled through the loop.
+ladders sprinkled through the response loop.
 
 ## When to pick which condition
 
 | Situation | Use |
 |---|---|
-| Hard cap on cost / runaway protection | `MaxIterations`, `TokenLimit`, `TimeLimit` |
-| The work is "done" when one specific tool fires | `ToolCalled("submit_order")` |
+| Hard cap on tool calls during a live incident / runaway protection | `MaxIterations`, `TokenLimit`, `TimeLimit` |
+| Containment is "done" when one specific tool fires | `ToolCalled("isolate_host")` |
 | The model is confident and Reflexion agrees | `ConfidenceMet(0.85)` (requires `reflexion=True`) |
-| The agent is supposed to write text, not call more tools | `NoToolCalls()` |
-| The run ends when the model emits a sentinel | `TextMention(r"\bSHIP\b")` |
+| The agent should write a triage summary, not call more tools | `NoToolCalls()` |
+| The run ends when the model flags for analyst review | `TextMention(r"\bESCALATE\b")` |
 | Custom predicate over `AgentState` | `CustomCondition(fn)` |
 
 ## Getting started
@@ -45,13 +47,14 @@ from tulip.core.termination import MaxIterations
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search, summarise],
+    tools=[query_siem, enrich_indicator],
     termination=MaxIterations(8),
 )
 ```
 
 A single condition is a perfectly fine starting point. `MaxIterations`
-is the safety net every production agent should have.
+is the safety net every production SOC agent should have — it stops the
+loop from grinding the SIEM forever on a noisy alert.
 
 ### 2. Combine with `&` and `|`
 
@@ -61,8 +64,8 @@ from tulip.core.termination import (
 )
 
 termination = (
-    ToolCalled("send_summary")        # the work happened
-    & ConfidenceMet(0.85)             # we believe the result
+    ToolCalled("isolate_host")        # the host was contained
+    & ConfidenceMet(0.85)             # we believe the containment call
 ) | MaxIterations(8)                  # …or the safety cap
 ```
 
@@ -76,7 +79,7 @@ through tests.
 ```python
 result = agent.run_sync(prompt)
 print(result.stop_reason)
-# → "ToolCalled('send_summary') and ConfidenceMet(0.85)"
+# → "ToolCalled('isolate_host') and ConfidenceMet(0.85)"
 ```
 
 Each condition has a `__repr__` that round-trips to its constructor,
@@ -90,10 +93,10 @@ fired.
 | `MaxIterations(n)` | The ReAct loop has run `n` turns. |
 | `TokenLimit(n)` | Cumulative model tokens exceed `n`. |
 | `TimeLimit(seconds)` | Wall-clock budget exceeded. |
-| `NoToolCalls()` | The most recent turn produced text and zero tool calls. |
-| `ToolCalled(name, args=None)` | A specific tool fired (with optional args predicate). |
+| `NoToolCalls()` | The most recent turn produced a triage summary and zero tool calls. |
+| `ToolCalled(name, args=None)` | A specific tool fired — e.g. `ToolCalled("isolate_host")` (with optional args predicate). |
 | `ConfidenceMet(threshold)` | Reflexion confidence ≥ threshold. |
-| `TextMention(pattern)` | Final message contains a regex match. |
+| `TextMention(pattern)` | Final message contains a regex match — e.g. an `ESCALATE` sentinel. |
 | `CustomCondition(fn)` | `fn(state) -> bool` — anything you can write in Python. |
 
 Every condition takes `AgentState` and returns `bool`. They run after
@@ -106,13 +109,15 @@ Write any predicate over `AgentState`:
 ```python
 from tulip.core.termination import CustomCondition
 
-def revenue_extracted(state) -> bool:
+def host_contained(state) -> bool:
+    # Stop only once isolate_host actually returned a containment ticket —
+    # not just when the call was emitted.
     return any(
-        "revenue_usd" in (e.result or {})
+        e.tool_name == "isolate_host" and (e.result or {}).get("ticket")
         for e in state.tool_executions
     )
 
-termination = CustomCondition(revenue_extracted) | MaxIterations(15)
+termination = CustomCondition(host_contained) | MaxIterations(15)
 ```
 
 Custom conditions compose with built-ins exactly the same way — `&`
@@ -122,10 +127,10 @@ and `|` work across the whole hierarchy.
 
 | Symptom | Likely cause |
 |---|---|
-| Agent always stops at `MaxIterations` | The "happy-path" condition never fires — model isn't calling the tool you keyed on, or confidence never reaches the threshold. Lower the threshold or check the tool name. |
+| Agent always stops at `MaxIterations` | The containment condition never fires — model isn't calling `isolate_host`, or confidence never reaches the threshold. Lower the threshold or check the tool name. |
 | `&` / `\|` precedence surprises | Python's normal precedence applies: `&` binds tighter than `\|`. Add parentheses when in doubt — `(A & B) \| C` reads cleaner anyway. |
-| `ConfidenceMet` never trips | `reflexion=True` is required — without it, confidence stays at the default. |
-| `ToolCalled("x")` fires before the tool finishes | It checks the *call*, not the *result*. Pair with `ConfidenceMet` or a `CustomCondition` that inspects `tool_executions`. |
+| `ConfidenceMet` never trips | `reflexion=True` is required — without it, confidence stays at the default, so the agent never early-stops on a high-confidence containment. |
+| `ToolCalled("isolate_host")` fires before containment completes | It checks the *call*, not the *result*. Pair with `ConfidenceMet` or a `CustomCondition` that inspects `tool_executions` for the returned ticket. |
 
 ## Source and notebook
 

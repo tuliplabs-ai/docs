@@ -1,24 +1,25 @@
 # MCP — Model Context Protocol
 
-The [Model Context Protocol](https://modelcontextprotocol.io) is an
-Anthropic-spec interop standard for tools. Define a tool once,
-expose it over MCP, and any MCP-compatible client (Claude Desktop,
-Cline, Strands, another agent built with Tulip) can call it. Or consume tools from existing
-MCP servers (filesystem, git, postgres, github, sequential-thinking)
-without writing any glue.
+Build a security tool once — IOC enrichment, host isolation — and
+let every part of your SOC call it. [MCP](https://modelcontextprotocol.io)
+is the wire for that: wrap `lookup_ioc` and `isolate_host` in an MCP
+server, and any MCP client (Claude Desktop, Cline, a Tulip SOC analyst,
+your incident-response tooling) invokes them without bespoke glue. The
+same SDK also *consumes* existing MCP servers — a threat-intel feed, a
+case-management server — so your agent can reach tools it didn't ship.
 
-**The SDK speaks MCP both ways**. That's a deliberate differentiator —
-most agent frameworks consume MCP servers but don't expose their own
-tools as MCP. Round-trip means an SDK-built agent can be either side
-of the conversation.
+**The SDK speaks MCP both ways**. Most agent frameworks consume MCP
+servers but don't expose their own. Round-trip means a Tulip-built
+triage agent can be either side: pull enrichment from a TI server *and*
+serve its own containment tools back to the analyst's desktop.
 
 ## When to use MCP
 
 | You want… | Use MCP |
 |---|---|
-| Your SDK agent to use Anthropic's published filesystem / git / postgres servers | ✓ — `MCPClient` |
-| Your `@tool` library to be callable by Claude Desktop / Cline / other agents | ✓ — `TulipMCPServer` |
-| Two SDK agents to share tools across processes / machines | ✓ — works, but [A2A](multi-agent/a2a.md) is the better protocol |
+| Your SDK agent to use an external threat-intel / case-management MCP server | ✓ — `MCPClient` |
+| Your `lookup_ioc` / `isolate_host` library callable by Claude Desktop / Cline / other agents | ✓ — `TulipMCPServer` |
+| Two SDK agents to share containment tools across processes / machines | ✓ — works, but [A2A](multi-agent/a2a.md) is the better protocol |
 | In-process multi-agent — share tools by importing | use the [tools](tools.md) directly, not MCP |
 | Reproducible tests | use a mock model + plain `@tool` — MCP adds I/O |
 
@@ -35,9 +36,9 @@ pip install "tulip-agents[mcp]"
 ```python
 from tulip.integrations.fastmcp import MCPClient
 
-# Spawn Anthropic's filesystem server as a subprocess (stdio transport):
-fs = MCPClient.stdio(
-    command=["npx", "-y", "@modelcontextprotocol/server-filesystem", "/data"],
+# Spawn a threat-intel MCP server as a subprocess (stdio transport):
+ti = MCPClient.stdio(
+    command=["python", "-m", "ti_feed.mcp_server"],
 )
 ```
 
@@ -50,40 +51,42 @@ stdin/stdout, and discovers what tools the server exposes.
 from tulip.agent import Agent
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[*fs.tools()],          # MCP tools become SDK tools
-    system_prompt="You can read files in /data.",
+    tools=[*ti.tools()],          # MCP tools become SDK tools
+    system_prompt="Triage the alert. Enrich every indicator before you act.",
 )
-result = agent.run_sync("Summarise the README in /data.")
+result = agent.run_sync("Is 198.51.100.23 a known C2 endpoint?")
 ```
 
-`fs.tools()` returns a list of SDK `Tool` objects with full
+`ti.tools()` returns a list of SDK `Tool` objects with full
 schemas, descriptions, and call-through plumbing. The agent doesn't
 know they're MCP — they look like any other `@tool`.
 
 ### Side effects in the host process — use hooks, not wrappers
 
-A common shape for MCP integrators: the *real* effect of a tool call
-lives in the host process (an HTTP response queue, a transaction batch,
-a UI command stream), not inside the tool body that returns a string to
-the model. The instinct is to wrap each MCP tool with a per-tool
-`@tool` that calls `_action_queue().append(...)` before returning.
+A common shape for MCP integrators: the *real* effect of a containment
+call lives in the host process (an incident audit log, a ticketing
+batch, a SOC console command stream), not inside the tool body that
+returns a string to the model. The instinct is to wrap each MCP tool
+with a per-tool `@tool` that calls `_audit_log().append(...)` before
+returning.
 
-Don't. Use a single `HookProvider` instead:
+Don't. Use a single `HookProvider` instead — one audit trail over every
+tool, so a post-incident review can replay exactly what the agent did:
 
 ```python
 from tulip.hooks.provider import HookPriority, HookProvider
 
-class MCPActionQueueHook(HookProvider):
-    """Mirror every tool call into a host-side queue, keyed by call id."""
+class MCPAuditTrailHook(HookProvider):
+    """Mirror every tool call into an incident audit log, keyed by call id."""
 
     priority = HookPriority.BUSINESS_DEFAULT
 
-    def __init__(self, queue: list[dict]) -> None:
-        self._queue = queue
+    def __init__(self, audit_log: list[dict]) -> None:
+        self._audit_log = audit_log
 
     async def on_after_tool_call(self, event):
         if event.error is None:
-            self._queue.append({
+            self._audit_log.append({
                 "id": event.tool_call_id,
                 "tool": event.tool_name,
                 "args": event.arguments,
@@ -92,13 +95,13 @@ class MCPActionQueueHook(HookProvider):
 
 agent = Agent(
     model=...,
-    tools=[*mcp_client.tools()],   # all 24 MCP tools, untouched
-    hooks=[MCPActionQueueHook(queue)],
+    tools=[*mcp_client.tools()],   # every MCP-sourced TI/EDR tool, untouched
+    hooks=[MCPAuditTrailHook(audit_log)],
 )
 ```
 
 One hook covers every MCP-sourced tool. The `tool_call_id` correlates
-with the model's `tool_calls[].id`, so parallel tool calls don't get
+with the model's `tool_calls[].id`, so parallel enrichments don't get
 mixed up. See [hooks](hooks.md#on_after_tool_call-what-the-event-carries)
 for the full event surface.
 
@@ -130,9 +133,9 @@ For Claude Desktop, edit `~/Library/Application Support/Claude/claude_desktop_co
 ```json
 {
   "mcpServers": {
-    "my-tulip-tools": {
+    "soc-tools": {
       "command": "python",
-      "args": ["-m", "my_package.mcp_server"]
+      "args": ["-m", "soc_tools.mcp_server"]
     }
   }
 }
@@ -155,30 +158,32 @@ would.
 | Transport | Use case |
 |---|---|
 | **stdio** — process pipes | Desktop clients (Claude Desktop, Cline). The MCP server is spawned as a subprocess. |
-| **HTTP** — JSON-RPC over POST | Browser-side or networked clients. Good for shared tool servers. |
+| **HTTP** — JSON-RPC over POST | Networked clients. Good for a shared containment-tool server the whole SOC reaches. |
 
 ### Idempotency carries through
 
-A tool tagged `@tool(idempotent=True)` keeps that semantic when
-exposed via MCP. The dedup happens SDK-side; the MCP client
+`isolate_host` tagged `@tool(idempotent=True)` keeps that semantic when
+exposed via MCP — a host gets isolated exactly once even if two clients
+fire the same call. The dedup happens SDK-side; the MCP client
 doesn't need to know.
 
 ## Round-trip example
 
-A common shape: an SDK agent A consumes a filesystem MCP server,
-*and* exposes its own tools as MCP for another agent B to consume:
+A common SOC shape: a triage agent A consumes an external threat-intel
+MCP server, *and* exposes its own containment tools as MCP for an
+incident-response agent B to consume:
 
 ```python
-# Agent A — consumes filesystem, exposes its own analytics tools
-fs = MCPClient.stdio(command=[...])      # consumer side
-analytics = TulipMCPServer(              # producer side
-    tools=[summarise_csv, plot_histogram],
+# Agent A — consumes threat intel, exposes its own containment tools
+ti = MCPClient.stdio(command=[...])      # consumer side
+containment = TulipMCPServer(            # producer side
+    tools=[lookup_ioc, isolate_host],
 )
-analytics.run_http(port=7400, in_background=True)
+containment.run_http(port=7400, in_background=True)
 
 agent_a = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[*fs.tools(), summarise_csv, plot_histogram],
+    tools=[*ti.tools(), lookup_ioc, isolate_host],
 )
 ```
 
@@ -191,7 +196,7 @@ implementation detail.
 | Symptom | Likely cause |
 |---|---|
 | `MCP server failed to start` | The MCP server subprocess crashed before establishing the session. Run the command manually to see the error. |
-| `Tool 'X' not found in MCP discovery` | The server exposes a different name than you expected. Print `[t.name for t in fs.tools()]` to see the actual list. |
+| `Tool 'X' not found in MCP discovery` | The server exposes a different name than you expected. Print `[t.name for t in ti.tools()]` to see the actual list. |
 | `Schema validation failed on call` | MCP tool returned an arg type that doesn't match its declared schema. Common with hand-written MCP servers; the standard ones are fine. |
 | Claude Desktop doesn't show your SDK tools | `claude_desktop_config.json` not picked up — check the file lives at the right path and Claude has been restarted. |
 | Hangs on `MCPClient.stdio` startup | The MCP subprocess is waiting for input on stdin (some servers expect a handshake). Pass `wait_for_init=True` and a timeout. |

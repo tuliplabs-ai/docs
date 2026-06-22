@@ -1,6 +1,6 @@
 # RAG Agents
 
-Once you have documents in a vector store (notebook 38 / 39), the next
+Once you have documents in a vector store (the RAG basics and RAG providers notebooks), the next
 step is to let an agent reach into it. `RAGRetriever.as_tool()` turns
 the retriever into an ordinary Tulip tool the agent picks up alongside
 any other `@tool` you define.
