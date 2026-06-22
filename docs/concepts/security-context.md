@@ -8,6 +8,8 @@ reasons in *domains* — logs, identity, endpoint, threat-intel, cloud, actions 
 and never hard-codes a vendor SDK. Point it at your real stack by injecting a
 provider; the investigation code doesn't change.
 
+![SecurityContext exposes six domain ports — logs, endpoint, identity, cloud, threat_intel, actions — each resolving to an offline reference or an injected live vendor](../img/patterns/security-context.svg){ .diagram }
+
 ```python
 from tulip.security import SecurityContext
 

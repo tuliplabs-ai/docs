@@ -22,8 +22,8 @@ Diff splitter ──> N reviewers (parallel via Send) ──> Synthesizer
 
 ## Prerequisites
 
-- Notebook 17 (basic graph).
-- Notebook 25 (Swarm) for the dynamic-claim counterpoint.
+- Basic graph.
+- Swarm, for the dynamic-claim counterpoint.
 
 ## Run
 

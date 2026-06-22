@@ -33,7 +33,7 @@ a grounded posture agent.
 
 ## Vendor integration examples
 
-The cookbook ships *worked* vendor integrations in
+The notebooks ship *worked* vendor integrations in
 [`examples/integrations/`][int]. Each is an ordinary Tulip `@tool` following
 one convention — **bring your own credentials**: read the vendor key from the
 environment and call the live API when it's set, otherwise return a
@@ -49,9 +49,9 @@ the offline demo and a live deployment.
 | [`measure_endpoint_timing`][rt] | Streaming time-to-first-token / cadence probe | none (uses any reachable endpoint) |
 
 Hand these to a triage agent end-to-end in
-[Notebook 70 — live vendor integrations](../notebooks/notebook_70_vendor_integrations.md);
+[live vendor integrations](../notebooks/notebook_70_vendor_integrations.md);
 the GPU probe grounds into a fingerprint finding in
-[Notebook 27](../notebooks/notebook_27_specialist_agents.md). The
+[specialist agents](../notebooks/notebook_27_specialist_agents.md). The
 bring-your-own-credentials contract is documented in
 [`examples/integrations/README.md`][int].
 

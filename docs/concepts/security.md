@@ -6,6 +6,8 @@ evidence that clears the [GSAR](gsar.md) grounding threshold.** Below the
 bar, the agent abstains and records why. An ungrounded finding is a false
 positive *by construction* — there is no public path that builds one.
 
+![A candidate finding plus typed, weighted evidence claims pass through ground_finding; only those clearing the GSAR threshold become a Finding, the rest abstain with a recorded reason](../img/patterns/grounded-findings.svg){ .diagram }
+
 ## The grounding bridge
 
 [`ground_finding()`][gh] takes a candidate finding plus the GSAR
@@ -123,8 +125,9 @@ features = {
 }
 
 # 2. CLASSIFY — any object satisfying the FingerprintClassifier protocol.
-#    A real deployment plugs in its trained classifier; the verdict
-#    reports how much of the expected feature space was observed.
+#    Plug in a real/custom classifier here; the one Tulip bundles
+#    (`default_classifier`) is a transparent heuristic placeholder. The
+#    verdict reports how much of the expected feature space was observed.
 verdict = FingerprintVerdict(
     model="open-weights-8b", engine="vllm", hardware="datacenter-gpu",
     confidence=0.93, feature_coverage=1.0,
@@ -152,72 +155,60 @@ else:
     print("ABSTAINED — insufficient feature coverage:", finding.reason)
 ```
 
-### Dispatching the probe to RunPod / Lambda
+### Measuring the timing — remote API and co-located GPU
 
-The MEASURE step runs on a dedicated GPU cluster. The dispatch is an
-ordinary Tulip `@tool`, so the agent decides when to probe — and the
-target provider is a one-argument swap. Bring your own API key; with
-none set, the tool returns a deterministic sample so the workflow stays
-runnable offline (the same bring-your-own-credentials pattern the rest of
-the cookbook uses).
+There are two real measurement channels, and you pick by how much access
+you have to the hardware.
 
-!!! note "Illustrative sketch"
-    The provider calls below outline the shape of a real dispatch — the
-    pod/instance lifecycle and feature collection are elided. Adapt them
-    to your GPU provider and probe image; only the offline-sample path is
-    runnable as written.
+**Remote-API timing (no GPU).** The cheapest channel needs no privileged
+access and no co-located hardware: stream a completion from the target
+and time the token arrivals. Core ships this as
+`measure_endpoint_timing` — it's **live** (confirmed against
+`gpt-4o-mini`): with `OPENAI_API_KEY` set it streams `samples`
+completions from the endpoint (point `TIMING_BASE_URL` at any
+OpenAI-compatible API) and computes TTFT p50, mean inter-token latency,
+its coefficient of variation, and mean tokens/sec.
 
 ```python
-import os
-from tulip.tools import tool
+from tulip.security import measure_endpoint_timing, fingerprint_to_finding
 
-# Illustrative offline fallback — replace with a real measurement.
-_SAMPLE = {"ttft_ms": 41.2, "inter_token_ms_p50": 7.8,
-           "tokens_per_s": 128.0, "contention_slope": 0.34}
+# Live timing measurement against a streaming OpenAI-compatible endpoint.
+features = measure_endpoint_timing(model="gpt-4o-mini", samples=5)
+# {"ttft_ms_p50": ..., "itl_ms_mean": ..., "itl_cv": ..., "tps_mean": ...}
 
-
-def _runpod_probe(endpoint: str) -> dict[str, float]:
-    """Submit a timing-probe pod, poll to completion, collect features."""
-    import runpod                                  # pip install runpod
-    runpod.api_key = os.environ["RUNPOD_API_KEY"]
-    pod = runpod.create_pod(name="tulip-timing-probe", gpu_type_id="NVIDIA H100",
-                            image_name="tuliplabs/timing-probe:latest",
-                            env={"TARGET_ENDPOINT": endpoint})
-    return runpod.wait_for_output(pod["id"])["features"]   # tears down on exit
-
-
-def _lambda_probe(endpoint: str) -> dict[str, float]:
-    """Launch a Lambda Cloud instance, run the probe, terminate it."""
-    import httpx
-    key = os.environ["LAMBDA_API_KEY"]
-    with httpx.Client(base_url="https://cloud.lambdalabs.com/api/v1",
-                      headers={"Authorization": f"Bearer {key}"}) as c:
-        c.post("/instance-operations/launch",
-               json={"instance_type_name": "gpu_1x_h100_pcie",
-                     "name": "tulip-timing-probe"})
-        # Run the probe image on the instance, collect features, then
-        # terminate it. Elided here; returns the measured vector.
-        return _SAMPLE
-
-
-@tool
-def dispatch_timing_probe(endpoint: str, provider: str = "runpod") -> dict[str, float]:
-    """Run a timing side-channel probe against `endpoint` on a dedicated
-    GPU cluster and return the measured feature vector. provider is
-    'runpod' or 'lambda'."""
-    if provider == "runpod" and os.getenv("RUNPOD_API_KEY"):
-        return _runpod_probe(endpoint)
-    if provider == "lambda" and os.getenv("LAMBDA_API_KEY"):
-        return _lambda_probe(endpoint)
-    return _SAMPLE  # offline / no-credential fallback
+finding = fingerprint_to_finding(features, asset="api.example/v1")
+# Full coverage ships a FingerprintFinding; a thin vector abstains.
 ```
 
-Hand `dispatch_timing_probe` to an `Agent` alongside your classifier and
-`ground_fingerprint`, and the full **measure → classify → ground** loop
-runs end to end — on RunPod, on Lambda, or against the offline sample —
-with the grounding bar enforced identically on every path.
+**Co-located GPU probe (where the hardware is).** To measure *where the
+silicon is*, rent a GPU next to the target, run a probe image against the
+endpoint, and tear the pod down. That live lifecycle lives in
+`tulip-integrations` (`pip install "tulip-integrations[compute-runpod]"`),
+so the vendor SDK stays out of core. `dispatch_timing_probe` routes
+between providers; the RunPod path provisions a real H100 pod and
+terminates it in a `finally` (≈$0.02–0.03/run).
 
-The same shape powers a complete agent workflow in the cookbook
+```python
+from tulip_integrations.compute import dispatch_timing_probe, probe_to_finding
+
+# Provision a RunPod H100, probe the endpoint, tear the pod down (RUNPOD_API_KEY).
+features = dispatch_timing_probe("https://my-endpoint/v1", provider="runpod")
+finding = probe_to_finding("https://my-endpoint/v1", provider="runpod")
+print(finding.verdict.model, "/", finding.verdict.engine, "/", finding.verdict.hardware)
+```
+
+Either channel feeds the same **measure → classify → ground** loop, with
+the grounding bar enforced identically — an under-observed endpoint
+abstains rather than asserting an identity. See the
+[RunPod](../integrations/runpod.md) and [Lambda](../integrations/lambda.md)
+integration pages for the full lifecycle.
+
+!!! note "Runs in CI without credentials"
+    With no key set, both `measure_endpoint_timing` and the GPU-probe
+    dispatch return a deterministic sample vector so the notebooks stay
+    runnable in CI — never a substitute for the live measurement.
+
+The same shape powers a complete agent workflow in the notebooks
 ([forensics specialist](../notebooks/notebook_27_specialist_agents.md)),
 where a low-coverage probe correctly abstains and a full-coverage probe
 ships a finding mapped to compliance controls.
@@ -228,7 +219,7 @@ ships a finding mapped to compliance controls.
   read-only AWS auditing built on `ground_finding`.
 - Complete defense catalogue: [threat scenarios](threat-scenarios.md) — every
   OWASP LLM / OWASP ASI / MITRE ATLAS ID mapped to a runnable gist.
-- Cookbook flagship: [GSAR typed grounding](../notebooks/notebook_37_gsar_typed_grounding.md)
+- Notebooks flagship: [GSAR typed grounding](../notebooks/notebook_37_gsar_typed_grounding.md)
 - Prompt-injection findings: [guardrails](../notebooks/notebook_50_guardrails_security.md)
 - Fingerprinting: [forensics specialist](../notebooks/notebook_27_specialist_agents.md)
 - RAG poisoning: [intel copilot](../notebooks/notebook_40_rag_agents.md)

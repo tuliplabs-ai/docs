@@ -172,17 +172,37 @@ running.
 | `SpecialistCompleteEvent` | Specialist returned a result |
 | `OrchestratorDecisionEvent` | Orchestrator picked its next step (`invoke_specialist`, `correlate`, `summarize`, `finalize`) |
 
+`SpecialistStartEvent`/`SpecialistCompleteEvent` pair on `specialist`,
+so you can attribute each IR phase to the agent that ran it:
+
+```python
+phase = {}  # specialist name → wall-clock ms
+
+async for event in orchestrator.run("Sev-1 ransomware on ws-0042: triage, then contain."):
+    match event:
+        case SpecialistStartEvent(specialist=s, task=t):
+            print(f"→ {s}: {t}")
+        case SpecialistCompleteEvent(specialist=s, duration_ms=d):
+            phase[s] = d
+        case ToolCompleteEvent(tool_name="isolate_host", error=None):
+            print("   ↳ containment fired")  # which specialist? the last Start was 'containment'
+
+# {'triage': 1840, 'forensics': 6120, 'containment': 410}
+```
+
 See [Multi-agent](multi-agent.md).
 
 ## Causal-reasoning events
 
-When `causal=True`, the agent emits node and edge events as the graph
-grows.
+The cause-effect graph (`build_causal_chain()`) has a pair of typed
+events for surfacing graph growth to a streaming consumer. They're part
+of the `TulipEvent` union and rendered by the console handler; emit them
+from your own wiring as you add nodes and edges.
 
-| Event | Fired when |
+| Event | Represents |
 |---|---|
-| `CausalNodeEvent` | A new entity entered the cause-effect graph (root cause / symptom / intermediate) |
-| `CausalEdgeEvent` | A causal link was added between two nodes |
+| `CausalNodeEvent` | A new entity in the cause-effect graph (root cause / symptom / intermediate) |
+| `CausalEdgeEvent` | A causal link between two nodes |
 
 ## Hook events
 

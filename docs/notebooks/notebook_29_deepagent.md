@@ -33,8 +33,8 @@ sentence — `(ToolCalled("submit") & ConfidenceMet(0.85))
 
 ## Prerequisites
 
-- Notebook 06 (Agent basics).
-- Notebook 15 (typed termination).
+- Agent basics.
+- Typed termination conditions.
 - For Part 5 only: `OPENAI_API_KEY` for embeddings.
 
 ## Run

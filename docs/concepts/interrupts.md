@@ -138,15 +138,15 @@ debugging, or branch off a new thread from the partial conversation.
 - [Hooks](hooks.md) — write custom hooks that return `Cancel`.
 - [Conversation Management](conversation-management.md) — how
   `thread_id` resumption works.
-- [Notebook 09 — human in the loop](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_19_human_in_the_loop.py)
+- [Human in the loop](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_19_human_in_the_loop.py)
   — a full runnable example.
-- [Notebook 46 — multi-agent + HITL](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py)
+- [Multi-agent + HITL](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py)
   — three HITL patterns in one file (approval gate, human-as-tool,
   long-pause snapshot/resume).
-- [Notebook 47 — incident response](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py)
+- [Incident response](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py)
   — `interrupt()` as the page-the-human gate after severity
   classification.
-- [Notebook 48 — vendor security review](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
+- [Vendor security review](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
   — three stacked `interrupt()` gates on the top tier.
-- [Notebook 49 — contract review](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py)
+- [Contract review](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py)
   — `interrupt()` for human counsel inside a refinement loop.

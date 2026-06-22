@@ -24,7 +24,7 @@ from tulip.hooks.builtin import StructuredLoggingHook
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, enrich_indicator],
+    tools=[query_siem, enrich_indicator, isolate_host],
     hooks=[StructuredLoggingHook(level=logging.INFO)],
 )
 ```
@@ -36,11 +36,13 @@ Sample (`ToolCompleteEvent`):
 ```json
 {
   "ts": "2026-05-02T01:31:02Z",
-  "thread_id": "th-001",
+  "thread_id": "inc-4821",
   "run_id": "run-9c14b1",
   "agent_id": "soc-triage",
   "event": "tool_complete",
-  "tool": "enrich_indicator",
+  "tool": "isolate_host",
+  "span_id": "a3f10c2e",
+  "indicator": "host:web-01",
   "duration_ms": 412,
   "result_size": 2148
 }
@@ -49,6 +51,35 @@ Sample (`ToolCompleteEvent`):
 Pipe stdout to your log aggregator. The SDK doesn't own the transport —
 you choose between stdlib `logging`, `structlog`, or
 `opentelemetry-logs`.
+
+### Replaying an incident for auditors
+
+After containment, an auditor asks: *what did the agent do, in what
+order, and why?* Every line carries the `thread_id` of the incident and
+a `span_id` per tool call. Filter by `thread_id`, sort by `ts`, and pair
+`tool_start`/`tool_complete` on matching `span_id` to reconstruct the
+exact response timeline — no log archaeology:
+
+```python
+import json
+
+events = [json.loads(line) for line in open("soc-triage.jsonl")]
+incident = sorted(
+    (e for e in events if e["thread_id"] == "inc-4821"),
+    key=lambda e: e["ts"],
+)
+for e in incident:
+    if e["event"] == "tool_complete":
+        print(f'{e["ts"]}  {e["tool"]:<16} {e.get("indicator","")}  span={e["span_id"]}')
+# 2026-05-02T01:30:58Z  query_siem        host:web-01      span=7be1
+# 2026-05-02T01:31:01Z  enrich_indicator  1.2.3.4          span=9c44
+# 2026-05-02T01:31:02Z  isolate_host      host:web-01      span=a3f10c2e
+```
+
+Because `thread_id` is stable across a multi-turn investigation, the
+same filter replays the *whole* incident — every alert pulled, every
+indicator enriched, every host isolated — in chronological order, ready
+to drop into an incident report.
 
 ### Traces and metrics over OTLP
 

@@ -1,6 +1,6 @@
 # Specialist Agents
 
-Notebook 27 introduced the Specialist as the worker an orchestrator
+The orchestrator-pattern notebook introduced the Specialist as the worker an orchestrator
 hands tasks to. This notebook dives into the Specialist itself: how to
 narrow a model's failure surface with a focused system prompt, a
 hand-picked tool set, optional playbooks, and a confidence threshold.
@@ -20,8 +20,8 @@ This notebook covers:
 
 ## Prerequisites
 
-- Notebook 08 (Agent basics).
-- Notebook 27 (Orchestrator) — Specialists are the workers it routes to.
+- Agent basics.
+- The orchestrator-pattern notebook — Specialists are the workers it routes to.
 
 ## Run
 

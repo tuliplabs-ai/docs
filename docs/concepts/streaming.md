@@ -1,9 +1,15 @@
 # Streaming
 
-Every Tulip agent emits a typed
-event stream as it runs. The events are frozen Pydantic classes — not
-strings, not `dict[str, Any]` blobs — designed to drop into a `match`
-statement that your type checker can verify exhaustively:
+Every Tulip agent emits a typed event stream as it runs — and that
+stream **is the audit trail**. Each action (every model call, every
+`isolate_host`, every `block_indicator`) lands as a timestamped,
+write-protected event the instant it happens. Nothing is reconstructed
+after the fact: the chain of custody is the live stream, SIEM-forwardable
+verbatim, replayable in original order during an IR review.
+
+The events are frozen Pydantic classes — not strings, not
+`dict[str, Any]` blobs — designed to drop into a `match` statement that
+your type checker can verify exhaustively:
 
 ```python
 async for event in agent.run("Triage alert SOC-4821."):
@@ -99,9 +105,11 @@ it uses an explicit method on the event (`event.cancel()`,
 `event.retry()`, `event.replace_arguments(...)`) — the intent is
 visible in code review.
 
-Why this is important: in callback-based event systems any code can
-silently mutate a field and you find out three hops downstream when
-the value's wrong. The SDK's frozen events make that impossible.
+Why this matters for IR: an audit trail you can silently edit is no
+audit trail. Frozen events make the record tamper-evident — no hook,
+no downstream consumer, no logging shim can backdate a `timestamp` or
+rewrite which indicator got blocked. What the agent did is exactly what
+the persisted stream says it did.
 
 ## Sync wrapper — when you don't need the stream
 
@@ -133,9 +141,10 @@ async for event in agent.run("Enrich indicator 198.51.100.7 and isolate the host
             print()
 ```
 
-Every event class is a small Pydantic record — there's no hidden
-state. What you see is what gets serialised over SSE, what your
-checkpointer persists, what your structured logger records.
+Every event class is a small Pydantic record — no hidden state. What
+the console renders is byte-for-byte what gets serialised over SSE,
+what your checkpointer persists, and what lands in the forwarded
+audit log. One artifact, no drift between the live view and the record.
 
 ## SSE over HTTP — for browser UIs
 

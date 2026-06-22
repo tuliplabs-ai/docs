@@ -1,4 +1,4 @@
-# Notebook 76: Red-team a customer-support chatbot
+# Red-team a customer-support chatbot
 
 Almost every company now ships a customer-support assistant backed by an LLM and
 a knowledge base. Two questions a security team has to answer before it goes

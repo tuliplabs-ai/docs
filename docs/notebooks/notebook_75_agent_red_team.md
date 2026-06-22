@@ -1,4 +1,4 @@
-# Notebook 75: Agentic AI red-teaming
+# Agentic AI red-teaming
 
 The flagship of the agentic-AI-security SDK: point a ``Target`` at an AI system
 and run the OWASP-ASI / MITRE-ATLAS red-team suite. Every result is a grounded

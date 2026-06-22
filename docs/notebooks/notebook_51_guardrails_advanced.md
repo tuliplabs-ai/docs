@@ -1,7 +1,7 @@
 # Advanced Guardrails
 
 Three policy types that work on top of the basic `GuardrailsHook` from
-notebook 46. They focus on what the agent talks about, not just what
+the playbooks notebook. They focus on what the agent talks about, not just what
 characters appear in the prompt.
 
 - `TopicPolicy`: declarative topic blocking with keyword maps.

@@ -1,16 +1,21 @@
 # SSE event catalogue
 
-Tulip publishes a single
-canonical stream of events on its in-process `EventBus` (see
-[Observability](observability.md)). Every event
-carries a stable `event_type` string keyed by the component that
+Tulip publishes a single canonical stream of events on its in-process
+`EventBus` — a forensic SSE stream suitable for SIEM/Syslog ingestion,
+one event per analyst-visible action (see
+[Observability](observability.md) for the hooks that ship it). Every
+event carries a stable `event_type` string keyed by the component that
 produced it (`agent.*`, `multiagent.*`, `composition.*`, `router.*`,
 `rag.*`, `memory.*`, `a2a.*`, `skills.*`, `deepagent.*`).
 
+Each SOC action — every `query_siem`, `enrich_indicator`, `isolate_host`
+— surfaces as a timestamped, span-tied event you can replay during
+incident review.
+
 This page is the **wire-format contract**. The workbench renderer,
 the JSON log adapter, and any downstream OTEL bridge consume from it —
-it is also the forensic audit trail you forward to a SIEM, one event
-per analyst-visible action. If you add a new emission site, list it here.
+it is also the audit trail you forward to a SIEM. If you add a new
+emission site, list it here.
 
 ## How emission works
 
@@ -23,9 +28,10 @@ subscribe pay one contextvar read per call site.
 from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
-    # Subscribe — replays history then live events.
+    # Subscribe — replays the triage timeline, then live events.
     async for event in get_event_bus().subscribe(rid):
-        print(event.event_type, event.data)
+        # e.g. agent.tool.completed {tool_name: "isolate_host", ...}
+        forward_to_siem(event.event_type, event.data)
 ```
 
 ## Event categories

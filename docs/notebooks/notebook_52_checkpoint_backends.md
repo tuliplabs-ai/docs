@@ -5,7 +5,7 @@ against `S3Backend` — S3 / MinIO / Cloudflare R2 via boto3 — a durable
 store with the full capability set (`list_threads`, `search`, `vacuum`)
 over a single bucket. Portable SQL deployments can use PostgreSQL or
 MySQL through the same adapter shape; key/value deployments can use
-Redis. Notebook 06 covers the checkpointer contract itself.
+Redis. The basic agent notebook covers the checkpointer contract itself.
 
 - Save and load `AgentState` via `S3Backend`.
 - Inspect the reported capabilities.
@@ -23,7 +23,7 @@ Run it (requires an S3-compatible endpoint + a bucket):
 
 Without the env vars the notebook prints what's missing and exits
 cleanly so CI stays green. The in-memory checkpointer covered in
-[notebook 08](notebook_08_agent_memory.md) is the developer default;
+[agent memory](notebook_08_agent_memory.md) is the developer default;
 S3 / object storage is a production default.
 
 ## Source

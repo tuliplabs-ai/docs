@@ -36,22 +36,22 @@
   <!-- ============================================================ -->
 
   <!-- ORCHESTRATOR side bracket (top half: classify + dispatch) -->
-  <line x1="450" y1="80"  x2="468" y2="80"  stroke="#E2570E" stroke-width="1"   stroke-dasharray="3,2"/>
-  <line x1="450" y1="202" x2="468" y2="202" stroke="#E2570E" stroke-width="1"   stroke-dasharray="3,2"/>
-  <line x1="468" y1="80"  x2="468" y2="202" stroke="#E2570E" stroke-width="1.2"/>
-  <text x="478" y="145" font-size="11" font-weight="700" fill="#E2570E" letter-spacing="0.10em">ORCHESTRATOR</text>
+  <line x1="450" y1="80"  x2="468" y2="80"  stroke="#1B1620" stroke-width="1"   stroke-dasharray="3,2"/>
+  <line x1="450" y1="202" x2="468" y2="202" stroke="#1B1620" stroke-width="1"   stroke-dasharray="3,2"/>
+  <line x1="468" y1="80"  x2="468" y2="202" stroke="#1B1620" stroke-width="1.2"/>
+  <text x="478" y="145" font-size="11" font-weight="700" fill="#1B1620" letter-spacing="0.10em">ORCHESTRATOR</text>
 
   <!-- ORCHESTRATOR side bracket (bottom half: synthesize + notify) -->
-  <line x1="450" y1="336" x2="468" y2="336" stroke="#E2570E" stroke-width="1"   stroke-dasharray="3,2"/>
-  <line x1="450" y1="458" x2="468" y2="458" stroke="#E2570E" stroke-width="1"   stroke-dasharray="3,2"/>
-  <line x1="468" y1="336" x2="468" y2="458" stroke="#E2570E" stroke-width="1.2"/>
-  <text x="478" y="401" font-size="11" font-weight="700" fill="#E2570E" letter-spacing="0.10em">ORCHESTRATOR</text>
+  <line x1="450" y1="336" x2="468" y2="336" stroke="#1B1620" stroke-width="1"   stroke-dasharray="3,2"/>
+  <line x1="450" y1="458" x2="468" y2="458" stroke="#1B1620" stroke-width="1"   stroke-dasharray="3,2"/>
+  <line x1="468" y1="336" x2="468" y2="458" stroke="#1B1620" stroke-width="1.2"/>
+  <text x="478" y="401" font-size="11" font-weight="700" fill="#1B1620" letter-spacing="0.10em">ORCHESTRATOR</text>
 
   <!-- =============== ORCHESTRATOR (top) =============== -->
 
   <!-- n_classify -->
   <g filter="url(#sh)">
-    <rect x="275" y="80" width="170" height="46" rx="10" fill="#E2570E"/>
+    <rect x="275" y="80" width="170" height="46" rx="10" fill="#1B1620"/>
     <text x="360" y="108" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF" font-family="ui-monospace, 'SF Mono', Menlo, monospace">n_classify</text>
   </g>
 
@@ -60,7 +60,7 @@
 
   <!-- n_dispatch -->
   <g filter="url(#sh)">
-    <rect x="275" y="156" width="170" height="46" rx="10" fill="#E2570E"/>
+    <rect x="275" y="156" width="170" height="46" rx="10" fill="#1B1620"/>
     <text x="360" y="184" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF" font-family="ui-monospace, 'SF Mono', Menlo, monospace">n_dispatch</text>
   </g>
 
@@ -80,8 +80,8 @@
 
   <!-- EDR -->
   <g filter="url(#sh)">
-    <rect x="290" y="250" width="140" height="46" rx="10" fill="#F7A21E"/>
-    <text x="360" y="278" text-anchor="middle" font-size="14" font-weight="800" fill="#3A2A0F">EDR</text>
+    <rect x="290" y="250" width="140" height="46" rx="10" fill="#D6336C"/>
+    <text x="360" y="278" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">EDR</text>
   </g>
 
   <!-- DB -->
@@ -107,7 +107,7 @@
 
   <!-- n_cross_synthesize -->
   <g filter="url(#sh)">
-    <rect x="275" y="336" width="170" height="46" rx="10" fill="#E2570E"/>
+    <rect x="275" y="336" width="170" height="46" rx="10" fill="#1B1620"/>
     <text x="360" y="364" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF" font-family="ui-monospace, 'SF Mono', Menlo, monospace">n_cross_synthesize</text>
   </g>
 
@@ -116,7 +116,7 @@
 
   <!-- n_notify -->
   <g filter="url(#sh)">
-    <rect x="275" y="412" width="170" height="46" rx="10" fill="#E2570E"/>
+    <rect x="275" y="412" width="170" height="46" rx="10" fill="#1B1620"/>
     <text x="360" y="440" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF" font-family="ui-monospace, 'SF Mono', Menlo, monospace">n_notify</text>
   </g>
 </svg>

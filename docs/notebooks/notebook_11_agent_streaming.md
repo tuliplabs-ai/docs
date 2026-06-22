@@ -24,7 +24,7 @@ The default provider is the bundled mock model. Set `TULIP_MODEL_PROVIDER`
 to openai / anthropic for a live model. For offline runs keep
 `TULIP_MODEL_PROVIDER=mock`.
 
-Prerequisite: notebook 09.
+Prerequisite: the agent-basics notebook.
 
 ## Source
 

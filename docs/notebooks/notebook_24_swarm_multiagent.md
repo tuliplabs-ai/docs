@@ -19,8 +19,8 @@ This notebook covers:
 
 ## Prerequisites
 
-- Notebook 08 (Agent basics).
-- Notebook 27 (Orchestrator pattern) if you want the supervised
+- Agent basics.
+- The orchestrator-pattern notebook if you want the supervised
   counterpoint to a swarm.
 
 ## Run

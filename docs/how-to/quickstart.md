@@ -1,6 +1,6 @@
 # Quickstart
 
-A working Tulip agent in five
+A working Tulip SOC agent in five
 minutes.
 
 ## 1. Install
@@ -34,43 +34,49 @@ runs offline.
 
 ## 3. Your first agent
 
-Save this as `hello_agent.py`:
+Save this as `soc_agent.py`:
 
 ```python
 from tulip.agent import Agent
 from tulip.tools.decorator import tool
 
 @tool
-def add(a: int, b: int) -> int:
-    """Add two integers and return the sum."""
-    return a + b
+def scan_endpoint(ip: str, port: int) -> dict:
+    """Scan an endpoint for cert expiry and known CVEs."""
+    return {"ip": ip, "port": port, "cert_not_after": "2026-05-30",
+            "cves": ["CVE-2024-3094"]}
 
 @tool
-def search_books(topic: str) -> list[str]:
-    """Search the catalogue for books on a topic."""
-    return [f"{topic} for Beginners", f"Advanced {topic}"]
+def check_domain_reputation(domain: str) -> dict:
+    """Look up a domain in the threat-intel feeds."""
+    return {"domain": domain, "verdict": "malicious", "sources": 4}
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[add, search_books],
-    system_prompt="You are a helpful assistant.",
+    tools=[scan_endpoint, check_domain_reputation],
+    system_prompt="You are a SOC analyst triaging alerts. "
+                  "Cite the evidence behind every verdict.",
 )
 
-result = agent.run_sync("What's 17 + 25, and recommend two books on Rust.")
+result = agent.run_sync(
+    "Scan 192.0.2.10:443 for cert expiry and check its reputation "
+    "in our threat feeds."
+)
 print(result.message)
 ```
 
 Run:
 
 ```bash
-python hello_agent.py
+python soc_agent.py
 ```
 
 You should see something like:
 
 ```text
-17 + 25 is 42. Two books on Rust I'd recommend: "Rust for Beginners"
-and "Advanced Rust".
+192.0.2.10:443 serves an expired cert (not_after 2026-05-30) and is
+vulnerable to CVE-2024-3094. Evidence: scan_endpoint + threat feeds
+flag the host malicious across 4 sources. Verdict: HIGH, isolate.
 ```
 
 ## 4. Stream the events
@@ -85,7 +91,7 @@ from tulip.core.events import (
 )
 
 async def main():
-    async for event in agent.run("What's 17 + 25?"):
+    async for event in agent.run("Scan 192.0.2.10:443 and triage it."):
         match event:
             case ThinkEvent(reasoning=r) if r:
                 print(f"💭 {r}")
@@ -138,17 +144,17 @@ from tulip.core.termination import (
 )
 
 @tool(idempotent=True)
-def submit_order(item_id: str, qty: int) -> dict:
-    return shop.submit(item_id, qty)
+def isolate_host(host_id: str, incident_id: str) -> dict:
+    return edr.isolate(host_id, incident_id)
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search_catalog, submit_order],
+    tools=[query_siem, isolate_host],
     system_prompt="...",
     reflexion=True,
     checkpointer=S3Backend(bucket="tulip-threads", namespace="..."),
     termination=(
-        ToolCalled("submit_order") & ConfidenceMet(0.9)
+        ToolCalled("isolate_host") & ConfidenceMet(0.9)
     ) | MaxIterations(8),
 )
 ```

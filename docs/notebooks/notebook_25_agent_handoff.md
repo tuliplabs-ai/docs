@@ -20,9 +20,9 @@ This notebook covers:
 
 ## Prerequisites
 
-- Notebook 08 (Agent basics).
-- Notebook 25 (Swarm) for the peer-pull counterpoint to push-style
-  handoffs.
+- Agent basics.
+- The swarm multi-agent notebook for the peer-pull counterpoint to
+  push-style handoffs.
 
 ## Run
 

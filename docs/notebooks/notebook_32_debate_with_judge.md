@@ -23,8 +23,8 @@ PRO r0 → CON r0 → PRO r1 → CON r1 → ... → judge → END
 
 ## Prerequisites
 
-- Notebook 14 (structured output).
-- Notebook 17 (basic graph).
+- Structured output.
+- Basic graph.
 
 ## Run
 

@@ -1,4 +1,4 @@
-# Notebook 81: Incident response with a tamper-evident audit chain
+# Incident response with a tamper-evident audit chain
 
 A ransomware alert fires at 2 AM. A ``SecureAgent`` runs the ``nist_800_61_r3``
 IR playbook (detect → contain → eradicate → recover). Every tool call — host

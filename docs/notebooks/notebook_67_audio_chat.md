@@ -1,13 +1,13 @@
 # Voice Chat
 
-Notebook 66 was text in, voice out (Agent plus dedicated TTS). This is
+The voice output notebook was text in, voice out (Agent plus dedicated TTS). This is
 the next step: a single multimodal chat call to an audio-capable
 OpenAI model that takes a `.wav` as the user message and replies with
 both text and audio in one shot.
 
 Pipeline::
 
-                         (synth via notebook 66 if absent)
+                      (synth via the voice output notebook if absent)
                                        │
                                        ▼
                           ./notebook_67_question.wav

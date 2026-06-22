@@ -48,9 +48,7 @@ async def test_tool_json():
     await assert_tool_returns_json(acme_tool, "…")   # offline path
 ```
 
-Passing the kit — plus exercising the live path in `tests/test_live_paths.py` —
-is what earns the **✅ live-verified / 🔌 live-path verified** badge in the
-[catalog](index.md).
+Pass the kit, and exercise the live path in `tests/test_live_paths.py`.
 
 ## Wire it in
 
@@ -72,4 +70,4 @@ tools in `expected_tools`.
 - **One-way dependency.** Import from `tulip` (core); never make core depend on
   your integration.
 - **Offline by default.** No test may require credentials or network.
-- **Honesty.** Label any unverified live vendor path; keep it BYO-credentials.
+- **BYO-credentials.** Read credentials from the environment; never hardcode them.

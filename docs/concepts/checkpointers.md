@@ -1,34 +1,41 @@
 # Checkpointers
 
-A checkpointer is the contract for **persisting agent state** between
-runs. Pass one to `Agent(checkpointer=...)` and the agent saves
-`AgentState` after every iteration; resume a conversation by re-running
-with the same `thread_id`. Same code, same context, different process,
-different day.
+A checkpointer is the contract for **persisting investigation state**
+between runs. Pass one to `Agent(checkpointer=...)` and the agent saves
+`AgentState` after every iteration; resume an incident by re-running
+with the same `thread_id`. Same code, same case context, different
+process, different day.
 
-This is the durability story for production agents. Without a
-checkpointer your agent forgets every conversation when the process
-exits. With one, the same `thread_id` round-trips through restarts,
-across containers, and across regions.
+This is the durability story for production SOC agents. An incident
+outlives a process: a host gets isolated at 02:00, the runner restarts,
+the on-call hands off, and the next shift must pick up the *same*
+investigation — every enriched indicator, every containment receipt,
+the full audit trail intact. Without a checkpointer the agent forgets
+which host it isolated and re-litigates the alert from scratch. With
+one, the same `thread_id` round-trips through restarts, across
+containers, and across regions, so the record of *what was contained
+and why* survives.
 
 ```python
 from tulip.agent import Agent
 from tulip.memory.backends import S3Backend
 
+from tulip.security import security_toolset
+
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[search, summarise],
+    tools=security_toolset(),   # query_siem, enrich_indicator, isolate_host, ...
     checkpointer=S3Backend(
-        bucket="my-app-checkpoints",
+        bucket="soc-case-checkpoints",
         endpoint_url="https://s3.amazonaws.com",
     ).as_checkpointer(),
 )
 
-# Day 1
-agent.run_sync("Open the investigation for alert A-42.", thread_id="case-4821")
+# 02:00 — triage fires, host gets isolated, the runner crashes mid-loop
+agent.run_sync("Triage alert A-42 and contain the affected host.", thread_id="case-4821")
 
-# Day 2 — different process, same thread_id, the investigation continues
-agent.run_sync("What did we establish so far?", thread_id="case-4821")
+# 08:00 — next shift, different process, same thread_id: the audit trail is intact
+agent.run_sync("What host did we isolate, and on what evidence?", thread_id="case-4821")
 ```
 
 ## Picking a backend
@@ -61,8 +68,9 @@ agent = Agent(
 )
 ```
 
-One JSON file per `thread_id` in the directory. Zero dependencies,
-plays well with `git stash` for "save my agent state" workflows.
+One JSON file per `thread_id` in the directory — one file per case.
+Zero dependencies; the on-disk case file is grep-able when you need to
+eyeball an investigation's audit trail by hand.
 
 ### Production: `S3Backend`
 
@@ -73,7 +81,7 @@ agent = Agent(
     model=...,
     tools=[...],
     checkpointer=S3Backend(
-        bucket="my-app-checkpoints",
+        bucket="soc-case-checkpoints",
         endpoint_url="https://s3.amazonaws.com",  # or a MinIO / R2 endpoint
         prefix="prod/",
     ).as_checkpointer(),
@@ -81,9 +89,9 @@ agent = Agent(
 ```
 
 S3-compatible object storage (S3 / MinIO / Cloudflare R2) with
-bucket-level lifecycle rules ("delete threads older than 90 days"),
-region replication, and IAM-controlled access. Workers across
-processes / pods see the same threads.
+bucket-level lifecycle rules (retain closed cases for your audit
+window, then expire), region replication, and IAM-controlled access.
+Workers across processes / pods see the same cases.
 
 ### Postgres: `postgresql_checkpointer`
 
@@ -137,7 +145,8 @@ agent = Agent(
 )
 ```
 
-Fastest reads, optional TTL for ephemeral conversations.
+Fastest reads, optional TTL for short-lived triage cases that
+auto-expire once the alert is closed.
 
 ### SQL: `PostgreSQLBackend` / `MySQLBackend`
 
@@ -236,24 +245,24 @@ for a worked example.
 
 ## Cross-thread store
 
-Checkpointers persist *one thread's* state. The companion abstraction —
-`BaseStore` — persists key-value data **across** threads: a per-user
-profile, long-term memory, anything that should outlive a single
-conversation.
+Checkpointers persist *one case's* state. The companion abstraction —
+`BaseStore` — persists key-value data **across** cases: an analyst
+playbook, a known-bad indicator cache, anything that should outlive a
+single investigation.
 
 ```python
 from tulip.memory.store import InMemoryStore   # tests / REPL
 
 store = InMemoryStore()
-store.put(("tulip_memory", "user"), "role", {"content": "Senior Python engineer"})
-hit = store.get(("tulip_memory", "user"), "role")
+store.put(("tulip_memory", "soc"), "containment_policy", {"content": "Isolate on confirmed C2 beacon"})
+hit = store.get(("tulip_memory", "soc"), "containment_policy")
 ```
 
 The interface is `put / get / list / delete` keyed on a `(namespace,
 key)` pair. The [`LLMMemoryManager`](memory-manager.md) builds on this
 to give an agent a long-term memory layer; you can also use the store
-directly for anything cross-thread that doesn't need LLM extraction
-(API tokens, user preferences, rate-limit counters).
+directly for anything cross-case that doesn't need LLM extraction
+(asset inventories, indicator allowlists, rate-limit counters).
 
 ### The built-in store: `InMemoryStore`
 
@@ -266,8 +275,8 @@ cross-thread store, subclass `BaseStore` over your backend of choice.
 from tulip.memory.store import InMemoryStore
 
 store = InMemoryStore()
-await store.put(("memory", "u42"), "fact-1", {"note": "user likes cats"})
-hits = await store.search(("memory", "u42"), query=None, limit=5)
+await store.put(("memory", "host-u42"), "fact-1", {"note": "u42 ran an unsigned binary from %TEMP%"})
+hits = await store.search(("memory", "host-u42"), query=None, limit=5)
 ```
 
 ## Common gotchas
@@ -275,8 +284,8 @@ hits = await store.search(("memory", "u42"), query=None, limit=5)
 | Symptom | Likely cause |
 |---|---|
 | `AttributeError: 'RedisBackend' has no attribute 'save'` (with `state` arg) | Storage backend passed without the adapter. Use `.as_checkpointer()`. |
-| Threads forgotten between deployments | `FileCheckpointer` directory inside an ephemeral container. Mount a volume, or move to `S3Backend`. |
-| Two replicas show different conversation state for the same thread | The checkpointer isn't shared between replicas. `FileCheckpointer` is per-host; switch to a centralised backend (Redis, Postgres, MySQL, S3). |
+| Open cases forgotten between deployments | `FileCheckpointer` directory inside an ephemeral container — the audit trail dies with the pod. Mount a volume, or move to `S3Backend`. |
+| Two replicas show different case state for the same thread | The checkpointer isn't shared between replicas, so one worker doesn't know the host was already isolated. `FileCheckpointer` is per-host; switch to a centralised backend (Redis, Postgres, MySQL, S3). |
 | Slow first save | Some backends auto-create schema on first call. Pre-create in your deployment script if startup latency matters. |
 
 ## Source

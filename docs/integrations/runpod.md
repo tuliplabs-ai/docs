@@ -1,41 +1,88 @@
-# RunPod / Lambda (compute — GPU fingerprint probe)
+# RunPod (compute — co-located GPU fingerprint probe)
 
-**Status:** 🧪 offline-verified · maintained in `tulip-integrations`.
+Maintained in `tulip-integrations`.
 
-Inference fingerprinting can measure *where the hardware is* from a co-located
-probe. These compute integrations provision GPU hardware, run the timing probe
-against a target endpoint, collect the feature vector, and tear the hardware
-down — then feed the vector to core
-[`fingerprint_to_finding`](../concepts/security.md) for a grounded verdict.
+**Security capability — inference fingerprinting.** Timing an AI endpoint is
+reconnaissance: by renting a GPU *next to* a target and measuring how it streams
+tokens, an adversary can infer the **model class, inference engine, and hardware**
+behind an API — the opening move of model extraction
+(**MITRE ATLAS [AML.T0040](https://atlas.mitre.org/techniques/AML.T0040) — Inference
+API Access** → **[AML.T0024](https://atlas.mitre.org/techniques/AML.T0024) —
+Exfiltration via ML Inference API**). This integration runs that probe
+**defensively**: point it at endpoints *you operate* to measure what they leak and
+close the gap before someone else maps it. Every verdict is **grounded** — a thin
+measurement abstains instead of asserting an identity.
 
-Core ships the **credential-free remote-API measurement** (`measure_endpoint_timing`,
-no GPU) and an offline reference dispatch; the **real GPU-cloud lifecycle** lives
-here.
+The RunPod backend is a **pod + container-image** model: it provisions a real GPU
+pod from your probe image, runs the probe against the target endpoint, collects the
+timing feature vector, tears the pod down, and feeds the vector to core
+[`fingerprint_to_finding`](../concepts/security.md) for a grounded
+`FingerprintFinding`.
+
+## Install
 
 ```bash
-pip install "tulip-integrations[compute-runpod]"   # RunPod (needs the runpod SDK)
-pip install "tulip-integrations[compute-lambda]"   # Lambda Cloud (httpx only)
+pip install "tulip-integrations[compute-runpod]"   # pulls the runpod SDK
 ```
+
+## At a glance
 
 | | |
 |---|---|
-| **Env** | RunPod: `RUNPOD_API_KEY` (+ `RUNPOD_PROBE_IMAGE`) · Lambda: `LAMBDA_API_KEY` (+ `LAMBDA_PROBE_RESULT_URL`) |
-| **Import** | `from tulip_integrations.compute import dispatch_timing_probe, probe_to_finding` |
-| **Probes** | `runpod_probe(endpoint)` · `lambda_probe(endpoint)` |
-| **Grounded** | `probe_to_finding(endpoint, provider)` → grounded `FingerprintFinding` |
+| **Env** | `RUNPOD_API_KEY` (+ `RUNPOD_PROBE_IMAGE`, your image; default `tuliplabs/timing-probe:latest`) |
+| **Install** | `tulip-integrations[compute-runpod]` — needs the `runpod` SDK |
+| **Import** | `from tulip_integrations.compute.runpod import runpod_probe` |
+| **Probe** | `runpod_probe(endpoint)` → timing feature vector |
+| **Grounded** | `probe_to_finding(endpoint, provider="runpod")` → grounded `FingerprintFinding` |
+| **ATLAS** | tags `AML.T0040` (Inference API Access) · `AML.T0024` (Exfiltration via Inference API) |
+
+## How the RunPod lifecycle works
+
+1. `create_pod(...)` from `RUNPOD_PROBE_IMAGE` on an H100-class GPU, with
+   `TARGET_ENDPOINT` passed in the pod env.
+2. `wait_for_output(pod_id)` — the probe measures the endpoint's streaming timing
+   (TTFT p50, inter-token latency, its coefficient of variation, tokens/sec) and
+   emits a JSON feature vector.
+3. The vector is parsed and the pod is **terminated in a `finally`**, so the bill
+   stops even if the probe fails.
+4. `fingerprint_to_finding(vector, asset=endpoint)` grounds it — full coverage
+   ships a `FingerprintFinding`; thin coverage returns an `Abstention`.
+
+**You supply the probe** — on RunPod it *is* the container image. It must emit:
+
+```json
+{"ttft_ms_p50": 38.2, "itl_ms_mean": 11.4, "itl_cv": 0.07, "tps_mean": 87.6}
+```
+
+## Run it
 
 ```python
 from tulip_integrations.compute import probe_to_finding
 
-f = probe_to_finding("203.0.113.10:443", provider="runpod")
+f = probe_to_finding("https://my-endpoint/v1", provider="runpod")
 print(f.verdict.model, "/", f.verdict.engine, "/", f.verdict.hardware)
 # 7-8B class / vLLM (continuous-batching) / H100/A100 class
 ```
 
-With no credentials each probe returns the deterministic offline sample, so the
-flow runs in CI.
+Set `RUNPOD_API_KEY` and point `RUNPOD_PROBE_IMAGE` at your published probe image,
+and the lifecycle above runs against a live GPU.
 
-!!! warning "Unverified live path"
-    The lifecycle is real but depends on a probe container image you supply
-    (`RUNPOD_PROBE_IMAGE`). Defensive framing: run it against *your own*
-    endpoints to verify what they reveal (MITRE ATLAS AML.T0040 / AML.T0024).
+## Grounding
+
+The timing feature vector routes through core `fingerprint_to_finding`, so an
+under-observed endpoint abstains rather than asserting a model identity.
+`runpod_probe()` orchestrates the full provision → probe → terminate lifecycle;
+point `RUNPOD_PROBE_IMAGE` at your published probe image to run it against a
+live GPU.
+
+!!! warning "The live path is billable"
+    A live run spins up an H100-class GPU. Gate it behind explicit approval and a
+    provider spend limit, and rely on the `finally` teardown.
+
+!!! note "Defensive framing"
+    Run this against endpoints **you operate** to verify what they reveal. It is
+    the same measurement an attacker uses for model-extraction recon
+    (`AML.T0040` / `AML.T0024`) — which is exactly why the verdict is grounded: a
+    thin measurement must never assert a model identity.
+
+→ [Lambda Cloud probe](lambda.md) · [Integrations overview](index.md) · [Security &amp; grounding](../concepts/security.md)

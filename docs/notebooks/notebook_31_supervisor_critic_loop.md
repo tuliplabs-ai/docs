@@ -24,8 +24,8 @@ START → research → write → critique → END (approve)
 
 ## Prerequisites
 
-- Notebook 17 (basic graph).
-- Notebook 26 (agent handoff) for an alternative shape.
+- Basic graph.
+- Agent handoff, for an alternative shape.
 
 ## Run
 

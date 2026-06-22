@@ -11,11 +11,14 @@ tool call:
 - **Grounding** catches *hallucinations* — before the answer ships,
   every factual claim is checked against the tool results that
   produced it; unsupported claims are dropped or sent back.
-- **Causal reasoning** catches *contradictions* — a running
-  cause-effect graph surfaces the case where turn 3's "fix"
-  contradicts turn 1's "root cause", which linear chat history hides.
+- **Causal reasoning** catches *contradictions* — a cause-effect graph
+  surfaces the case where turn 3's "fix" contradicts turn 1's "root
+  cause", which linear chat history hides.
 
-Each is a single argument on `Agent(...)`. You can combine them.
+Reflexion and grounding are each a single argument on `Agent(...)` and
+combine freely. Causal reasoning is a standalone graph builder
+(`build_causal_chain()`) you run over the events the agent surfaced —
+see its section below.
 
 ## When to pick which
 
@@ -23,8 +26,8 @@ Each is a single argument on `Agent(...)`. You can combine them.
 |---|---|
 | Agent loops endlessly or stacks tool calls on a wrong premise | `reflexion=True` |
 | Analyst-facing findings where a hallucinated fact drives a wrong action (indicator values, hostnames, CVE ids) | `grounding=True` |
-| Multi-step investigation or root-cause analysis where one bad assumption poisons the chain | `causal=True` |
-| All three apply — production triage agent, audit-sensitive finding | turn them all on |
+| Multi-step investigation or root-cause analysis where one bad assumption poisons the chain | `build_causal_chain(events)` |
+| All three apply — production triage agent, audit-sensitive finding | reflexion + grounding on the agent, causal chain over its events |
 | Quick prototype, low-stakes lookup | leave them off — extra model calls are wasted |
 
 The cost is more model round-trips. The win is fewer wrong answers.
@@ -46,7 +49,7 @@ agent = Agent(
 )
 
 result = agent.run_sync("Find the lateral-movement events for INC-92 and explain the spread.")
-print(result.metrics.reflexion_iterations)
+print(result.metrics.reflexion_evaluations)
 ```
 
 After each tool result, the agent is asked: *given this, was the last
@@ -67,8 +70,9 @@ agent = Agent(
 )
 
 result = agent.run_sync("Is the hash 44d88612... associated with known malware?")
-for claim in result.grounding_report.unsupported:
-    print(f"DROPPED: {claim.text}")
+print(f"grounding score: {result.grounding_score}")
+for claim in result.ungrounded_claims:
+    print(f"DROPPED: {claim}")
 ```
 
 Before the agent finalises an answer, every factual claim is checked
@@ -79,27 +83,42 @@ sent back for re-research. Streamed as `GroundingEvent`.
 
 ### Causal
 
-Track cause-effect chains.
+Track cause-effect chains. Unlike reflexion and grounding, causal
+reasoning isn't an `Agent(...)` flag — it's a standalone builder,
+`build_causal_chain()`, that you run over the events your agent or
+tools surfaced. It returns a `CausalChain` you can summarise or query.
 
 ```python
-agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[fetch_logs, query_siem, traceback],
-    causal=True,
-)
+from tulip.reasoning.causal import build_causal_chain
 
-result = agent.run_sync("How did the attacker reach the domain controller from 192.0.2.10?")
-print(result.causal_chain.root_causes)
+# Events the agent extracted from the investigation, each optionally
+# naming its cause(s) by label.
+chain = build_causal_chain([
+    {"label": "Phished credential for svc-backup"},
+    {"label": "SMB session to DC01",
+     "causes": ["Phished credential for svc-backup"]},
+    {"label": "Domain admin token minted",
+     "causes": ["SMB session to DC01"]},
+])
+
+summary = chain.get_chain_summary()
+print(summary["root_causes"])   # ['Phished credential for svc-backup']
+print(summary["symptoms"])      # ['Domain admin token minted']
+print(summary["conflicts"])     # count of contradictory edges detected
 ```
 
-The agent maintains a running cause-effect graph — *X happened
-because Y; Y because Z* — and validates new conclusions against it.
-Cycles, contradictions, and unsupported jumps surface as the chain
-grows. Particularly useful for incident triage where the linear chat
-log doesn't show that turn 3's "fix" contradicts turn 1's "root
-cause".
+The chain is a cause-effect graph — *X happened because Y; Y because
+Z* — that auto-classifies each node as root cause, intermediate, or
+symptom, and surfaces cycles and contradictions as the graph grows.
+Particularly useful for incident triage where the linear chat log
+doesn't show that turn 3's "fix" contradicts turn 1's "root cause".
+`build_causal_chain()` is plain Python with no model call — feed it
+the events and read the structure back.
 
 ## Combining them
+
+Turn on the two in-loop add-ons together, then build the causal graph
+over the events the run surfaced:
 
 ```python
 agent = Agent(
@@ -107,16 +126,22 @@ agent = Agent(
     tools=[...],
     reflexion=True,
     grounding=True,
-    causal=True,
 )
+
+result = agent.run_sync("How did the attacker reach the domain controller?")
+
+# Build the cause-effect graph from the events the agent extracted.
+from tulip.reasoning.causal import build_causal_chain
+chain = build_causal_chain(events_from(result))   # your event extractor
 ```
 
-The order is fixed: reflect first, build the causal graph as you go,
-ground last. Reflect first because if the last step was wrong,
-grounding on its claims is wasted judge work; ground last because
-intermediate claims will be rewritten before they ship, so any tokens
-spent verifying them are tokens spent verifying drafts. All three are
-observable as their own event types.
+The order is fixed for the in-loop add-ons: reflect first, ground last.
+Reflect first because if the last step was wrong, grounding on its
+claims is wasted judge work; ground last because intermediate claims
+will be rewritten before they ship, so any tokens spent verifying them
+are tokens spent verifying drafts. Reflexion and grounding are
+observable as their own event types (`ReflectEvent`, `GroundingEvent`);
+the causal chain is built after the fact from the run's events.
 
 ## Common gotchas
 
@@ -136,11 +161,11 @@ observable as their own event types.
 - [`ReflectNode`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/nodes.py) in the ReAct loop — where reflection plugs in.
 
 Reflexion: [Shinn et al., 2023](https://arxiv.org/abs/2303.11366).
-Grounding-Stratified Adaptive Replanning: see [GSAR](gsar.md) for the
+Typed grounding: see [GSAR](gsar.md) for the
 typed-evidence variant the SDK also ships.
 
 ## See also
 
 - [GSAR](gsar.md) — typed-grounding layer with weighted scoring and tiered replanning.
-- [Events](events.md) — `ReflectEvent`, `GroundingEvent`, causal node/edge events.
+- [Events](events.md) — `ReflectEvent`, `GroundingEvent`.
 - [Termination](termination.md) — combine `ConfidenceMet` with reflexion to early-stop on high-confidence answers.

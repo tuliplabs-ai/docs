@@ -140,6 +140,26 @@ The `api_key` your `OPENAI_API_KEY` provides is forwarded — for Azure
 that's the Azure resource key, for Portkey it's the Portkey virtual
 key, etc.
 
+## Handling sensitive incident data
+
+Provider traffic carries the same SOC data your tools touch — raw alert
+payloads, host names, attacker-supplied free-text. Two defaults keep it
+out of the wrong places:
+
+- **Tool args/results aren't traced by default.** `record_arguments` and
+  `record_results` are off, so SIEM payloads and indicators don't leak
+  into your tracing backend unless you opt in (and verify its retention
+  and access controls first). See [Observability](../observability.md).
+- **Redact before the reply leaves the box.** An `OutputFilterHook`
+  strips PII or blocks topics in the model's output, so nothing
+  attacker-supplied round-trips into a downstream ticket or chat.
+
+Every model call, tool invocation, and containment decision still lands
+on the SDK's forensic audit trail — the same typed SSE event stream you
+forward to a SIEM verbatim. Routing through a gateway (Azure / Portkey /
+LiteLLM) keeps your `OPENAI_API_KEY` off the egress path when policy
+requires it.
+
 ## Common gotchas
 
 | Symptom | Likely cause |

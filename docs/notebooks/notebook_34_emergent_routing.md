@@ -1,6 +1,6 @@
 # Emergent Routing
 
-[Notebook 53](notebook_58_cognitive_router.md) covers the default
+The [cognitive router](notebook_58_cognitive_router.md) covers the default
 deterministic router: the LLM fills a typed `GoalFrame`, then
 `_rank_key` picks a protocol via a four-element tuple comparison.
 
@@ -53,10 +53,10 @@ rationale (on the SSE event) explains why.
 
 ## See also
 
-- [Notebook 53 — cognitive router (default rule-based path)](notebook_58_cognitive_router.md)
+- [Cognitive router (default rule-based path)](notebook_58_cognitive_router.md)
 - [Concepts: cognitive router](../concepts/router.md) — the
   filter-then-pick invariant plus observability schema.
-- [Notebook 27 — orchestrator pattern](notebook_26_orchestrator_pattern.md)
+- [Orchestrator pattern](notebook_26_orchestrator_pattern.md)
   — for emergent coordination *inside* a protocol.
 
 ## Source

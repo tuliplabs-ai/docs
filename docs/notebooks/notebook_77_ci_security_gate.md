@@ -1,4 +1,4 @@
-# Notebook 77: A CI security gate for AI agents
+# A CI security gate for AI agents
 
 You ship an AI agent. Every PR can quietly weaken its defenses — a prompt tweak,
 a new tool, a model swap. This is a **regression gate** you drop into CI: it runs

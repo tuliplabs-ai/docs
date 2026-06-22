@@ -1,6 +1,6 @@
 # LiteLLM AI Gateway — per-team cost tracking
 
-Companion to [notebook 71](notebook_71_litellm_gateway.md) for the
+Companion to the [LiteLLM AI Gateway notebook](notebook_71_litellm_gateway.md) for the
 enterprise piece: **who spent what on which model**.
 
 Issues virtual keys for two pretend teams, drives traffic on each,
@@ -34,7 +34,7 @@ for the deployment shape.
 
 The Postgres-backed gateway from
 [`examples/litellm-gateway/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/litellm-gateway).
-The stateless gateway from notebook 71 won't work for this notebook —
+The stateless gateway from the LiteLLM AI Gateway notebook won't work for this notebook —
 `/key/generate` and `/spend/*` both require Postgres.
 
 ```bash
@@ -50,7 +50,7 @@ python examples/notebook_72_litellm_gateway_cost.py
 
 ## See also
 
-- [Notebook 71 — LiteLLM AI Gateway](notebook_71_litellm_gateway.md) —
+- [LiteLLM AI Gateway](notebook_71_litellm_gateway.md) —
   the gateway happy path Tulip consumers see.
 - [LiteLLM AI Gateway how-to](../how-to/litellm-gateway.md) — when to
   use the gateway, auth boundary, scope, and the enterprise patterns

@@ -27,10 +27,10 @@
 
   <!-- Triage agent -->
   <g filter="url(#sh)">
-    <rect x="250" y="20" width="160" height="70" rx="12" fill="#E2570E"/>
+    <rect x="250" y="20" width="160" height="70" rx="12" fill="#1B1620"/>
     <text x="330" y="50" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">L1 triage</text>
     <text x="330" y="69" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">classifies the alert</text>
-    <text x="330" y="83" text-anchor="middle" font-size="10" font-weight="700" fill="#F7A21E">→ Handoff(target="l2_analyst")</text>
+    <text x="330" y="83" text-anchor="middle" font-size="10" font-weight="700" fill="#D6336C">→ Handoff(target="l2_analyst")</text>
   </g>
 
   <!-- Handoff arrow with transcript label -->
@@ -40,7 +40,7 @@
 
   <!-- Billing agent -->
   <g filter="url(#sh)">
-    <rect x="510" y="170" width="200" height="70" rx="12" fill="#E2570E"/>
+    <rect x="510" y="170" width="200" height="70" rx="12" fill="#1B1620"/>
     <text x="610" y="200" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">L2 analyst</text>
     <text x="610" y="220" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">picks up the thread</text>
     <text x="610" y="233" text-anchor="middle" font-size="10" fill="#FFFFFF" opacity="0.85">runs the investigation</text>
@@ -48,9 +48,9 @@
 
   <!-- Other possible targets (faded) -->
   <g opacity="0.4">
-    <rect x="510" y="260" width="200" height="40" rx="10" fill="#E2570E"/>
+    <rect x="510" y="260" width="200" height="40" rx="10" fill="#1B1620"/>
     <text x="610" y="285" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Malware-rev agent</text>
-    <rect x="510" y="310" width="200" height="40" rx="10" fill="#E2570E"/>
+    <rect x="510" y="310" width="200" height="40" rx="10" fill="#1B1620"/>
     <text x="610" y="335" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Forensics agent</text>
   </g>
 

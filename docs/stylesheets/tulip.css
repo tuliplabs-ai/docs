@@ -17,7 +17,7 @@ html {
      - Wordmark is always lowercase "tulip", never capitalized.
      - Type is sans-serif throughout (no serif headings).
      - Wordmark colour:  #1B1620   (warm near-black)
-     - Mark accent:      #E54867   (tulip red, also accent3)
+     - Mark accent:      #D6336C   (tulip red, also accent3)
      - Tagline:          uppercase, weight 500, letter-spacing 0.16em,
                          colour #78716C.
      - Wordmark display: weight 700, letter-spacing -0.04em.
@@ -32,7 +32,7 @@ html {
   --tulip-paper:    #FAFAF9;   /* logo white-out — paper */
   --tulip-surface:  #FFFFFF;   /* elevated surface (header, cards, focused inputs) */
   --tulip-table-stripe: rgba(244, 239, 236, 0.45);
-  --tulip-code-inline: var(--tl-red-deep);
+  --tulip-code-inline: #4A434C;
 
   /* tuliplabs palette */
   --tl-text:        #1B1620;   /* dk1 */
@@ -40,14 +40,14 @@ html {
   --tl-bg-soft:     #F4EFEC;   /* derived: tint of lt2 */
   --tl-rule:        #E5DED9;   /* derived */
 
-  --tl-red:         #E54867;   /* warm rose-coral — primary accent, on the logo gradient */
-  --tl-red-deep:    #C2384F;   /* derived (warm) */
-  --tl-red-light:   #F07E94;   /* derived (warm) */
+  --tl-red:         #D6336C;   /* warm rose-coral — primary accent, on the logo gradient */
+  --tl-red-deep:    #AD2E5C;   /* derived (warm) */
+  --tl-red-light:   #E86A98;   /* derived (warm) */
 
-  --tl-teal:        #E2570E;   /* accent1 — warm orange */
-  --tl-link:        #E54867;   /* hlink — warm rose-coral */
+  --tl-teal:        #AD2E5C;   /* accent1 — warm orange */
+  --tl-link:        #AD2E5C;   /* hlink — warm rose-coral */
   --tl-mauve:       #C2384F;   /* accent2 (warm) */
-  --tl-sand:        #F7A21E;   /* accent4 — amber (the gradient's warm end) */
+  --tl-sand:        #D6336C;   /* accent4 — amber (the gradient's warm end) */
   --tl-sage-teal:   #F4A6C2;   /* accent5 */
   --tl-sage-green:  #16A34A;   /* accent6 */
 
@@ -71,7 +71,7 @@ html {
   --md-primary-bg-color--light: #FFFFFFcc;
 
   --md-accent-fg-color:         var(--tl-link);
-  --md-accent-fg-color--transparent: rgba(229, 72, 103, 0.10);
+  --md-accent-fg-color--transparent: rgba(214, 51, 108, 0.10);
   --md-accent-bg-color:         #FFFFFF;
 
   --md-default-bg-color:        var(--tl-bg);
@@ -107,7 +107,7 @@ html {
   --tulip-paper:      #1B1A18;
   --tulip-surface:    #1F1D1A;
   --tulip-table-stripe: rgba(240, 235, 230, 0.04);
-  --tulip-code-inline: #F2849A;
+  --tulip-code-inline: #C9C2CC;
 
   --tl-text:          #F0EBE6;
   --tl-text-soft:     #c9c4be;
@@ -122,15 +122,15 @@ html {
   --tl-red-deep:      #D14A66;
   --tl-red-light:     #F2849A;
   /* Warm rose becomes the link colour in dark */
-  --tl-teal:          #F7A21E;
+  --tl-teal:          #EC5A77;
   --tl-link:          #F2849A;
   --tl-mauve:         #C98591;
-  --tl-sand:          #F7A21E;
+  --tl-sand:          #EC5A77;
   --tl-sage-teal:     #F4A6C2;
   --tl-sage-green:    #16A34A;
 
   /* Material overrides */
-  --md-primary-fg-color:        #E54867;
+  --md-primary-fg-color:        #EC5A77;
   --md-primary-fg-color--light: #F2849A;
   --md-primary-fg-color--dark:  #C2384F;
   --md-primary-bg-color:        #1B1A18;
@@ -443,7 +443,7 @@ html {
   font-size: 1rem;
   display: block;
   margin-bottom: 0.25rem;
-  color: var(--tl-accent, #E54867);
+  color: var(--tl-accent, #D6336C);
 }
 /* Make the whole card clickable: stretch the title's <a> over the card
    surface so anywhere inside the <li> opens the linked concept page. */
@@ -459,7 +459,7 @@ html {
 }
 .md-typeset .grid.cards.tulip-feature-cards > ul > li:focus-within,
 .md-typeset .grid.cards.tulip-feature-cards > ol > li:focus-within {
-  outline: 2px solid var(--tl-accent, #E54867);
+  outline: 2px solid var(--tl-accent, #D6336C);
   outline-offset: 2px;
 }
 @media (max-width: 76em) {
@@ -622,11 +622,11 @@ form.md-header__option {
   justify-content: center;
 }
 .md-header__ellipsis > .md-header__topic:first-of-type > .md-ellipsis {
-  font-family: var(--tulip-sans);
+  font-family: var(--tulip-display);
   font-weight: 700;
   font-size: 1.5rem;
   line-height: 1.2;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.015em;
   text-transform: lowercase;
   color: var(--tulip-ink);
 }
@@ -863,7 +863,7 @@ form.md-header__option {
    small caps so they read as category labels not nav items. */
 .md-nav--primary .md-nav__item--section > .md-nav__link,
 .md-nav--primary .md-nav__item--section > .md-nav__link:not(.md-nav__link--active) {
-  color: var(--tl-teal) !important;
+  color: var(--tulip-mute) !important;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -897,7 +897,7 @@ form.md-header__option {
    Code blocks — soft sand background, tulip red filename tab.
    --------------------------------------------------------------------------- */
 .md-typeset code {
-  background-color: rgba(237, 47, 126, 0.12);
+  background-color: rgba(128, 128, 128, 0.14);
   color: var(--tulip-code-inline);
   border-radius: 3px;
   font-size: 0.85em;
@@ -909,6 +909,13 @@ form.md-header__option {
 .md-typeset .highlight {
   border-left: 3px solid var(--tl-red);
   border-radius: 0 4px 4px 0;
+}
+
+/* The hero example is the showcase — a notch larger than body code. */
+.md-typeset .tulip-hero__code pre > code,
+.md-typeset .tulip-hero__code .highlight code {
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1094,7 +1101,7 @@ form.md-header__option {
   border-color: var(--tl-red);
   background: linear-gradient(135deg,
     rgba(229, 72, 103, 0.04) 0%,
-    rgba(247, 162, 30, 0.04) 100%);
+    rgba(173, 46, 92, 0.04) 100%);
 }
 .md-typeset .sdk-distinctive > .admonition-title,
 .md-typeset .sdk-distinctive > summary {
@@ -1176,7 +1183,7 @@ form.md-header__option {
   transition: background-color 0.15s, color 0.15s, transform 0.15s;
 }
 .md-header__source.md-header__github:hover {
-  background-color: rgba(237, 47, 126, 0.12);
+  background-color: rgba(128, 128, 128, 0.14);
   color: var(--tl-red);
   transform: translateY(-1px);
 }
@@ -1380,19 +1387,19 @@ form.md-header__option {
    Dark:  deep header. Pink->orange gradient as a thin hairline + the
    logo + accents; tulip-rose links/CTAs, warm-orange hover.
    =================================================================== */
-:root { --tulip-grad: linear-gradient(135deg, #ED2F7E 0%, #F7A21E 100%); }
+:root { --tulip-grad: linear-gradient(135deg, #D6336C 0%, #AD2E5C 100%); }
 
 /* ---- Light scheme: white header, ink text/icons ---- */
 [data-md-color-scheme="default"] {
   --md-primary-fg-color: #FFFFFF;     /* header / tabs background */
   --md-primary-bg-color: #241F2B;     /* header text + icons (ink) */
-  --md-accent-fg-color:  #EA6A1E;     /* hover */
+  --md-accent-fg-color:  #AD2E5C;     /* hover */
 }
 /* ---- Dark scheme: deep header, white text/icons ---- */
 [data-md-color-scheme="slate"] {
   --md-primary-fg-color: #17141C;
   --md-primary-bg-color: #FFFFFF;
-  --md-accent-fg-color:  #F0853C;
+  --md-accent-fg-color:  #F2849A;
 }
 
 /* Header + tabs: soft elevation + a pink->orange hairline at the bottom. */
@@ -1411,15 +1418,15 @@ form.md-header__option {
 .md-header__topic > .md-ellipsis { font-weight: 700; letter-spacing: -0.02em; }
 
 /* Links + active/hover. */
-.md-typeset a { color: #E54867; }
-.md-nav__link--active, .md-nav__item .md-nav__link--active { color: #E54867; }
+.md-typeset a { color: #AD2E5C; }
+.md-nav__link--active, .md-nav__item .md-nav__link--active { color: #AD2E5C; }
 
 /* Primary CTA → rose, hover → warm orange. */
 .md-typeset .md-button--primary {
-  background-color: #E54867; border-color: #E54867; color: #FFFFFF;
+  background-color: #D6336C; border-color: #D6336C; color: #FFFFFF;
 }
 .md-typeset .md-button--primary:hover {
-  background-color: #EA6A1E; border-color: #EA6A1E; color: #FFFFFF;
+  background-color: #AD2E5C; border-color: #AD2E5C; color: #FFFFFF;
 }
 
 /* Gradient garnish: hero accent word + footer wordmark. */
@@ -1534,7 +1541,7 @@ form.md-header__option {
   background: var(--md-default-bg-color);
 }
 .md-typeset .grid.cards.tulip-feature-cards strong { color: var(--tulip-ink); }
-.md-typeset .grid.cards.tulip-feature-cards .lg.middle { color: #E54867; }
+.md-typeset .grid.cards.tulip-feature-cards .lg.middle { color: #D6336C; }
 
 @media (max-width: 60em) {
   .md-typeset .tulip-hero--center h1:first-of-type { font-size: 2.4rem; }
@@ -1555,7 +1562,7 @@ form.md-header__option {
   opacity: 1;
   color: var(--tulip-mute);
 }
-.tulip-product-name .tpn-brand { color: #E54867; font-weight: 600; }
+.tulip-product-name .tpn-brand { color: #D6336C; font-weight: 600; }
 .tulip-product-name .tpn-sep   { color: var(--tulip-mute); opacity: 0.5; }
 
 /* ===================================================================

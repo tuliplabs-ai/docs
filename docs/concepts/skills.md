@@ -69,11 +69,12 @@ enrichment = Skill(
     instructions=(
         "# IOC Enrichment\n\n"
         "1. Classify the indicator (IP / domain / URL / hash).\n"
-        "2. Enrich it with `lookup_ioc` and `enrich_domain`.\n"
+        "2. Enrich it with `enrich_indicator`; for file hashes use `lookup_hash`.\n"
         "3. Weigh vendor detections, registrar age, and prior sightings.\n"
         "4. Return a verdict (malicious / suspicious / benign / unknown) with the evidence.\n"
+        "5. No corroborating evidence? Abstain — return `unknown`, never guess.\n"
     ),
-    allowed_tools=["lookup_ioc", "enrich_domain"],
+    allowed_tools=["enrich_indicator", "lookup_hash"],
 )
 ```
 
@@ -96,7 +97,7 @@ skills/ioc-enrichment/
 ---
 name: ioc-enrichment
 description: Use when triaging an indicator of compromise (IP, domain, URL, hash).
-allowed-tools: lookup_ioc enrich_domain
+allowed-tools: enrich_indicator lookup_hash
 metadata:
   author: soc-team
   version: 1.0
@@ -105,9 +106,10 @@ metadata:
 # IOC Enrichment
 
 Classify the indicator, enrich it, and weigh vendor detections,
-registrar age, and prior sightings. Reference
-`references/severity-tiers.md` for the internal score-to-severity
-mapping. Use `scripts/correlate.py` to pull related alerts.
+registrar age, and prior sightings. Abstain to `unknown` when nothing
+corroborates. Reference `references/severity-tiers.md` for the internal
+score-to-severity mapping. Use `scripts/correlate.py` to pull related
+alerts.
 ```
 
 ### Load and attach
@@ -122,6 +124,59 @@ single = Skill.from_file("./skills/ioc-enrichment")
 
 agent = Agent(config=AgentConfig(model=..., skills=skills))
 ```
+
+### Worked example — a contained incident-response skill
+
+Phishing-link triage, scoped so the loaded skill can read and enrich
+but **cannot** isolate a host — containment stays a deliberate,
+separately-authorised step.
+
+```python
+from tulip.agent import Agent, AgentConfig
+from tulip.security import security_toolset, ground_finding, is_finding
+from tulip.skills import Skill
+
+ir_triage = Skill(
+    name="ir-phishing-triage",
+    description="Use when a user reports a phishing email or clicked a suspicious link.",
+    instructions=(
+        "# Phishing IR — detection & analysis\n\n"
+        "1. Pull the alert with `fetch_alert`; correlate logins/proxy "
+        "hits with `query_siem`.\n"
+        "2. Enrich every URL and sender domain with `enrich_indicator`; "
+        "any attachment hash with `lookup_hash`.\n"
+        "3. Ground each conclusion: only report what a tool returned. "
+        "No evidence -> ABSTAIN, do not speculate.\n"
+        "4. Recommend containment in prose. Do NOT call `isolate_host` "
+        "or `block_indicator` — that is the responder's call.\n"
+    ),
+    # read + enrich only; containment tools are deliberately withheld
+    allowed_tools=["fetch_alert", "query_siem", "enrich_indicator", "lookup_hash"],
+)
+
+agent = Agent(config=AgentConfig(
+    model="anthropic:claude-sonnet-4-6",
+    system_prompt="You are a SOC analyst. Cite evidence; abstain without it.",
+    # register the full toolset; the skill narrows it while active
+    tools=security_toolset(allow_containment=True),
+    skills=[ir_triage],
+))
+
+result = agent.run("User clicked a link in alert AL-4471 — triage it.")
+
+# gate the verdict: a grounded Finding, or an Abstention
+verdict = ground_finding(result.text, evidence=result.tool_results)
+if is_finding(verdict):
+    print("CONFIRMED:", verdict.summary, verdict.severity)
+else:
+    print("ABSTAINED — insufficient evidence to confirm compromise")
+```
+
+`security_toolset(allow_containment=True)` registers `isolate_host` and
+`block_indicator` on the agent, but `allowed_tools` keeps them out of
+reach while `ir-phishing-triage` is loaded. The skill investigates; a
+human (or a separate, audited [playbook](playbooks.md)) pulls the
+trigger.
 
 ## Why progressive disclosure earns its keep
 
