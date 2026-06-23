@@ -931,6 +931,15 @@ form.md-header__option {
   font-size: 0.92rem;
   line-height: 1.6;
 }
+/* On mobile the hero example must fit a ~390px column — at 0.92rem (≈18px)
+   it overflowed and looked cramped, so drop it to a compact size. */
+@media (max-width: 60em) {
+  .md-typeset .tulip-hero__code pre > code,
+  .md-typeset .tulip-hero__code .highlight code {
+    font-size: 0.7rem;
+    line-height: 1.5;
+  }
+}
 
 /* ---------------------------------------------------------------------------
    Tables — off-white striping, subtle red header underline.
