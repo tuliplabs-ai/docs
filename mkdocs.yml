@@ -22,20 +22,20 @@ theme:
     text: Inter
     code: JetBrains Mono
   palette:
-  # Light is the default (listed first). Each scheme shows the icon for
-  # the OTHER mode — light shows a moon (go dark), dark shows a sun.
-  - scheme: default
-    primary: custom
-    accent: custom
-    toggle:
-      icon: material/brightness-4
-      name: Switch to dark mode
+  # Dark (slate) is the default (listed first). Each scheme shows the icon
+  # for the OTHER mode — dark shows a sun (go light), light shows a moon.
   - scheme: slate
     primary: custom
     accent: custom
     toggle:
       icon: material/brightness-7
       name: Switch to light mode
+  - scheme: default
+    primary: custom
+    accent: custom
+    toggle:
+      icon: material/brightness-4
+      name: Switch to dark mode
   features:
   - navigation.instant
   - navigation.sections
