@@ -59,7 +59,7 @@ extra_javascript:
 - javascripts/notebook-filter.js
 - javascripts/sidebar-filter.js
 
-copyright: <span class="footer-brand"><span class="footer-brand__text">tulipagents.ai</span></span><br><span class="footer-copy">Copyright &copy; 2026 Tulip Labs &middot; <a href="/legal/">Legal &amp; disclaimer</a></span>
+copyright: <span class="footer-brand"><span class="footer-brand__text">tulipagents.ai</span></span><br><span class="footer-copy">Copyright &copy; 2026 tuliplabs &middot; <a href="/legal/">Legal &amp; disclaimer</a></span>
 
 extra:
   homepage: https://tulipagents.ai/
