@@ -1,7 +1,5 @@
 # Wiz (AI-SPM)
 
-Maintained in `tulip-integrations`.
-
 Wiz discovers *what AI exists in your cloud* (the AI-BOM) and the posture issues
 around it. This integration brings that into Tulip so an agent can **reason over
 it and emit grounded findings** — Wiz finds the attack surface; the Tulip agent

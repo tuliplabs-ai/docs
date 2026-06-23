@@ -1,7 +1,5 @@
 # Lambda Cloud (compute — co-located GPU fingerprint probe)
 
-Maintained in `tulip-integrations`.
-
 **Security capability — inference fingerprinting.** Same defensive recon as the
 [RunPod probe](runpod.md): rent a GPU next to a target endpoint, time how it
 streams tokens, and infer the **model class, inference engine, and hardware** —
