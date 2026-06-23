@@ -1,7 +1,5 @@
 # Okta (identity)
 
-Maintained in `tulip-integrations`.
-
 ```bash
 pip install "tulip-integrations[identity-okta]"
 ```

@@ -1,7 +1,5 @@
 # VirusTotal (threat intel)
 
-Maintained in `tulip-integrations`.
-
 ```bash
 pip install "tulip-integrations[threat-intel-virustotal]"
 ```
