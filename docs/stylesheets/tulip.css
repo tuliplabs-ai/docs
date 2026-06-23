@@ -772,15 +772,34 @@ form.md-header__option {
     margin-left: 0.25rem;
   }
   .md-header__pypi-badge { height: 16px; }
-  /* Drop the decorative " SDK" suffix on mobile — it crowds the title and
-     overlaps the header icons. "tulip agents" alone reads clean. */
-  .md-header__ellipsis > .md-header__topic:first-of-type > .md-ellipsis::after {
-    content: none !important;
+  /* Drop the dark/light palette toggle on mobile (dark is the default now)
+     to free the width the brand title needs. */
+  .md-header__option { display: none !important; }
+  /* The palette form used to carry margin-left:auto (it right-aligned the
+     controls); now that it's hidden, move that onto the search button so
+     search + PyPI + GitHub hug the right edge, leaving the left for the
+     brand title. */
+  .md-header__button.md-icon[for="__search"] { margin-left: auto !important; }
+  /* Show the brand title (site_name "tulipagents") on mobile — small and
+     hard-clamped so it stays clear of the right-aligned controls. Target
+     the REAL title span (.md-header__title .md-ellipsis) directly. */
+  .md-header__title {
+    display: flex !important;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 120px;
+    overflow: hidden;
+    margin-left: 0.4rem;
   }
-  /* The flower logo already carries the brand on mobile — hide the serif
-     title text so it can't overflow and overlap the palette toggle, search,
-     PyPI badge, and GitHub icon in the cramped header. */
-  .md-header__title { display: none !important; }
+  .md-header__title .md-ellipsis {
+    font-size: 0.85rem !important;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Drop the decorative " SDK" suffix on mobile. */
+  .md-header__title .md-ellipsis::after { content: none !important; }
 }
 .md-nav--primary .md-header__source.md-header__github:hover {
   color: #FFFFFF;

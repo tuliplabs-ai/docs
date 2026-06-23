@@ -1,4 +1,4 @@
-site_name: tulip agents
+site_name: tulipagents
 site_description: The agentic AI-security SDK — agent teams whose findings are grounded in evidence (GSAR), whose actions are typed replayable events, and whose risky steps are approval-gated. Mapped to MITRE ATLAS, OWASP LLM, and OWASP ASI.
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/sdk-python
