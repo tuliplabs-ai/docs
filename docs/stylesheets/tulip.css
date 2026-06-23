@@ -734,10 +734,10 @@ form.md-header__option {
     height: 1.6rem;
     max-height: 28px;
   }
-  /* Show brand mark at reduced size; hide wordmark. */
-  .md-header__brand-wordmark { display: none; }
-  .md-header__brand-mark { height: 22px; width: auto; }
-  .md-header__source.md-header__brand { padding: 0.2rem 0.3rem; }
+  /* On mobile the left logo already shows the tulip mark — hide the
+     redundant right-side brand entirely so the title, the PyPI badge, and
+     the GitHub icon all fit without colliding. */
+  .md-header__source.md-header__brand { display: none !important; }
 }
 
 /* GitHub icon white when inside the mobile drawer (red primary background). */
@@ -765,8 +765,22 @@ form.md-header__option {
   display: block;
 }
 @media (max-width: 60em) {
-  .md-header__source.md-header__pypi { margin-left: 0.25rem; }
+  /* Honor "always show PyPI": Material hides .md-header__source below 60em,
+     so force the PyPI badge to stay in the header on mobile too. */
+  .md-header__source.md-header__pypi {
+    display: inline-flex !important;
+    margin-left: 0.25rem;
+  }
   .md-header__pypi-badge { height: 16px; }
+  /* Drop the decorative " SDK" suffix on mobile — it crowds the title and
+     overlaps the header icons. "tulip agents" alone reads clean. */
+  .md-header__ellipsis > .md-header__topic:first-of-type > .md-ellipsis::after {
+    content: none !important;
+  }
+  /* The flower logo already carries the brand on mobile — hide the serif
+     title text so it can't overflow and overlap the palette toggle, search,
+     PyPI badge, and GitHub icon in the cramped header. */
+  .md-header__title { display: none !important; }
 }
 .md-nav--primary .md-header__source.md-header__github:hover {
   color: #FFFFFF;
