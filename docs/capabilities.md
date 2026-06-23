@@ -3,6 +3,8 @@
 Everything Tulip ships, what it
 does, and where to find it.
 
+![The trust chain — grounding → verification → policy → approval → admission → audit, each step enforced in code, not convention](img/patterns/trust-chain.svg){ .diagram }
+
 !!! sdk-distinctive "Distinctive to the SDK"
     These are architectural choices no other Python agent framework ships
     together in one coherent stack:
@@ -50,6 +52,8 @@ does, and where to find it.
 
 The reason the SDK exists: point an agent at an AI or at infrastructure, and
 every finding is grounded or abstained, verified, gated, and audited.
+
+![A candidate finding plus typed, weighted evidence pass through ground_finding — only claims above the GSAR threshold become a Finding; the rest abstain with a recorded reason](img/patterns/grounded-findings.svg){ .diagram }
 
 | Feature | What it does | Surface |
 |---|---|---|
@@ -120,6 +124,8 @@ Every pattern maps to a real SOC workflow. The shape *is* the
 escalation discipline: who runs in parallel, who hands off, who must
 agree before a host is touched.
 
+![Orchestrator dispatches triage → forensics → containment specialists in parallel; containment owns the write tools, gated until triage and forensics agree](img/patterns/orchestrator.svg){ .diagram }
+
 | Shape | Security mapping | Surface |
 |---|---|---|
 | **Composition** | Sequential L1 → L2 → L3 escalation; parallel fail-open fingerprinting / enrichment fan-out | `tulip.multiagent.composition` · [Composition](concepts/multi-agent/composition.md) |
@@ -152,6 +158,8 @@ isolation or an indicator block is not. The router reads the request
 into one typed `GoalFrame`, scores its `Risk`, then a `PolicyGate`
 **auto-runs low-risk scans and gates containment for human approval** —
 the model never invents a topology or skips the gate.
+
+![NL request → GoalFrame extractor → ProtocolRegistry → PolicyGate → CognitiveCompiler → one of eight compiled SDK shapes](img/patterns/router.svg){ .diagram }
 
 ```python
 from tulip.router import GoalFrame, PolicyGate, Risk, TaskType
@@ -192,6 +200,8 @@ result = await router.dispatch("Triage the failed-login spike on WS-0142.")
 | **Canonical event catalogue** | 60+ `EV_*` constants across 10 prefixes (`agent.*`, `multiagent.*`, `composition.*`, `router.*`, `research.*`, `rag.*`, `memory.*`, `a2a.*`, `skills.*`, `deepagent.*`) | `tulip.observability.emit` · [SSE event catalogue](concepts/sse-events.md) |
 
 ## Reasoning
+
+![GSAR partitions each claim grounded / ungrounded / contradicted / complementary, then decides proceed / regenerate / replan / abstain](img/patterns/gsar-decision.svg){ .diagram }
 
 | Feature | What it does | Surface |
 |---|---|---|
