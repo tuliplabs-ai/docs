@@ -1,7 +1,5 @@
 # CrowdStrike Falcon (EDR)
 
-Maintained in `tulip-integrations`.
-
 ```bash
 pip install "tulip-integrations[edr-crowdstrike]"
 ```

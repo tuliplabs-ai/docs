@@ -1,7 +1,5 @@
 # RunPod (compute — co-located GPU fingerprint probe)
 
-Maintained in `tulip-integrations`.
-
 **Security capability — inference fingerprinting.** Timing an AI endpoint is
 reconnaissance: by renting a GPU *next to* a target and measuring how it streams
 tokens, an adversary can infer the **model class, inference engine, and hardware**

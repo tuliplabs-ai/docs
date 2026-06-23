@@ -1,7 +1,5 @@
 # Slack (notify — human handoff)
 
-Maintained in `tulip-integrations`.
-
 **The end of the loop.** A finding is only useful once it reaches a human or a
 ticket. After an agent grounds → verifies → admits a finding, this posts it to a
 Slack channel — closing the SOC loop on `require_human` or right after `admit()`.

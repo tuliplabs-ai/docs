@@ -1,8 +1,5 @@
 # Splunk / Elastic (SIEM)
 
-Maintained in `tulip-integrations` · the reference template for the integration
-model.
-
 ```bash
 pip install "tulip-integrations[siem-splunk]"
 ```
