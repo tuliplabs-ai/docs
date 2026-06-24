@@ -7,13 +7,13 @@ hide:
 <div class="tulip-hero" markdown>
 <div class="tulip-hero__copy" markdown>
 
-<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the agentic AI-security SDK</p>
+<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the SDK for agents you can let act</p>
 
-# Agentic AI for cybersecurity — <span class="accent">grounded in evidence.</span>
+# Agents you can let <span class="accent">act</span> — gated, approved, provable.
 
-Tulip is an AI security SDK for agents you can trust. Every claim must be backed by evidence — if the evidence isn't there, the agent **abstains** instead of guessing.
+Tulip is the cybersecurity agent SDK where an agent takes **real action** — isolate a host, block an IP, disable an account — and every risky step is policy-gated, human-approvable, and recorded in a tamper-evident audit trail. **You can fool the model; you can't talk past the runtime.**
 
-Red-team **other AI systems** for prompt injection, jailbreaks, and data leakage, or run **enterprise SOC** triage, incident response, and cloud posture work. Either way, Tulip replaces **confidence** with **evidence**.
+Drop the gate + audit into the agent you already have, red-team **other AI systems**, or run **enterprise SOC** work — actions stay controlled, findings stay evidence-grounded (GSAR).
 
 <div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[MITRE&nbsp;ATLAS](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;LLM&nbsp;Top&nbsp;10](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;ASI](concepts/security.md)</span></div>
 
