@@ -1,5 +1,12 @@
 # RunPod (compute — co-located GPU fingerprint probe)
 
+!!! note "Advanced — a specialized probe, not a starting integration"
+    Most users want the [action and evidence integrations](index.md) — EDR
+    (contain a host), identity (disable an account), SIEM, threat-intel. Reach for
+    this only when you **operate a model endpoint** and want to measure what its
+    response *timing* leaks about the model class, engine, and hardware behind it.
+    It needs a GPU budget and a probe image.
+
 **Security capability — inference fingerprinting.** Timing an AI endpoint is
 reconnaissance: by renting a GPU *next to* a target and measuring how it streams
 tokens, an adversary can infer the **model class, inference engine, and hardware**

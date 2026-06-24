@@ -1,5 +1,11 @@
 # Lambda Cloud (compute — co-located GPU fingerprint probe)
 
+!!! note "Advanced — a specialized probe, not a starting integration"
+    Same niche as the [RunPod probe](runpod.md): only for teams that **operate a
+    model endpoint** and want to measure its timing exposure. New to Tulip
+    integrations? Start with the [action and evidence integrations](index.md) —
+    EDR, identity, SIEM, threat-intel.
+
 **Security capability — inference fingerprinting.** Same defensive recon as the
 [RunPod probe](runpod.md): rent a GPU next to a target endpoint, time how it
 streams tokens, and infer the **model class, inference engine, and hardware** —
