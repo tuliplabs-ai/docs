@@ -11,7 +11,7 @@ hide:
 
 # Agents you can let <span class="accent">act</span> — gated, approved, provable.
 
-Tulip is the cybersecurity agent SDK where an agent takes **real action** — isolate a host, block an IP, disable an account — and every risky step is policy-gated, human-approvable, and recorded in a tamper-evident audit trail. **You can fool the model; you can't talk past the runtime.**
+Tulip is the SDK for agents you can **let act**. When an agent takes a **real action** — move money, delete a resource, disable an account, isolate a host — every risky step is policy-gated, human-approvable, and recorded in a tamper-evident audit trail. **You can fool the model; you can't talk past the runtime.** Proven first in security — SOC, EDR, identity — where a wrong action is a breach.
 
 Drop the gate + audit into the agent you already have, red-team **other AI systems**, or run **enterprise SOC** work — actions stay controlled, findings stay evidence-grounded (GSAR).
 
