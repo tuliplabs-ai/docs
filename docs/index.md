@@ -32,27 +32,30 @@ pip install "tulip-agents[openai]"   # OpenAI · Anthropic
 
 ```python
 from tulip.security import (
-    Target, red_team, is_finding)
+    Action, admit, SecurityPolicy,
+    AuditTrail, AdmissionError)
 
-# A customer-support chatbot in production.
-bot = Target.endpoint(
-    "https://chat.acme-support.ai/chat",
-    build_payload=lambda m: {
-        "message": m,
-        "conversation_id": new_thread()},
-    response_path="reply")
+# Drop the gate around an action your agent
+# already takes — policy + audit trail.
+policy = SecurityPolicy()   # prod → human
+trail = AuditTrail()
 
-# Run the OWASP-ASI red-team suite. Every
-# probe is grounded: a finding ships only
-# with evidence — otherwise it abstains.
-for r in await red_team(bot):
-    if is_finding(r):
-        print(r.severity, r.title)
-    else:
-        print("abstain", r.candidate_title)
+# The model decided to refund a customer.
+risky = Action(
+    name="refund", asset="cust:4821",
+    blast_radius=1, kind="payment",
+    environment="production")
 
-# → 5 probes · 0 findings: the bot held.
-#   nothing proven, so nothing claimed.
+try:
+    await admit(
+        risky, lambda: refund("cust:4821"),
+        policy=policy, trail=trail)
+except AdmissionError as e:
+    print(e.decision.outcome)
+    # -> "require_human"; refund NOT run.
+
+# Held for a human, on the audit trail.
+# Fool the model; you can't talk past it.
 ```
 
 </div>
