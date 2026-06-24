@@ -1,7 +1,7 @@
 # Security layer — evidence-grounded findings
 
-`tulip.security` is the primitive that makes Tulip a cybersecurity SDK
-rather than a general one: a security **finding can only be produced from
+`tulip.security` is the layer that points Tulip's runtime at cybersecurity:
+a security **finding can only be produced from
 evidence that clears the [GSAR](gsar.md) grounding threshold.** Below the
 bar, the agent abstains and records why. An ungrounded finding is a false
 positive *by construction* — there is no public path that builds one.

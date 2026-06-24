@@ -1,6 +1,6 @@
 # Agentic AI red-teaming
 
-The flagship of the agentic-AI-security SDK: point a ``Target`` at an AI system
+The flagship of Tulip's security layer: point a ``Target`` at an AI system
 and run the OWASP-ASI / MITRE-ATLAS red-team suite. Every result is a grounded
 ``Finding`` (the attack landed, with tool-backed evidence) or an ``Abstention``
 (no evidence — so nothing is asserted).
