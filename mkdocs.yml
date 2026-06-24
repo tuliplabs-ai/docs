@@ -50,6 +50,11 @@ theme:
   - search.share
   - search.suggest
 
+# Append a content hash to local CSS/JS URLs so browsers fetch fresh assets
+# the moment a file changes (no more stale-cache surprises). See hooks/.
+hooks:
+- hooks/cache_bust.py
+
 extra_css:
 - https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Quicksand:wght@400;500;600;700&display=swap
 - stylesheets/tulip.css
