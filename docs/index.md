@@ -9,11 +9,13 @@ hide:
 
 <p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the SDK for agents you can let act</p>
 
-# Agents you can let <span class="accent">act</span> — gated, approved, provable.
+# Your agent is one <span class="accent">jailbreak</span> from production.
 
-Tulip is the SDK for agents you can **let act**. When an agent takes a **real action** — move money, delete a resource, disable an account, isolate a host — every risky step is policy-gated, human-approvable, and recorded in a tamper-evident audit trail. **You can fool the model; you can't talk past the runtime.** Proven first in security — SOC, EDR, identity — where a wrong action is a breach.
+A frontier model can be brilliant — and still be talked into wiring the money or wiping the database. Tulip puts every risky action behind a **policy gate**, a **human approval**, and an **audit trail it can't forge** — before it runs.
 
-Drop the gate + audit into the agent you already have, red-team **other AI systems**, or run **enterprise SOC** work — actions stay controlled, findings stay evidence-grounded (GSAR).
+**You can fool the model; you can't talk past the runtime.**
+
+A drop-in for the agent you already have. Proven first in security — SOC, EDR, identity — where a wrong action is a breach.
 
 <div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[MITRE&nbsp;ATLAS](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;LLM&nbsp;Top&nbsp;10](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;ASI](concepts/security.md)</span></div>
 
