@@ -45,9 +45,10 @@ await ctx.actions.execute(contain, lambda: ctx.endpoint.isolate("prod-db-01"))
 So even if an injected prompt talks the model into "isolate every host," the
 write still has to clear the policy and (in production) a human — and every
 attempt is on the record. **You can fool the model; you can't talk past the
-runtime.** The integrations that actually take action: **CrowdStrike** (contain
-a host), **Okta** / **Auth0** (disable an account). The rest are read-only
-evidence sources.
+runtime.** The integrations that actually take action (writes): **CrowdStrike**
+(contain a host), **Okta** / **Auth0** / **Entra ID** (disable an account),
+**Cortex XSOAR** (close an incident), and **Slack** (post to a channel). The rest
+are read-only evidence sources.
 
 ## Two ways to use an integration
 
@@ -114,6 +115,7 @@ Action integrations first (they write), then read-only evidence sources:
 | **Splunk** | SIEM | Search logs/events with an SPL query | `SplunkLogs` | `siem-splunk` |
 | **VirusTotal** | threat-intel | Reputation for an IP, domain, or file hash | `VirusTotalIntel` | `threat-intel-virustotal` |
 | **Wiz** | AI-SPM | AI-BOM inventory + posture issues → grounded findings | _(tools)_ | `vuln-wiz` |
+| **Slack** | notify | Post a finding / message to a channel (write — human handoff; live-only) | _(tools)_ | `notify-slack` |
 | **AWS** | cloud | Read-only cloud-posture evidence (in core) | _(core)_ | `tulip-agents[aws]` |
 | **OSV** | supply-chain | Dependency vulnerability lookup (in core) | _(core)_ | built-in |
 | **RunPod / Lambda** | compute _(advanced)_ | Specialized: deploy a GPU endpoint to fingerprint-probe a model you operate | _(probe)_ | `compute-runpod` / `compute-lambda` |

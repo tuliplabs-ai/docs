@@ -17,7 +17,7 @@ pip install "tulip-integrations[notify-slack]"   # httpx only — no extra SDK
 | | |
 |---|---|
 | **Env** | `SLACK_WEBHOOK_URL` (a Slack incoming webhook; `NOTIFY_WEBHOOK_URL` also works for any Slack-compatible sink) |
-| **Import** | `from tulip_integrations.notify import slack_notify, notify_finding, slack_notify_tool` |
+| **Import** | `from tulip_integrations.notify import slack_notify, notify_finding, slack_notify_tool, slack_adapter` |
 | **Functions** | `slack_notify(text)` · `notify_finding(finding)` |
 | **Tool** | `slack_notify_tool` — hand it to an agent |
 | **Adapter** | `slack_adapter()` → `ToolAdapter` |
