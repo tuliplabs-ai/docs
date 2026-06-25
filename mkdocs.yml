@@ -128,6 +128,7 @@ nav:
 # Home (index.md) is reached via the header wordmark + logo (both link to "/"),
 # so we don't repeat it as a tab here.
 - Learn:
+  - Why Tulip: why-tulip.md
   - Capabilities: capabilities.md
   - Security:
     - Agentic AI-security: concepts/agentic-ai-security.md
@@ -280,6 +281,7 @@ nav:
     - Environment variables: how-to/environment-variables.md
 - Integrations:
   - Overview: integrations/index.md
+  - Drop Tulip into your framework: integrations/frameworks.md
   - Build an integration: integrations/build.md
   - Security:
     - Splunk (SIEM): integrations/splunk.md

@@ -79,6 +79,47 @@ vulnerable to CVE-2024-3094. Evidence: scan_endpoint + threat feeds
 flag the host malicious across 4 sources. Verdict: HIGH, isolate.
 ```
 
+## 3.5 Gate the action
+
+Finding the problem is the easy half. The moment an agent goes from
+*advising* to *acting* — isolating that host, refunding that customer,
+disabling that account — you need a gate it cannot talk its way past.
+That's the whole point of Tulip: wrap the action in `admit()` and it runs
+**only** after it clears policy, holds for a human when the blast radius
+warrants it, and lands on a tamper-evident audit trail either way.
+
+```python
+from tulip.security import (
+    Action, admit, SecurityPolicy, AuditTrail, AdmissionError)
+
+policy = SecurityPolicy()   # conservative defaults: production → human
+trail = AuditTrail()        # hash-chained, replayable, can't forge
+
+# The triage above said "isolate 192.0.2.10". Don't just do it — admit it.
+risky = Action(
+    name="isolate_host", asset="192.0.2.10",
+    blast_radius=1, kind="containment", environment="production")
+
+async def isolate():
+    ...  # your real containment call (CrowdStrike, firewall, etc.)
+
+try:
+    await admit(risky, isolate, policy=policy, trail=trail)
+except AdmissionError as e:
+    print(e.decision.outcome)   # -> "require_human"; isolate did NOT run
+
+# Either way it's on the record:
+print(trail.verify())           # True — chain intact
+print(trail.export_jsonl())     # SIEM-ready, one event per line
+```
+
+A production-environment action with no human approval is held, not run —
+and the decision is recorded whether it ran or not. That `admit()` call is
+the difference between a library that *suggests* and a runtime that
+*enforces*. See [Why Tulip](../why-tulip.md) for how this compares to a
+bare model or framework guardrails, and the [Admission gate
+concept](../concepts/security.md) for the full policy surface.
+
 ## 4. Stream the events
 
 For UIs and real-time logging, switch to async and consume the typed

@@ -109,6 +109,8 @@ Action integrations first (they write), then read-only evidence sources:
 | **CrowdStrike Falcon** | EDR | Host forensic timeline, open detections, **network-contain a host** (write) | `CrowdStrikeEndpoint` | `edr-crowdstrike` |
 | **Okta** | identity | Look up a user, risk + sign-ins, **disable an account** (write, SSWS API) | `OktaIdentity` | `identity-okta` |
 | **Auth0** | identity | Look up a user, risk + sign-ins, **disable an account** (write, Management API) | `Auth0Identity` | `identity-auth0` |
+| **Microsoft Entra ID** | identity | User, risk + impossible-travel + sign-ins → grounded finding, **disable an account** (write, Graph API) | `EntraIdentity` | `identity-entra` |
+| **Cortex XSOAR** | SOAR | Read incidents, search, **close an incident** (write) + ground incidents to findings | `CortexXSOAR` | `soar-cortex-xsoar` |
 | **Splunk** | SIEM | Search logs/events with an SPL query | `SplunkLogs` | `siem-splunk` |
 | **VirusTotal** | threat-intel | Reputation for an IP, domain, or file hash | `VirusTotalIntel` | `threat-intel-virustotal` |
 | **Wiz** | AI-SPM | AI-BOM inventory + posture issues → grounded findings | _(tools)_ | `vuln-wiz` |
