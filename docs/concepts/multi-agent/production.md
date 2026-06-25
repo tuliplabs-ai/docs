@@ -63,11 +63,11 @@ agent = Agent(config=AgentConfig(
 ))
 ```
 
-Nine backend implementations, one `Checkpointer` Protocol — S3,
-S3-compatible object storage, Postgres, MySQL, Redis, OpenSearch, HTTP, file, and
-in-memory. The graph snapshots state at every `interrupt()`
-boundary; you can pause for a human Friday afternoon and resume Monday
-morning from a different process, region, or runtime.
+Eight backend implementations, one `Checkpointer` Protocol — S3,
+Postgres, MySQL, Redis, OpenSearch, HTTP, file, and in-memory. The
+graph snapshots state at every `interrupt()` boundary; you can pause
+for a human Friday afternoon and resume Monday morning from a
+different process, region, or runtime.
 
 → See [Checkpointers](../checkpointers.md).
 
@@ -161,8 +161,8 @@ freely.
 from tulip.evaluation import EvalCase, EvalRunner
 
 cases = [
-    EvalCase(input="...", expected_terminate=True),
-    EvalCase(input="...", expected_tools=["query_siem"]),
+    EvalCase(name="terminates", prompt="...", expected_output_contains=["resolved"]),
+    EvalCase(name="uses_siem", prompt="...", expected_tools=["query_siem"]),
 ]
 report = EvalRunner(agent=graph).run(cases)
 ```

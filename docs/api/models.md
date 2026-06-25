@@ -6,8 +6,7 @@ model is a string — the prefix before the colon selects the provider.
 ## Registry
 
 String factory — routes `"openai:gpt-4o"`,
-`"anthropic:claude-sonnet-4-6"`, `"anthropic:claude-sonnet-4-6"`, etc. to the right
-client.
+`"anthropic:claude-sonnet-4-6"`, etc. to the right client.
 
 ::: tulip.models.registry.get_model
 ::: tulip.models.registry.list_providers

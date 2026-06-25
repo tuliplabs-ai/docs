@@ -79,12 +79,19 @@ through tests.
 ```python
 result = agent.run_sync(prompt)
 print(result.stop_reason)
-# → "ToolCalled('isolate_host') and ConfidenceMet(0.85)"
+# → "terminal_tool"   (a fixed StopReason literal)
 ```
 
-Each condition has a `__repr__` that round-trips to its constructor,
-so logs and traces tell you *exactly* which branch of the algebra
-fired.
+`result.stop_reason` is **normalized** to one of a fixed set of
+`StopReason` literals (`complete`, `terminal_tool`, `confidence_met`,
+`max_iterations`, `tool_loop`, `no_tools`, `grounding_failed`,
+`token_budget`, `time_budget`, `interrupted`, `error`, `cancelled`).
+The fuller, branch-level string is on the `TerminateEvent.reason` event
+field — each condition's `check()` returns a short reason token
+(e.g. `tool_called:isolate_host`, `confidence_met`), and a composite
+joins them with `AND`. So watch `TerminateEvent.reason` in your event
+stream when you need to know *exactly* which branch fired; key metrics
+and control flow on the normalized `result.stop_reason`.
 
 ## Built-in conditions
 
@@ -99,8 +106,9 @@ fired.
 | `TextMention(pattern)` | Final message contains a regex match — e.g. an `ESCALATE` sentinel. |
 | `CustomCondition(fn)` | `fn(state) -> bool` — anything you can write in Python. |
 
-Every condition takes `AgentState` and returns `bool`. They run after
-each iteration; the first `True` wins.
+Every condition takes `AgentState` and its `check()` returns a
+`(stop: bool, reason: str | None)` tuple. They run after each
+iteration; the first one that stops wins.
 
 ## Custom conditions
 
@@ -140,5 +148,5 @@ and `|` work across the whole hierarchy.
 ## See also
 
 - [Reasoning](reasoning.md) — pair `ConfidenceMet` with `reflexion=True`.
-- [Events](events.md) — `TerminateEvent.reason` carries the condition's `repr`.
+- [Events](events.md) — `TerminateEvent.reason` carries the branch-level reason token(s).
 - [Agent loop](agent-loop.md) — where conditions evaluate inside the ReAct cycle.

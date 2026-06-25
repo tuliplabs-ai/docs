@@ -80,7 +80,7 @@ agent runs into the ordinary asyncio universe.
 | **[Composition](multi-agent/composition.md)** | linear chains; fan-out + merge; revise-until-confidence | `SequentialPipeline`, `ParallelPipeline`, `LoopAgent` | [`agent/composition.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/agent/composition.py) |
 | **[Orchestrator + Specialists](multi-agent/orchestrator.md)** | one router decides which expert handles each sub-task | `Orchestrator`, `Specialist` | [`multiagent/orchestrator.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/orchestrator.py) |
 | **[Swarm](multi-agent/swarm.md)** | open-ended research; peer-to-peer; shared context | `Swarm`, `SharedContext` | [`multiagent/swarm.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/swarm.py) |
-| **[Handoff](multi-agent/handoff.md)** | escalation desks; conversation moves with full history | `Handoff` | [`multiagent/handoff.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/handoff.py) |
+| **[Handoff](multi-agent/handoff.md)** | escalation desks; investigation moves with a findings + progress summary | `Handoff`, `HandoffAgent`, `create_handoff_manager` | [`multiagent/handoff.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/handoff.py) |
 | **[StateGraph](multi-agent/graph.md)** | explicit DAG with cycles, conditional edges, subgraphs | `StateGraph`, `Node`, `Edge` | [`multiagent/graph.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/graph.py) |
 | **[Functional](multi-agent/functional.md)** | map/reduce over agents; asyncio-native composition | `@task`, `@entrypoint` | [`multiagent/functional.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/functional.py) |
 | **[A2A](multi-agent/a2a.md)** | cross-process / cross-runtime; capability discovery | `A2AServer`, `A2AClient`, `AgentCard` | [`a2a/protocol.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/a2a/protocol.py) |
@@ -99,7 +99,7 @@ async def split(state):
 
 Returning a list of `Send` from a node spawns parallel executions —
 no `asyncio.gather`, no shared mutable state. Each result lands in
-`state[send.id]` keyed by the send id.
+`state[send.send_id]` keyed by the send id.
 
 ### `interrupt()` — pause for a human
 
@@ -202,7 +202,7 @@ action. → [Idempotency concept](idempotency.md).
 ```python
 agent = Agent(config=AgentConfig(
     model=...,
-    checkpointer=S3Backend(bucket="...", namespace="..."),
+    checkpointer=S3Backend(bucket="...", prefix="..."),
 ))
 ```
 
@@ -235,7 +235,7 @@ from every layer simultaneously:
 from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
-    result = orchestrator.run_sync("Investigate the phishing campaign against finance.")
+    result = await orchestrator.execute("Investigate the phishing campaign against finance.")
 
     async for ev in get_event_bus().subscribe(rid):
         match ev.event_type:

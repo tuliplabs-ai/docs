@@ -2,9 +2,12 @@
 
 Every component in Tulip emits typed events under one stable prefix:
 `agent.*`, `multiagent.*`, `composition.*`, `router.*`, `rag.*`,
-`memory.*`, `a2a.*`, `skills.*`, `deepagent.*`. The `EV_*` constants
-in `tulip.observability.emit` are the canonical registry — change one
-name and it propagates to every emission site and every consumer.
+`memory.*`, `a2a.*`, `skills.*`, `deepagent.*`. Most of these names are
+defined as `EV_*` constants in `tulip.observability.emit`, so changing a
+constant propagates to every emission site that imports it. The
+`router.*` events are the exception: they are emitted as string literals
+from `tulip.observability.router_events` rather than `EV_ROUTER_*`
+constants, so they are not yet part of the shared `EV_*` registry.
 
 Prefix map::
 
@@ -18,8 +21,8 @@ Prefix map::
     skills.*         Skill activation
     deepagent.*      Research-shaped agent (subagents, fs, todos)
 
-- List every `EV_*` constant and its category prefix (always in sync
-  with the codebase because it's read at import time).
+- List every `EV_*` constant and its category prefix (read at import
+  time from `tulip.observability.emit`).
 - Drive a `SequentialPipeline` + `LoopAgent` that surfaces
   `composition.*` events end-to-end.
 

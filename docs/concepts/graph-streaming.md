@@ -80,7 +80,7 @@ async for ev in graph.stream(incident, mode=StreamMode.UPDATES):
 
 If `stream()` were buffering, both events would arrive at 2.05s. The
 unit test
-[`test_stategraph_streaming.py`](https://github.com/tuliplabs-ai/sdk-python/-/blob/main/tests/unit/test_stategraph_streaming.py)
+[`test_stategraph_streaming.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/tests/unit/test_stategraph_streaming.py)
 guards this property — fails the build if the first event lands at
 ≥ end / 2.
 

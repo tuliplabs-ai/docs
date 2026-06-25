@@ -13,9 +13,10 @@ Three orthogonal layers, each with its own contract:
    `BaseStore` backend.
 
 For checkpointing (state persistence between runs), see
-[Checkpointers](checkpointers.md) — those backends are also in
+[Checkpointers](checkpointers.md) — those backends live in
 `tulip.memory.backends`, with **S3-compatible object storage** as a
-production target.
+production target. Note those are *checkpointer* backends (per-thread
+state); the cross-thread **store** layer below is a separate contract.
 
 ## Conversation management
 
@@ -26,11 +27,13 @@ production target.
 
 ## Cross-thread store
 
-The durable KV the long-term memory manager writes to. `InMemoryStore`
-is for tests; production stores live in `tulip.memory.backends` (see
-[Checkpointers](checkpointers.md) for S3-compatible object storage /
-OpenSearch / Postgres / Redis backends, which all implement
-`BaseStore` as well as `BaseCheckpointer`).
+The cross-thread KV the long-term memory manager writes to.
+`InMemoryStore` is the only `BaseStore` implementation that ships today
+(in-process, lost on exit) — `tulip.memory.store_backends` is a stub
+(`__all__ = []`). For a durable store, subclass `BaseStore` yourself or
+front a third-party service (e.g. Mem0). The drivers in
+`tulip.memory.backends` referenced by [Checkpointers](checkpointers.md)
+implement `BaseCheckpointer` (per-thread state), **not** `BaseStore`.
 
 ::: tulip.memory.store.BaseStore
 ::: tulip.memory.store.InMemoryStore
@@ -57,8 +60,9 @@ pass-through used in tests.
 ## Delta checkpointing
 
 Storage-efficient checkpointer that persists only the diff between
-consecutive states (~77% storage savings on long conversations).
-Layered on top of any `DeltaStorage` backend.
+consecutive states (the module targets ~77% storage reduction on long
+conversations; actual savings depend on workload). Layered on top of
+any `DeltaStorage` backend.
 
 ::: tulip.memory.delta.DeltaCheckpointer
 ::: tulip.memory.delta.DeltaCheckpoint

@@ -2,8 +2,10 @@
 
 The checkpointer contract is backend-agnostic. This notebook drives it
 against `S3Backend` — S3 / MinIO / Cloudflare R2 via boto3 — a durable
-store with the full capability set (`list_threads`, `search`, `vacuum`)
-over a single bucket. Portable SQL deployments can use PostgreSQL or
+store with `list_threads`, `vacuum`, branching, and metadata-query
+capabilities over a single bucket. (Full-text `search` is not part of
+the S3 capability set — use a SQL or OpenSearch backend for that.)
+Portable SQL deployments can use PostgreSQL or
 MySQL through the same adapter shape; key/value deployments can use
 Redis. The basic agent notebook covers the checkpointer contract itself.
 
@@ -11,7 +13,6 @@ Redis. The basic agent notebook covers the checkpointer contract itself.
 - Inspect the reported capabilities.
 - Walk thread history with `list_threads` / `list_checkpoints`.
 - Vacuum old checkpoints with `S3Backend.vacuum`.
-- Full-text search across stored conversations.
 
 Run it (requires an S3-compatible endpoint + a bucket):
 

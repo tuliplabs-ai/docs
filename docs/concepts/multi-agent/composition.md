@@ -14,10 +14,10 @@ agents (or other pipelines):
 |---|---|
 | `SequentialPipeline(agents=[...])` | output of agent N feeds agent N+1 |
 | `ParallelPipeline(agents=[...])` | one input fans out to all N agents; results merge |
-| `LoopAgent(agent=..., max_iterations=N)` | run one agent repeatedly until a condition holds or N is hit |
+| `LoopAgent(agent=..., max_loops=N)` | run one agent repeatedly until a condition holds or N is hit |
 
-Each composes an `Agent` and walks like one — `.run`, `.run_sync`,
-the same event stream.
+Each composes an `Agent` and walks like one — an async `.run`
+returning a `PipelineResult`, the same event stream.
 
 ## When to use it
 
@@ -51,7 +51,7 @@ pipeline = SequentialPipeline(agents=[
     report,
 ])
 
-result = pipeline.run_sync("Triage the attack surface on 192.0.2.10.")
+result = await pipeline.run("Triage the attack surface on 192.0.2.10.")
 ```
 
 ```python
@@ -61,13 +61,13 @@ parallel = ParallelPipeline(agents=[
     edr_timeline,
     threat_intel,
 ])
-enrichment = parallel.run_sync(
+enrichment = await parallel.run(
     "Enrich 198.51.100.7: in our SIEM? EDR matches? known-bad campaigns?"
 )
 
-# Loop: revise the finding until the abstention clears, max 5 iterations
-revise = LoopAgent(agent=reviser_agent, max_iterations=5)
-final = revise.run_sync(initial_finding)
+# Loop: revise the finding until the abstention clears, max 5 loops
+revise = LoopAgent(agent=reviser_agent, max_loops=5)
+final = await revise.run(initial_finding)
 ```
 
 ```python
@@ -75,9 +75,9 @@ final = revise.run_sync(initial_finding)
 end_to_end = SequentialPipeline(agents=[
     ParallelPipeline(agents=[recon, validate]),
     enrich,
-    LoopAgent(agent=reviser, max_iterations=5),
+    LoopAgent(agent=reviser, max_loops=5),
 ])
-result = end_to_end.run_sync("Triage the attack surface on 192.0.2.10.")
+result = await end_to_end.run("Triage the attack surface on 192.0.2.10.")
 ```
 
 ## Notebooks

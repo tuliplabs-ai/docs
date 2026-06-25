@@ -95,9 +95,11 @@ behaviours make it different from a "just run the function" callback:
    others; each tool's error becomes a tool-error message in the
    state.
 
-Execute emits `ToolStartEvent` and `ToolCompleteEvent` per call.
-Cached short-circuits emit a `ToolCacheHitEvent` so the run-trace
-shows them distinctly.
+Execute emits `ToolStartEvent` and `ToolCompleteEvent` per call. A
+cached short-circuit still emits a plain `ToolCompleteEvent` (there is
+no separate cache-hit event type) — the dedup is recorded on state
+instead: the `ToolExecution` is flagged `idempotent_cache_hit=True`, so
+the run-trace can still tell a re-fired call from a fresh one.
 
 ## Reflect
 
@@ -115,9 +117,9 @@ rather than going straight back to Think:
 The Reflector itself
 ([`Reflector` class — `reasoning/reflexion.py:70`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/reflexion.py#L70))
 asks the model to evaluate its last step, adjusts a confidence
-score, and emits a `ReflectEvent` carrying the judgment text and
-new confidence. The next Think sees the reflection in its message
-stream.
+score, and emits a `ReflectEvent` carrying the `assessment`,
+`guidance`, and `new_confidence`. The next Think sees the reflection
+in its message stream.
 
 Two complementary reasoning add-ons:
 
@@ -200,15 +202,22 @@ logging.
 
 ## Hooks
 
-Hooks are how you observe and *steer* the loop without forking it.
-Each hook receives every event and can return one of three control
-directives:
+Hooks are how you observe and *steer* the loop without forking it. A
+hook subclasses `HookProvider` (`tulip.hooks.provider.HookProvider`)
+and implements the lifecycle callbacks it cares about —
+`on_before_invocation` / `on_after_invocation`,
+`on_iteration_start` / `on_iteration_end`,
+`on_before_tool_call` / `on_after_tool_call`,
+`on_before_model_call` / `on_after_model_call`. There is no
+`Continue`/`Cancel`/`Retry` directive return type. Instead a hook
+steers the loop two ways:
 
-- `Continue()` — default, do nothing (most hooks).
-- `Cancel(reason)` — abort the run cleanly with a `TerminateEvent`
-  whose reason is your string.
-- `Retry()` — re-run the last node (useful in `ModelRetryHook` for
-  transient model errors).
+- **Mutate the event in place.** The after-model-call and
+  after-tool-call events carry a `retry` flag — set `event.retry = True`
+  and the runtime re-runs that call (this is exactly how
+  `ModelRetryHook` works).
+- **Raise to abort.** Raising from any callback short-circuits the run
+  (useful for budget guards).
 
 Built-in hooks:
 [`LoggingHook`](hooks.md), `StructuredLoggingHook`,
@@ -236,16 +245,17 @@ Iteration by iteration:
 | 2 | Think | The reputation result confirms a known C2 endpoint, so the model emits `isolate_host(host_id="WIN-7731", alert_id="A-42")`. |
 | 2 | Execute | Tool is `idempotent=True`. Execute hashes `("isolate_host", {host_id: "WIN-7731", alert_id: "A-42"})` and walks `state.tool_executions` for matches. None — so the body fires. Containment ticket `CN-58291` returned. |
 | 2 | Reflect | Reflexion runs (the cadence trigger fires). Confidence assessed at 0.93. `ReflectEvent` emitted. |
-| 2 | Terminate? | `ToolCalled("isolate_host")` ✓ AND `ConfidenceMet(0.9)` ✓. The AND branch fires; the OR short-circuits true. Loop exits with `TerminateEvent(reason="ToolCalled AND ConfidenceMet")`. |
+| 2 | Terminate? | `ToolCalled("isolate_host")` ✓ AND `ConfidenceMet(0.9)` ✓. The AND branch fires; the OR short-circuits true. Loop exits with `TerminateEvent(reason="tool_called:isolate_host AND confidence_met")`; `result.stop_reason` normalizes to `"terminal_tool"`. |
 
 Total: **two iterations, two tool calls, one Reflect, one Terminate**.
 
 If the model had hallucinated and re-emitted `isolate_host` with the
 same args on iteration 3 (it didn't, but it could), Execute would
-have caught the duplicate `(name, kwargs)` hash, returned the cached
-`CN-58291`, and emitted a `ToolCacheHitEvent` so the trace shows the
-short-circuit clearly. Re-isolating an already-contained host is a
-no-op — exactly what idempotency guarantees.
+have caught the duplicate `(name, arguments)` match, returned the cached
+`CN-58291`, and flagged that `ToolExecution` with
+`idempotent_cache_hit=True` so the trace shows the short-circuit
+clearly. Re-isolating an already-contained host is a no-op — exactly
+what idempotency guarantees.
 
 ## Stop reasons
 
@@ -261,13 +271,18 @@ satisfied condition. The named reasons you'll see:
 | **`ToolCalled`** | a specific tool fired (with optional args predicate) |
 | **`ConfidenceMet`** | the Reflexion confidence score cleared the threshold |
 | **`TextMention`** | the final message matched a regex |
-| **`CustomCondition`** | a user-supplied `(state) -> bool` returned true |
-| **`Cancelled`** | a hook returned `Cancel(reason="…")` or the caller called `agent.cancel()` |
-| **`ModelError`** | the model raised after retries exhausted |
+| **`CustomCondition`** | a user-supplied `check(state)` stopped the run |
+| **`cancelled`** | the caller called `agent.cancel()` (or a hook raised to abort) |
+| **`error`** | the model (or a node) raised; the exception is re-raised and `result.stop_reason == "error"` |
 
+Note that `result.stop_reason` is **normalized** to a fixed set of
+literals (`complete`, `terminal_tool`, `confidence_met`,
+`max_iterations`, `tool_loop`, `no_tools`, `grounding_failed`,
+`token_budget`, `time_budget`, `interrupted`, `error`, `cancelled`),
+while `TerminateEvent.reason` carries the finer branch-level string.
 Composite conditions (`OrCondition`, `AndCondition`) report the
-underlying satisfied leaf, so you always get a leaf-condition name in
-the reason.
+underlying satisfied leaf token(s), so the event reason always points
+at the branch that fired.
 
 ## Cancellation
 
@@ -276,19 +291,18 @@ terminate condition:
 
 ### From a hook
 
-Any hook can return `Cancel(reason="…")` from any event. The current
+Any hook can **raise** from a callback to abort the run. The current
 node finishes (so a tool call is not torn out mid-flight), then the
-loop exits with `TerminateEvent(reason="Cancelled: …")`. Useful for
-the `SteeringHook`, which votes on each tool call before it fires
-and can cancel the whole run if the model proposes something out of
-policy.
+loop unwinds. Useful for budget guards; the `SteeringHook` uses the
+same family of callbacks to vote on each tool call before it fires.
 
 ```python
-class CostGuardHook(Hook):
-    async def on_iteration(self, ev: IterationEvent) -> Directive:
-        if ev.token_total > 100_000:
-            return Cancel(reason=f"token budget exhausted at {ev.token_total}")
-        return Continue()
+from tulip.hooks.provider import HookProvider
+
+class CostGuardHook(HookProvider):
+    async def on_iteration_start(self, iteration: int, state) -> None:
+        if state.total_tokens_used > 100_000:
+            raise RuntimeError(f"token budget exhausted at {state.total_tokens_used}")
 ```
 
 ### From the caller
@@ -310,7 +324,8 @@ tools can catch it to release resources before re-raising.
 
 `agent.cancel()` sets a flag the runner polls between nodes. The
 loop exits at the next safe point with a
-`TerminateEvent(reason="Cancelled")`. For thread-bound runs, the
+`TerminateEvent(reason="cancelled")` (`result.stop_reason ==
+"cancelled"`). For thread-bound runs, the
 state still flushes to the checkpointer before exit, so the
 conversation can resume cleanly later.
 
@@ -390,7 +405,7 @@ async for event in agent.run("Triage alert A-42 and contain the host if maliciou
     match event:
         case ThinkEvent(reasoning=r) if r:    print(f"💭 {r}")
         case ToolStartEvent(tool_name=n):     print(f"🔧 {n}")
-        case ReflectEvent(judgment=j):        print(f"🪞 {j}")
+        case ReflectEvent(guidance=g) if g:   print(f"🪞 {g}")
         case TerminateEvent(reason=why):      print(f"✅ {why}")
 ```
 

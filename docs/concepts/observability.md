@@ -29,24 +29,27 @@ agent = Agent(
 )
 ```
 
-Every event in the run is emitted as a structured JSON line — a
-forensic audit trail you can forward to a SIEM verbatim.
-Sample (`ToolCompleteEvent`):
+Each lifecycle point is emitted as a structured JSON record you can
+forward to a log aggregator or SIEM. The after-tool-call record looks
+like this out of the box:
 
 ```json
 {
-  "ts": "2026-05-02T01:31:02Z",
-  "thread_id": "inc-4821",
-  "run_id": "run-9c14b1",
-  "agent_id": "soc-triage",
-  "event": "tool_complete",
-  "tool": "isolate_host",
-  "span_id": "a3f10c2e",
-  "indicator": "host:web-01",
-  "duration_ms": 412,
-  "result_size": 2148
+  "message": "Tool call completed",
+  "event": "tool_call_completed",
+  "tool_name": "isolate_host",
+  "success": true,
+  "timestamp": "2026-05-02T01:31:02.481923+00:00"
 }
 ```
+
+The keys are exactly those the hook sets: `message`, `event` (the
+message lowercased with spaces as underscores — e.g.
+`tool_call_completed`), `tool_name`, `success`, and `timestamp`. With
+`log_results=True` you also get `result_preview` + `result_length`; on
+failure an `error` key. Anything you pass as `extra={...}` to the hook
+constructor is merged into **every** record — that's how you stamp a
+stable `agent_id` / `thread_id` for correlation.
 
 Pipe stdout to your log aggregator. The SDK doesn't own the transport —
 you choose between stdlib `logging`, `structlog`, or
@@ -55,31 +58,32 @@ you choose between stdlib `logging`, `structlog`, or
 ### Replaying an incident for auditors
 
 After containment, an auditor asks: *what did the agent do, in what
-order, and why?* Every line carries the `thread_id` of the incident and
-a `span_id` per tool call. Filter by `thread_id`, sort by `ts`, and pair
-`tool_start`/`tool_complete` on matching `span_id` to reconstruct the
-exact response timeline — no log archaeology:
+order?* Stamp the hook with a stable `thread_id` so every record carries
+it — `StructuredLoggingHook(extra={"thread_id": "inc-4821"})` — then
+filter by `thread_id`, sort by `timestamp`, and pick out the
+`tool_call_completed` records to reconstruct the tool timeline:
 
 ```python
 import json
 
 events = [json.loads(line) for line in open("soc-triage.jsonl")]
 incident = sorted(
-    (e for e in events if e["thread_id"] == "inc-4821"),
-    key=lambda e: e["ts"],
+    (e for e in events if e.get("thread_id") == "inc-4821"),
+    key=lambda e: e["timestamp"],
 )
 for e in incident:
-    if e["event"] == "tool_complete":
-        print(f'{e["ts"]}  {e["tool"]:<16} {e.get("indicator","")}  span={e["span_id"]}')
-# 2026-05-02T01:30:58Z  query_siem        host:web-01      span=7be1
-# 2026-05-02T01:31:01Z  enrich_indicator  1.2.3.4          span=9c44
-# 2026-05-02T01:31:02Z  isolate_host      host:web-01      span=a3f10c2e
+    if e["event"] == "tool_call_completed":
+        print(f'{e["timestamp"]}  {e["tool_name"]:<16} success={e["success"]}')
+# 2026-05-02T01:30:58.1Z  query_siem        success=True
+# 2026-05-02T01:31:01.4Z  enrich_indicator  success=True
+# 2026-05-02T01:31:02.4Z  isolate_host      success=True
 ```
 
-Because `thread_id` is stable across a multi-turn investigation, the
-same filter replays the *whole* incident — every alert pulled, every
-indicator enriched, every host isolated — in chronological order, ready
-to drop into an incident report.
+Because the stamped `thread_id` is stable across a multi-turn
+investigation, the same filter replays the *whole* incident in
+chronological order. For per-tool `span_id` correlation (pairing a start
+with its completion), consume the `EventBus` stream instead — its
+`agent.tool.*` events carry a `span_id` (see below).
 
 ### Traces and metrics over OTLP
 
@@ -250,9 +254,10 @@ subscribers are unaffected.
 
 ```python
 stats = bus.stats()
-print(stats["dropped_events"])    # cumulative drops across all subscribers
-print(stats["retained_runs"])     # number of runs with live history
-print(stats["subscriber_count"])  # current active subscribers
+print(stats["dropped_events_total"])  # cumulative drops across all subscribers
+print(stats["history_runs"])          # number of runs with retained history
+print(stats["global_subscribers"])    # current global subscribers
+print(stats["active_runs"])           # runs with at least one live queue
 ```
 
 Default limits (all configurable at `EventBus(...)` construction time):
@@ -261,7 +266,7 @@ Default limits (all configurable at `EventBus(...)` construction time):
 |---|---|
 | `max_queue_size` | 1024 events per subscriber |
 | `history_per_run` | 500 events |
-| `max_runs_retained` | 200 runs (LRU eviction) |
+| `max_runs_retained` | 200 runs (FIFO eviction — oldest run by insertion order dropped first) |
 
 ### Full event catalogue
 

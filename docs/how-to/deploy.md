@@ -24,7 +24,7 @@ agent = Agent(
 server = AgentServer(
     agent=agent,
     title="Booking concierge",
-    cors_origins=["https://app.example.com"],
+    api_key="...",   # require this bearer token on every route except /health
 )
 
 if __name__ == "__main__":
@@ -33,7 +33,9 @@ if __name__ == "__main__":
 
 You get out of the box:
 
-- `POST /invoke` — synchronous run, full `AgentResult` JSON.
+- `POST /invoke` — synchronous run, returns the final `message` plus
+  run metrics (`success`, `stop_reason`, `iterations`, `tool_calls`,
+  `duration_ms`) as JSON.
 - `POST /stream` — Server-Sent Events of every typed event.
 - `GET / DELETE /threads/{id}` — conversation persistence.
 - `GET /health` — liveness probe.
@@ -91,7 +93,6 @@ spec:
         env:
         - name: OPENAI_API_KEY
           valueFrom: { secretKeyRef: { name: tulip-secrets, key: openai-api-key } }
-        - { name: TULIP_THREAD_BUCKET, value: tulip-threads-prod }
         readinessProbe:
           httpGet: { path: /health, port: 8080 }
         resources:
@@ -141,20 +142,23 @@ EOF
 sudo systemctl enable --now concierge
 ```
 
-## Sessions — `X-Session-ID` for chat UIs
+## Sessions — `thread_id` for chat UIs
 
-When the underlying agent has a checkpointer, `AgentServer`
-honours the `X-Session-ID` header (or `thread_id` in the body) for
-cross-request continuity. Same browser tab → same thread → same
-context. Drop the header, drop the thread.
+When the underlying agent has a checkpointer, pass a `thread_id` in the
+request body for cross-request continuity. Same browser tab → same
+`thread_id` → same context. Omit it, and each request starts fresh.
 
 ```http
 POST /invoke
-X-Session-ID: user-c42-support
 Content-Type: application/json
 
-{"prompt": "What were we discussing?"}
+{"prompt": "What were we discussing?", "thread_id": "user-c42-support"}
 ```
+
+When `api_key` is set, the authenticated principal is prefixed onto the
+`thread_id` server-side, so threads are scoped to the caller that owns
+the key. The server takes a single shared `api_key`, so this is
+single-principal scoping — not per-tenant isolation.
 
 ## Observability
 

@@ -7,9 +7,10 @@ Three layers cooperate inside an agent run:
 2. **Guardrails** — content policy, PII redaction, dangerous-tool
    blocking, prompt/result length caps. Runs as a hook on the
    prompt-in / output-out boundaries.
-3. **Steering** — a second model votes on every tool call before it
-   fires. The judge sees the system prompt, the user goal, and the
-   tool-call arguments, and emits *approve / reject / rewrite*.
+3. **Steering** — a second model evaluates every tool call before it
+   fires. The judge sees the recent tool-call activity and your policy,
+   and emits one of *PROCEED / GUIDE / INTERRUPT* (allow, cancel with
+   feedback, or pause for a human).
 
 Each layer plugs in independently. You can turn one on without the
 others.
@@ -21,7 +22,7 @@ others.
 | Tool args from the model are sometimes malformed | Validation — already on; nothing to do |
 | Public-facing agent — block prompt injection, SQL/command/path-traversal patterns, cap input length | `GuardrailsHook` with the default `GuardrailConfig` |
 | Customer-facing answer where leaking PII (emails, SSN, credit cards, IPs) is a compliance issue | `GuardrailsHook` with PII patterns enabled |
-| High-stakes tools (`isolate_host`, `block_indicator`, `delete_*`) — want a second model to sanity-check the call | `SteeringHook` with a judge model and a policy string |
+| High-stakes tools (`isolate_host`, `block_indicator`, `delete_*`) — want a second model to sanity-check the call | `SteeringHook` with a steering `model=` and a policy string |
 | Domain restriction — *"the user came in to triage this alert, reject anything else"* | `SteeringHook` with that policy verbatim |
 | Internal-only agent, trusted prompts, low-stakes tools | none of the above; default validation is enough |
 
@@ -56,9 +57,13 @@ path-traversal, and command-injection shapes in tool inputs.
 
 ### Topic and content policies — domain restriction
 
+`TopicPolicy` and `ContentPolicy` are enforced by `OutputFilterHook`,
+which scans the model's **output** (not tool inputs — that's
+`GuardrailsHook`'s job):
+
 ```python
 from tulip.hooks.builtin.guardrails import (
-    GuardrailsHook, TopicPolicy, ContentPolicy,
+    OutputFilterHook, TopicPolicy, ContentPolicy,
 )
 
 topic_policy = TopicPolicy(
@@ -76,8 +81,7 @@ content_policy = ContentPolicy(
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
     tools=[...],
-    hooks=[GuardrailsHook(
-        config=GuardrailConfig(),
+    hooks=[OutputFilterHook(
         topic_policy=topic_policy,
         content_policy=content_policy,
     )],
@@ -92,17 +96,22 @@ behind the same `Policy.check(text) -> str | None` shape.
 ### Steering — a second model judges every tool call
 
 ```python
+from tulip.models import AnthropicModel
 from tulip.hooks.builtin.steering import SteeringHook
+
+# The steering model is a model instance — it can be a smaller/cheaper
+# model than the agent's main one.
+judge = AnthropicModel(model="claude-sonnet-4-6")
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
     tools=[query_siem, block_indicator, isolate_host],
     hooks=[
         SteeringHook(
-            judge_model="anthropic:claude-sonnet-4-6",
+            model=judge,
             policy=(
                 "The user came in to triage alert A-4271. "
-                "Reject any tool call unrelated to that alert."
+                "Block any tool call unrelated to that alert."
             ),
         ),
     ],
@@ -110,16 +119,16 @@ agent = Agent(
 ```
 
 Before `block_indicator` or `isolate_host` fires, the judge sees the
-system prompt, the user goal, and the proposed tool call. Three possible
-verdicts:
+recent tool-call activity and your policy, then emits one of three
+decisions:
 
-- **approve** — the call goes through.
-- **reject** — the call is replaced with an error the model sees,
-  triggering a re-plan.
-- **rewrite** — the judge can hand back modified arguments (for
-  scoping a query, narrowing a block to a single indicator, etc).
+- **PROCEED** — the call goes through.
+- **GUIDE** — the call is cancelled and corrective feedback is fed back
+  to the model, triggering a re-plan.
+- **INTERRUPT** — the run pauses for human approval (also used for any
+  tool listed in `interrupt_tools=`).
 
-Use the smallest model that gives reliable verdicts — a `mini` /
+Use the smallest model that gives reliable decisions — a `mini` /
 `flash` / `haiku` is usually enough.
 
 ## Validation (you don't have to do anything)

@@ -122,10 +122,12 @@ If your tools have side effects that must be ordered, switch to
 
 ### Error handling — tool failures don't crash the agent
 
-If a tool raises, the executor catches the exception, wraps it as a
-`ToolResult(success=False, error=...)`, and feeds it back into the
-next model turn. The model sees the failure and can react: retry,
-try a different tool, or report to the user.
+If a tool raises, the loop catches the exception and turns it into a
+`ToolResult(error=str(exc))`, then feeds that back into the next model
+turn. (`ToolResult.success` is a read-only property derived from
+`error` — it's `True` when `error is None`, not something you set.) The
+model sees the failure and can react: retry, try a different tool, or
+report to the user.
 
 ```python
 @tool
@@ -137,8 +139,8 @@ def lookup_alert(alert_id: str) -> dict:
 ```
 
 The model sees `"no alert with id=A-4271"` and decides what to do.
-Behind the scenes, the SDK chains the original exception as the cause
-on a `ToolExecutionError` for your structured logs.
+Behind the scenes, the loop captures the exception's string form into
+`ToolResult.error`; the raw exception is logged where the tool ran.
 
 ### Custom names and descriptions
 
@@ -195,7 +197,7 @@ through `TulipMCPServer` — same `@tool`, no rewrite. See
 
 - [`@tool` decorator and `Tool` class](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/tools/decorator.py)
 - [`ToolRegistry`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/tools/registry.py)
-- [Built-in tools](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/tools/builtins) — `get_today_date`, `task_complete`, `ask_user`, `use_oci`, `describe_oci`
+- [Built-in tools](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/tools/builtins.py) — `get_today_date`. The agent also auto-injects `task_complete` and `ask_user` in explicit-completion mode.
 
 ## See also
 

@@ -46,8 +46,8 @@ What does **not** belong in the system prompt:
 
 - Tool documentation. The `@tool` decorator already exposes a typed
   contract to the model; duplicating it in prose doesn't help.
-- Long examples. Use `examples=` on a `Skill` or fold into a
-  `Playbook`.
+- Long examples. Fold them into a `Skill`'s `instructions=` (loaded
+  only when the skill activates) or into a `Playbook`.
 - Fields that change per request. Pass those as the user's `prompt`
   argument to `agent.run()`.
 
@@ -95,23 +95,23 @@ histories on demand — see [Conversation Management](conversation-management.md
 
 ## Prompt caching
 
-Long, stable system prompts cost real money on every iteration.
-Anthropic and OpenAI both support prompt caching: tag the part of the
-prompt that doesn't change per turn and the provider charges fewer
-tokens on cache hits.
+Long, stable system prompts cost real money on every iteration. The
+`AnthropicModel` can mark the stable prefix for caching so the provider
+charges fewer tokens on cache hits — pass `prompt_cache=True`:
 
 ```python
-from tulip.models import OpenAIModel
+from tulip.models import AnthropicModel
 
 agent = Agent(
-    model=OpenAIModel("gpt-4o", cache_system_prompt=True),
+    model=AnthropicModel(model="claude-sonnet-4-6", prompt_cache=True),
     system_prompt=very_long_prompt,
 )
 ```
 
-OpenAI's V1 transport inherits prompt caching from the underlying
-provider models when supported. See
-[Models](models.md) for the per-provider matrix.
+When `prompt_cache=True` and the provider returns cache token counts,
+they surface on `result.metrics` (`cache_creation_input_tokens` /
+`cache_read_input_tokens`). See [Models](models.md) for the per-provider
+matrix.
 
 ## When the model misbehaves
 

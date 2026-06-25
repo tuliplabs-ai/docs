@@ -2,9 +2,9 @@
 
 ## Composition
 
-The agent-level pipelines. Same `AgentResult` shape at the boundary as
-a plain `Agent.run_sync(...)` call — these are drop-in for any place
-that takes an agent.
+The agent-level pipelines. Each exposes an async `run(task)` that
+returns a `PipelineResult` (`success`, `outputs`, `final_output`,
+`duration_ms`, `error`) — `await pipeline.run(task)`.
 
 ::: tulip.agent.composition.SequentialPipeline
 ::: tulip.agent.composition.ParallelPipeline

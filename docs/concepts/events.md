@@ -34,10 +34,14 @@ Every event inherits from `TulipEvent` and carries:
 | `event_type` | `Literal[...]` | Discriminator string — `"think"`, `"tool_start"`, etc. |
 | `timestamp` | `datetime` | UTC, populated at emit time. |
 
-Events are **frozen** Pydantic models. A hook can read every field;
-it cannot mutate one. To steer a run, use the explicit method on the
-event (`event.cancel()`, `event.replace_arguments(...)`) — the intent
-is visible in code review.
+The streaming events on this page are **frozen** Pydantic models. A
+consumer can read every field; mutating one raises `ValidationError`.
+Steering is a separate surface: the **hook** events (`tulip.hooks`,
+a `ProtectedEvent` family) let a hook steer by **assigning** to a
+writable field — `event.cancel = True` (or a reason string),
+`event.retry = True`, `event.arguments = {...}`. There are no
+`cancel()` / `retry()` / `replace_arguments()` methods; assigning to a
+read-only field raises `AttributeError`. See [Hooks](hooks.md).
 
 ## Core events
 
@@ -172,17 +176,18 @@ running.
 | `SpecialistCompleteEvent` | Specialist returned a result |
 | `OrchestratorDecisionEvent` | Orchestrator picked its next step (`invoke_specialist`, `correlate`, `summarize`, `finalize`) |
 
-`SpecialistStartEvent`/`SpecialistCompleteEvent` pair on `specialist`,
-so you can attribute each IR phase to the agent that ran it:
+`SpecialistStartEvent`/`SpecialistCompleteEvent` pair on
+`specialist_id`, so you can attribute each IR phase to the agent that
+ran it:
 
 ```python
-phase = {}  # specialist name → wall-clock ms
+phase = {}  # specialist id → wall-clock ms
 
 async for event in orchestrator.run("Sev-1 ransomware on ws-0042: triage, then contain."):
     match event:
-        case SpecialistStartEvent(specialist=s, task=t):
+        case SpecialistStartEvent(specialist_id=s, task=t):
             print(f"→ {s}: {t}")
-        case SpecialistCompleteEvent(specialist=s, duration_ms=d):
+        case SpecialistCompleteEvent(specialist_id=s, duration_ms=d):
             phase[s] = d
         case ToolCompleteEvent(tool_name="isolate_host", error=None):
             print("   ↳ containment fired")  # which specialist? the last Start was 'containment'
@@ -217,7 +222,7 @@ points the user-visible events come from. See [Hooks](hooks.md).
 | `match` is non-exhaustive at the type checker | Add a `case _: pass` fallthrough or handle the missing variant. |
 | `ModelChunkEvent.content` is `None` | Tool-call-only chunk. Guard with `if event.content:`. |
 | `TerminateEvent` never arrives | Generator was cancelled mid-stream. Check the consumer for exceptions. |
-| Hook tried to mutate `event.tool_name` and got `ValidationError` | Frozen by design — use `event.replace_arguments(...)` or `event.cancel()` instead. |
+| Tried to mutate a streaming event field and got `ValidationError` | Streaming events are frozen by design. To steer, do it on the hook event by assigning a writable field — `event.cancel = True`, `event.retry = True`, or `event.arguments = {...}`. |
 
 ## Source
 

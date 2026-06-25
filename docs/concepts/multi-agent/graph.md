@@ -15,8 +15,8 @@ all first-class.
 - **`add_edge(src, dst)`** — unconditional transition.
 - **`add_conditional_edges(src, fn)`** — `fn(state) → next_node_name`
   picks the next node dynamically.
-- **`compile()`** — produces a runnable graph; `run` and `run_sync`
-  walk like any agent.
+- **`compile()`** — produces a runnable graph; async `execute` and
+  `run_sync` walk like any agent.
 
 State is a typed value object with custom **reducers** that control
 how each node's output merges into shared fields.
@@ -79,7 +79,7 @@ from tulip.multiagent.graph import RetryPolicy, CachePolicy
 graph.add_node(
     "investigate",
     investigate_agent,
-    retry_policy=RetryPolicy(max_attempts=3, backoff="exponential"),
+    retry_policy=RetryPolicy(max_attempts=3, backoff_factor=2.0),
     cache_policy=CachePolicy(ttl_seconds=3600),
 )
 ```

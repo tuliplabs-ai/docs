@@ -1,9 +1,10 @@
 # Agent Server
 
 `AgentServer` wraps any Tulip `Agent` in a FastAPI app: synchronous
-invoke, streaming SSE, persisted threads scoped to the bearer principal
-so two API keys sharing one server can't read each other's
-conversations.
+invoke, streaming SSE, and persisted threads. Auth is a single shared
+bearer API key (constructor arg or `TULIP_SERVER_API_KEY`); the
+presented key namespaces the thread checkpoints, so thread ids can't be
+resumed across a different key namespace.
 
 Endpoints:
 
@@ -15,9 +16,9 @@ Endpoints:
 
 When to use `AgentServer` vs `A2AServer`:
 
-- **AgentServer**: first-party HTTP API. Persisted threads, principal
-  scoping, bearer auth. Use when Tulip is the system of record and
-  clients are yours.
+- **AgentServer**: first-party HTTP API. Persisted threads,
+  single shared-key bearer auth, key-namespaced thread checkpoints. Use
+  when Tulip is the system of record and clients are yours.
 - **A2AServer**: cross-framework interop with the A2A message spec.
   Use when another framework (Strands, ADK) needs to call your Tulip
   agent.
