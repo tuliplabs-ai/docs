@@ -1,4 +1,4 @@
-<p class="tulip-product-name">the SDK for agents you can let act</p>
+<p class="tulip-product-name">the control runtime</p>
 
 # Workbench
 
