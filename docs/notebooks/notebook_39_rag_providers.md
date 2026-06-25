@@ -13,7 +13,7 @@ interface.
 What the four parts cover:
 
 - Part 1 — embedding-model selection (small vs large dimensions).
-- Part 2 — distance metric choices (COSINE / DOT / EUCLIDEAN).
+- Part 2 — distance metric choices (`cosine` / `dot` / `euclidean`).
 - Part 3 — Qdrant in-memory store as a drop-in for InMemoryVectorStore.
 - Part 4 — batch ingest, `count()`, `clear()`.
 

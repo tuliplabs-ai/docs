@@ -3,7 +3,7 @@
 Wiz discovers *what AI exists in your cloud* (the AI-BOM) and the posture issues
 around it. This integration brings that into Tulip so an agent can **reason over
 it and emit grounded findings** — Wiz finds the attack surface; the Tulip agent
-turns each issue into a typed, taxonomy-tagged `Finding`.
+turns each issue into a typed, taxonomy-tagged `Evidence`.
 
 ```bash
 pip install "tulip-integrations[wiz-aispm]"
@@ -15,14 +15,14 @@ pip install "tulip-integrations[wiz-aispm]"
 | **Import** | `from tulip_integrations.vuln.wiz import wiz_inventory_tool, wiz_issues_tool` |
 | **Functions** | `wiz_inventory()` · `wiz_issues(severity)` |
 | **Agent tools** | `wiz_inventory_tool` · `wiz_issues_tool` |
-| **Findings** | `wiz_to_findings()` → `list[GroundedFinding]` (each a `Finding`, or an `Abstention`) |
+| **Findings** | `wiz_to_findings()` → `list[GroundedFinding]` (each an `Evidence`, or an `Abstention`) |
 | **Adapter** | `wiz_adapter()` → `ToolAdapter` (a `SecurityAdapter`) |
 | **Playbook** | `ai_spm_review()` — from `tulip_integrations.playbooks` |
 
 ```python
 from tulip_integrations.vuln.wiz import wiz_to_findings
 
-for f in wiz_to_findings():          # each Wiz issue → a grounded Finding
+for f in wiz_to_findings():          # each Wiz issue → a grounded Evidence
     print(f.severity, f.title, [t.value for t in f.taxonomy])
 # critical  Publicly exposed model endpoint without authentication  ['LLM02']
 # high      Over-permissive IAM role attached to AI training job    ['ASI03']

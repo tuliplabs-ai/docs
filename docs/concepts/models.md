@@ -38,7 +38,7 @@ tulip.models
 │
 ├── openai:                                ── OpenAI direct · OpenAIModel
 │   ├─ chat completions       — gpt-* family
-│   ├─ reasoning models       — o-series (adds reasoning_effort)
+│   ├─ reasoning models       — o-series
 │   └─ base_url override      — Azure · Portkey · LiteLLM · vLLM ·
 │                               Ollama · together.ai · fireworks · groq —
 │                               any OpenAI-compatible endpoint, incl.
@@ -46,13 +46,11 @@ tulip.models
 │
 ├── anthropic:                             ── Anthropic direct · AnthropicModel
 │   ├─ Claude family          — opus · sonnet · haiku
-│   ├─ prompt caching         — cache the playbook + GSAR rubric once;
-│   │                           subsequent triage turns pay 1/10th input cost
-│   └─ extended thinking      — forensic-depth reasoning over an alert
-│                               chain; thinking blocks → ThinkEvent
+│   └─ prompt caching         — cache the playbook + GSAR rubric once;
+│                               subsequent triage turns pay 1/10th input cost
 │
 └── custom:                                ── register_provider("myco", MyModel)
-    └─ implement BaseModel    — complete · stream · count_tokens
+    └─ implement ModelProtocol — complete · stream
 ```
 
 Pick the prefix that matches both your auth surface and your data-handling
@@ -69,21 +67,19 @@ alert payloads never leave the network.
 
 ## Custom providers
 
-Implement the `BaseModel` Protocol — three methods (`complete`,
-`stream`, `count_tokens`) — and you are a first-class provider. No
-adapter layer, no inheritance from `OpenAIModel`. Register the class
-with the prefix you want; it becomes a valid model id. This is the hook
-for a self-hosted model behind your own audit proxy — every triage
-prompt logged to your SIEM before it reaches the LLM.
+Implement the `ModelProtocol` interface — two methods (`complete` and
+`stream`) — and you are a first-class provider. No adapter layer, no
+inheritance from `OpenAIModel`. Register the class with the prefix you
+want; it becomes a valid model id. This is the hook for a self-hosted
+model behind your own audit proxy — every triage prompt logged to your
+SIEM before it reaches the LLM.
 
 ```python
 from tulip.models import register_provider
-from tulip.models.base import BaseModel
 
-class AuditedModel(BaseModel):
-    async def complete(self, request): ...   # tee request → SIEM, then forward
-    async def stream(self, request): ...
-    def count_tokens(self, text): ...
+class AuditedModel:                          # duck-typed ModelProtocol
+    async def complete(self, messages, tools=None, **kw): ...  # tee → SIEM, then forward
+    async def stream(self, messages, tools=None, **kw): ...
 
 register_provider("soc", lambda model_id, **kw: AuditedModel(model_id, **kw))
 
@@ -92,26 +88,40 @@ agent = Agent(model="soc:internal-triage-llm", tools=security_toolset())
 
 Source: [`register_provider` in `models/registry.py:21`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/registry.py#L21).
 
-## Provider failover & pooling
+## Credential pooling & rotation
 
-Incident response can't stall on a rate-limited provider. For
-always-on triage, wrap the model in a pool:
+Incident response can't stall on a rate-limited credential. For
+always-on triage, wrap the model in a `CredentialPoolModel` that
+rotates through a pool of API keys for the **same** provider:
 
 ```python
-from tulip.models.pooled import PooledModel
+import os
+from pydantic import SecretStr
+from tulip.models.credentials import Credential, CredentialPool
+from tulip.models.pooled import CredentialPoolModel
+from tulip.models.native.anthropic import AnthropicModel
+
+pool = CredentialPool([
+    Credential(label="primary", api_key=SecretStr(os.environ["KEY_A"])),
+    Credential(label="backup",  api_key=SecretStr(os.environ["KEY_B"])),
+])
+
+def _build(cred: Credential) -> AnthropicModel:
+    return AnthropicModel(model="claude-sonnet-4-6", api_key=cred.api_key)
 
 agent = Agent(
-    model=PooledModel(
-        primary="anthropic:claude-sonnet-4-6",
-        fallbacks=["openai:gpt-4o", "anthropic:claude-sonnet"],
-    ),
+    model=CredentialPoolModel(pool=pool, build_model=_build),
     tools=security_toolset(),
 )
 ```
 
-The pool tries the primary first; on `RateLimitError`, `TimeoutError`,
-or persistent 5xx it fails over to the next entry. Source:
-[`PooledModel` in `models/pooled.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/pooled.py).
+Each call picks the active credential; when the error classifier says
+rotation should help (rate-limit / auth errors), the credential is
+marked bad with a cooldown and the next one is tried. It rotates
+**credentials**, not providers — to fail over across *providers*,
+compose the failover classifier (`tulip.models.failover`) yourself.
+Source:
+[`CredentialPoolModel` in `models/pooled.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/pooled.py).
 
 ## Notebook
 
@@ -125,4 +135,4 @@ runs the same SOC triage agent against OpenAI and Anthropic by swapping one stri
 | Provider registry | [`models/registry.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/registry.py) |
 | `OpenAIModel` | [`models/native/openai.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/native/openai.py) |
 | `AnthropicModel` | [`models/native/anthropic.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/native/anthropic.py) |
-| `PooledModel` | [`models/pooled.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/pooled.py) |
+| `CredentialPoolModel` | [`models/pooled.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/pooled.py) |

@@ -60,18 +60,19 @@ directly — the SDK just normalises the events the model emits.
 
 `o1`, `o3`, `o4-mini` route through the same `Agent(model="openai:o3")`
 call. They're slower and more expensive but think before they answer.
-The SDK surfaces the model's thinking blocks as `ThinkEvent`s so your
-UI can show "thinking…" without parsing the response yourself.
+The SDK detects these models and adapts the request automatically —
+it sends `max_completion_tokens` instead of `max_tokens` and drops the
+`temperature` / `top_p` sampling params the o-series rejects.
 
 ```python
-agent = Agent(
-    model="openai:o3",
-    model_config={"reasoning_effort": "high"},   # low | medium | high
-)
+agent = Agent(model="openai:o3", system_prompt="You are a SOC triage analyst.")
 ```
 
-`reasoning_effort` is OpenAI's knob for how long the model spends
-thinking. Default is `medium`.
+Each turn's assistant message is surfaced as a `ThinkEvent` (carrying
+`response.message.content`) so your UI can show the model's working as
+it goes. Note: OpenAI does not return separate reasoning traces over the
+API, so the `ThinkEvent` carries the model's normal per-turn message
+text, not hidden chain-of-thought.
 
 ### Real SSE streaming
 
@@ -129,10 +130,15 @@ OpenAI-compatible endpoint:
 | **vLLM** | Self-hosted inference for open models with the OpenAI shape | `http://localhost:8000/v1` |
 | **together.ai / fireworks / groq** | Hosted open-model inference at OpenAI-shape | their published `/v1` |
 
+Build an `OpenAIModel` with the `base_url` (and `api_key`) you want and
+hand it to the agent:
+
 ```python
+from tulip.agent import Agent
+from tulip.models.native.openai import OpenAIModel
+
 agent = Agent(
-    model="openai:gpt-4o",
-    model_config={"base_url": "https://api.portkey.ai/v1"},
+    model=OpenAIModel(model="gpt-4o", base_url="https://api.portkey.ai/v1"),
 )
 ```
 
@@ -168,7 +174,7 @@ requires it.
 | `429 Rate limit exceeded` | OpenAI quota; `ModelRetryHook` (if installed) retries with backoff |
 | `model_not_found` | Model id doesn't exist for your tier — check `https://platform.openai.com/docs/models` |
 | Empty `tool_calls` | Model decided not to call a tool; check the system prompt |
-| `reasoning_effort` rejected | Only valid for o-series models, not GPT-4o / GPT-5 |
+| `temperature`/`top_p` rejected on o-series | The SDK drops these for reasoning models automatically; remove any manual override that re-adds them |
 
 ## Source
 

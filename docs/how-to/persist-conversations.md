@@ -47,8 +47,8 @@ from tulip.agent import Agent
 from tulip.memory.backends import S3Backend
 
 checkpointer = S3Backend(
-    bucket_name="my-app-checkpoints",
-    namespace="my-namespace",
+    bucket="my-app-checkpoints",
+    prefix="my-namespace/",
 )
 
 agent = Agent(

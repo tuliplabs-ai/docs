@@ -16,7 +16,8 @@ What you'll see:
 - `broadcast(nodes, payload)` — fan one payload out to several different
   nodes.
 - Subgraph-as-node — call one `StateGraph` from inside another.
-- `InMemoryStore` — durable key/value space that outlives a single run.
+- `InMemoryStore` — in-process key/value space shared across runs within
+  one process (data is lost when the process exits).
 
 Runs on the same default (mock) as the rest of the notebooks:
 

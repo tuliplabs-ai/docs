@@ -10,16 +10,16 @@ automatically and continuously, and reports only the flaws it can actually
 
 1. **Point** Tulip at a target AI — `Target.endpoint("https://bot.example/chat")`.
 2. **Run** a job — `red_team(target)` attacks it; `assure(target)` scores its defenses.
-3. **Get evidence** — each result is a `Finding` (the attack worked, here's the proof)
+3. **Get evidence** — each result is an `Evidence` finding (the attack worked, here's the proof)
    or an `Abstention` (no proof, so no claim). Never a guess.
 
 More precisely: Tulip builds agents whose **subject is another AI system** —
 agents that **red-team** and **assess** other AI (continuous **monitoring** is
-on the roadmap), and produce *evidence*: a grounded `Finding` or an explicit
+on the roadmap), and produce a grounded `Evidence` record or an explicit
 `Abstention`, never a hallucinated verdict.
 
 > **A cybersecurity agent** = a *target* (an AI system) × a *job*
-> (red-team · assure; monitor is roadmap) × an *output* (grounded `Finding` |
+> (red-team · assure; monitor is roadmap) × an *output* (grounded `Evidence` |
 > `Abstention`) × being *itself trustworthy by construction*.
 
 ![The trust chain: a Target is probed by red_team or assure, grounded by GSAR into a Finding or an Abstention, and only an approved action passes the admission gate](../img/patterns/trust-chain.svg){ .diagram }
@@ -59,8 +59,8 @@ black-box endpoint, an agent you built, or an offline stub in CI.
 ## `red_team` — attack, grounded
 
 `red_team` runs the OWASP-ASI / MITRE-ATLAS probe suite against a target and
-grounds each outcome. A probe whose attack *landed* yields a `Finding`; an
-inconclusive one yields an `Abstention`.
+grounds each outcome. A probe whose attack *landed* yields an `Evidence`
+finding; an inconclusive one yields an `Abstention`.
 
 ```python
 from tulip.security import Target, red_team, is_finding
@@ -97,21 +97,25 @@ rather than assert posture it cannot evidence.
 ## Secure by default — the floor
 
 An agent that red-teams or assures other AI must itself be trustworthy.
-`secure_agent` builds a `tulip.Agent` with the security spine on by default —
-GSAR grounding, guardrails (PII / injection / tool-allowlist), and a
-tamper-evident audit trail — and returns it alongside that trail.
+`governed_agent` builds a `tulip.Agent` with the security spine on by default —
+GSAR grounding, guardrails (PII / injection / a dangerous-tool denylist;
+allowlist is opt-in), and a tamper-evident audit trail — and returns it
+alongside that trail.
 
 ```python
-from tulip.security import secure_agent
+from tulip.control import governed_agent
 
-secured = secure_agent(model="openai:gpt-4o", tools=[...])
+secured = governed_agent(model="openai:gpt-4o", tools=[...])
 result = secured.run_sync("...")
-assert secured.audit_trail.verify()   # the action record is intact
+assert secured.audit_trail.verify()   # the chain is intact (tamper-evident)
 ```
 
-The `AuditTrail` is hash-chained: every action commits to the hash before it,
-so any later edit, deletion, or reorder breaks `verify()`. It exports as JSONL
-for shipping to a SIEM — *every agent action is replayable evidence*.
+The `AuditTrail` is a keyless, in-memory SHA-256 hash chain: every action
+commits to the hash before it, so any later edit, deletion, or reorder breaks
+`verify()` against a trusted head hash. That makes it tamper-*evident* (it
+**detects** edits) rather than tamper-proof — there is no signing or external
+anchoring yet. It exports as JSONL for shipping to a SIEM, where signing or
+write-once anchoring can harden it further.
 
 ## Enforce it before it acts
 
@@ -131,7 +135,7 @@ This page covers securing *AI* (pillar B). The same engine, pointed at
 cybersecurity": classic security operations — the bundled SOC-analyst factory,
 the IR playbooks (`phishing_triage`, `ransomware_containment`, `nist_800_61_ir`),
 and read-only cloud-posture auditing. Different target, different taxonomy — same
-`Target` + grounded-`Finding` contract. It's first-class, not a demo: grounding
+`Target` + grounded-`Evidence` contract. It's first-class, not a demo: grounding
 is exactly what makes an AI SOC agent's verdicts trustworthy, answering the
 false-positive pain teams hit with AI-graded triage.
 
