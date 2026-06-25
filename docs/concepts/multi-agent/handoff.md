@@ -1,23 +1,27 @@
 # Handoff
 
 Handoff is what a SOC escalation desk does. One agent owns the
-investigation, decides it needs a different tier, and hands the
-**whole transcript** to the next agent — who picks up where it left
-off.
+investigation, decides it needs a different tier, and hands a
+**structured summary** — findings, progress, and key context — to the
+next agent, who picks up where it left off.
 
 ![Handoff pattern — L1 triage agent classifies the alert, hands the full transcript to an L2 analyst who continues the investigation](../../img/patterns/handoff.svg){ .diagram }
 
 ## What it is
 
-A `Handoff` flow has:
+A handoff flow has:
 
-- An **`initial`** agent — the entry point (usually L1 triage).
-- A **`targets`** dict — name → agent for each possible next tier.
+- A pool of **`HandoffAgent`s** — each a named agent that can receive a
+  handoff, with optional `can_escalate_to` / `can_delegate_to` paths.
+- A **`Handoff` manager** (build it with `create_handoff_manager`) — it
+  registers the agents, enforces a max handoff-chain length, and records
+  the chain of custody.
 
-The initial agent ends a turn with a `Handoff(target="tier2")`
-directive. The full message history transfers; the L2 analyst
-reads it as if it were the next turn of the same investigation.
-State, checkpointer, and `thread_id` survive.
+When the manager runs `execute_handoff(...)`, it packages the source
+agent's progress into a typed **`HandoffContext`** — original task,
+findings, a progress summary, and instructions — and hands it to the
+target agent. The target reads that context as the next turn of the
+same investigation.
 
 ## When to use it
 
@@ -27,8 +31,9 @@ State, checkpointer, and `thread_id` survive.
   one of the targets.
 - ✅ **Escalation** when the first analyst realises it's above their
   tier (after a few turns of triage, not on first read).
-- ✅ The investigation should **carry full context** so the next
-  tier doesn't re-triage from scratch when control transfers.
+- ✅ The investigation should **carry its findings and progress
+  forward** so the next tier doesn't re-triage from scratch when
+  control transfers.
 
 ## When NOT to use it
 
@@ -46,61 +51,79 @@ State, checkpointer, and `thread_id` survive.
 |---|---|---|
 | Investigation owner | **moves** between agents | stays with the coordinator |
 | Routing decision | the agent that's currently in charge | always the coordinator |
-| Specialist's view of history | full transcript | just the sub-task they were dispatched for |
+| Receiving agent's view of history | the handoff summary (findings + progress) | just the sub-task they were dispatched for |
 | Drives the live investigation? | usually yes | usually no |
 
 ## Code
 
 ```python
-from tulip.multiagent import Handoff
+from tulip.multiagent import (
+    HandoffReason,
+    create_handoff_agent,
+    create_handoff_manager,
+)
 
-triage = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, enrich_indicator],
+model = "anthropic:claude-sonnet-4-6"
+
+triage = create_handoff_agent(
+    name="L1 Triage",
     system_prompt=(
         "You are L1 SOC triage on incoming alerts. "
-        "Decide whether this is a malware, phishing, or intrusion case. "
-        "Then call Handoff(target=...)."
+        "Decide whether this is a malware, phishing, or intrusion case, "
+        "then escalate to the right specialist."
     ),
+    tools=[query_siem, enrich_indicator],
+    model=model,
 )
-malware = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[lookup_hash, isolate_host],
+malware = create_handoff_agent(
+    name="L2 Malware",
     system_prompt="You are an L2 malware analyst handling escalations.",
+    tools=[lookup_hash, isolate_host],
+    model=model,
 )
-phishing = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[enrich_indicator, query_siem],
-    system_prompt="You are an L2 analyst handling phishing reports.",
-)
-intrusion = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[isolate_host],
+intrusion = create_handoff_agent(
+    name="L3 Intrusion",
     system_prompt="You are an L3 incident responder handling intrusions.",
+    tools=[isolate_host],
+    model=model,
 )
 
-flow = Handoff(
-    initial=triage,
-    targets={"malware": malware, "phishing": phishing, "intrusion": intrusion},
-)
+# Declare the escalation paths (by agent id).
+triage.can_escalate_to = [malware.id, intrusion.id]
 
-result = flow.run_sync(
-    "EDR alert: suspicious process on host 192.0.2.45 dropping an unknown binary.",
-    thread_id="alert-a42-2026-04",
+manager = create_handoff_manager(agents=[triage, malware, intrusion])
+
+# Hand the investigation from L1 triage up to the L2 malware analyst.
+result = await manager.execute_handoff(
+    source_agent=triage,
+    target_agent_id=malware.id,
+    task="EDR alert: suspicious process on host 192.0.2.45 dropping an unknown binary.",
+    reason=HandoffReason.ESCALATION,
+    findings={"alert_id": "a42-2026-04", "host": "192.0.2.45"},
 )
 ```
 
-## What persists across the handoff
+`execute_handoff` is async — `await` it. It returns a `HandoffResult`
+from the target agent. `HandoffReason` enumerates why the handoff
+happened (`SPECIALIZATION`, `ESCALATION`, `DELEGATION`, ...).
 
-- `state.messages` — the full investigation history.
-- `state.tool_executions` — including idempotency hashes, so the
-  next tier won't re-fire a containment action the previous tier already ran.
-- `state.metadata` — your application's per-investigation data.
-- `thread_id` — same thread, just a different tier driving.
+## What transfers across the handoff
 
-The receiving agent picks up the same loop. It does not see the
-handoff as a "new turn"; it sees the previous transcript and the
-last triage note.
+The `HandoffContext` the target agent receives carries:
+
+- `original_task` — the task the chain started from.
+- `findings` and `progress_summary` — what the source agent learned,
+  rendered into the target's opening prompt.
+- `confidence` — the source agent's self-estimated confidence so far.
+- `instructions` — any specific guidance for the next tier.
+- `handoff_chain` — the chain of custody (who handed to whom).
+
+By default the raw message transcript is **not** forwarded —
+`preserve_full_history` is `False`, so the next tier reads the summary,
+not every prior turn. Set `preserve_full_history=True` on the manager to
+attach key messages (the system message plus the last few), but the
+prompt the target sees is still built from the findings and progress
+summary above.
 
 ## Notebooks
 

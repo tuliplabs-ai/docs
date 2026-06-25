@@ -1,11 +1,13 @@
 # Streaming
 
-Every Tulip agent emits a typed event stream as it runs — and that
-stream **is the audit trail**. Each action (every model call, every
-`isolate_host`, every `block_indicator`) lands as a timestamped,
-write-protected event the instant it happens. Nothing is reconstructed
-after the fact: the chain of custody is the live stream, SIEM-forwardable
-verbatim, replayable in original order during an IR review.
+Every Tulip agent emits a typed event stream as it runs — a live,
+ordered trace of what the agent is doing. Each step (every model call,
+every tool call such as `isolate_host` or `block_indicator`) lands as a
+timestamped event the instant it happens, in the order it happened. The
+stream is the surface you render in a UI, forward to telemetry, and
+replay in original order when reviewing a run. (It is a faithful trace,
+not a tamper-evident ledger — for a hash-chained record of decisions,
+route them through the [`AuditTrail`](agentic-ai-security.md).)
 
 The events are frozen Pydantic classes — not strings, not
 `dict[str, Any]` blobs — designed to drop into a `match` statement that
@@ -96,20 +98,30 @@ branch your IDE underlines it; if you mistype a field name (e.g.
 Every event carries an `event_type` discriminator and a UTC
 `timestamp`, so persisted streams replay in their original order.
 
-## Write-protected — by design
+## Write-protected in memory — by design
 
-Events are **frozen** Pydantic models. A hook can read every field;
-it **cannot** mutate one. Try and you get a `ValidationError`. If a
-hook wants to steer the agent (cancel a tool, retry a model call),
-it uses an explicit method on the event (`event.cancel()`,
-`event.retry()`, `event.replace_arguments(...)`) — the intent is
-visible in code review.
+The streaming events emitted by `agent.run()` are **frozen** Pydantic
+models. A consumer can read every field; it **cannot** mutate one. Try
+and you get a `ValidationError`. Streaming events are observation-only —
+they are not the steering surface.
 
-Why this matters for IR: an audit trail you can silently edit is no
-audit trail. Frozen events make the record tamper-evident — no hook,
-no downstream consumer, no logging shim can backdate a `timestamp` or
-rewrite which indicator got blocked. What the agent did is exactly what
-the persisted stream says it did.
+Steering is a separate, explicit surface: the **hook** events passed to
+`HookProvider` callbacks (a distinct `ProtectedEvent` family in
+`tulip.hooks`). A hook steers by **assigning** to the event's writable
+fields — `event.cancel = True` (or a string reason) to skip a tool,
+`event.retry = True` to re-run a model/tool call, `event.arguments =
+{...}` to rewrite tool arguments before execution. Assigning to a
+read-only field raises `AttributeError`. (There is no `cancel()` /
+`retry()` / `replace_arguments()` method — these are attribute
+assignments, not method calls.)
+
+What `frozen=True` buys you: a hook, downstream consumer, or logging
+shim cannot silently rewrite a streaming event in process — what the
+agent did is what the in-memory stream says it did. Note the scope: this
+is **write-protection in memory only**. Once an event is serialised to
+SSE, a log, or a SIEM there is no integrity guarantee on the bytes; for a
+tamper-evident record route decisions through the
+[`AuditTrail`](agentic-ai-security.md) hash chain.
 
 ## Sync wrapper — when you don't need the stream
 
@@ -141,16 +153,20 @@ async for event in agent.run("Enrich indicator 198.51.100.7 and isolate the host
             print()
 ```
 
-Every event class is a small Pydantic record — no hidden state. What
-the console renders is byte-for-byte what gets serialised over SSE,
-what your checkpointer persists, and what lands in the forwarded
-audit log. One artifact, no drift between the live view and the record.
+Every event class is a small Pydantic record — no hidden state. The
+console render, the SSE serialisation, and the events your hooks forward
+to telemetry all derive from the same event objects, so the live view
+and the forwarded trace stay consistent.
 
 ## SSE over HTTP — for browser UIs
 
-The reference [`AgentServer`](server.md) maps the same event stream
-onto Server-Sent Events. Same `event_type`, same fields, just
-`Content-Type: text/event-stream` over HTTP.
+The reference [`AgentServer`](server.md) maps the event stream onto
+Server-Sent Events. Each event is written as a single `data: {json}\n\n`
+frame with `Content-Type: text/event-stream`. The JSON carries a `type`
+field (`think`, `tool_start`, `tool_complete`, `done`, `error`, or the
+raw `event_type` for everything else); the stream ends with a literal
+`data: [DONE]` frame. The route does **not** emit named SSE events
+(`event:` lines), so every frame arrives as the default `message`.
 
 ```python
 from tulip.server import AgentServer
@@ -160,13 +176,37 @@ server = AgentServer(agent=agent)
 uvicorn.run(server.app, port=8000)
 ```
 
+`/stream` is a **POST** endpoint that reads the prompt from the JSON
+body (and an `Authorization: Bearer` header when an `api_key` is set), so
+the browser `EventSource` API (which only issues GET) cannot drive it.
+Use `fetch()` + a `ReadableStream` reader and parse the `data:` frames
+yourself:
+
 ```javascript
-// Browser-side
-const es = new EventSource('/stream?prompt=...');
-es.addEventListener('ModelChunkEvent', (e) => {
-    const { content } = JSON.parse(e.data);
-    document.getElementById('out').innerText += content;
+// Browser-side — POST + manual SSE-frame parsing
+const res = await fetch('/stream', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Triage alert SOC-4821.' }),
 });
+const reader = res.body.getReader();
+const decoder = new TextDecoder();
+let buf = '';
+for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const frames = buf.split('\n\n');
+    buf = frames.pop();                         // keep the partial frame
+    for (const frame of frames) {
+        const line = frame.replace(/^data: /, '');
+        if (line === '[DONE]') continue;
+        const evt = JSON.parse(line);           // { type, ... }
+        if (evt.type === 'think') {
+            document.getElementById('out').innerText += evt.content;
+        }
+    }
+}
 ```
 
 ## Common gotchas

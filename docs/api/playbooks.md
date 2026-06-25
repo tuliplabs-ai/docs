@@ -2,9 +2,11 @@
 
 Structured execution plans for agents — declared step sequences with
 expected tools, validation criteria, and guidance hints. When attached
-via `AgentConfig.playbook`, the `PlaybookEnforcer` hook gates each
-tool call against the current step and auto-advances when the step's
-`expected_tools` are exhausted.
+via `AgentConfig.playbook`, the `PlaybookEnforcerHook` (the
+`HookProvider` the agent installs automatically) drives a
+`PlaybookEnforcer` engine that gates each tool call against the
+current step and auto-advances when the step's `expected_tools` are
+exhausted.
 
 ## Models
 
@@ -22,9 +24,12 @@ tool call against the current step and auto-advances when the step's
 
 ## Enforcer
 
-The hook that holds the model to the playbook's step sequence.
-Installed automatically when `AgentConfig.playbook` is set.
+`PlaybookEnforcer` is the enforcement engine that holds the model to
+the playbook's step sequence. `PlaybookEnforcerHook` is the
+`HookProvider` wrapper around it, installed automatically when
+`AgentConfig.playbook` is set.
 
 ::: tulip.playbooks.enforcer.PlaybookEnforcer
 ::: tulip.playbooks.enforcer.EnforcementResult
 ::: tulip.playbooks.enforcer.EnforcementViolation
+::: tulip.playbooks.hook.PlaybookEnforcerHook

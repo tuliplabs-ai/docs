@@ -19,8 +19,12 @@ contract used by `AgentConfig.checkpointer`.
 
 ## Other backends
 
-The same `BaseCheckpointer` contract is implemented for Redis,
-PostgreSQL, MySQL, OpenSearch, file system, and an HTTP-API adapter.
+The file-system, HTTP-API, and in-memory backends implement the
+`BaseCheckpointer` contract natively. Redis, PostgreSQL, MySQL, and
+OpenSearch ship as simple key-value backends (Pydantic models) that the
+`StorageBackendAdapter` (below) wraps into the same contract — use the
+factory functions rather than passing them to `AgentConfig.checkpointer`
+directly.
 
 ::: tulip.memory.backends.RedisBackend
 ::: tulip.memory.backends.PostgreSQLBackend
@@ -33,7 +37,15 @@ PostgreSQL, MySQL, OpenSearch, file system, and an HTTP-API adapter.
 ## Adapters
 
 `StorageBackendAdapter` wraps any of the simple key-value backends
-above into the full `BaseCheckpointer` interface. Call `.as_checkpointer()`
-on a backend for a one-line shortcut.
+above into the full `BaseCheckpointer` interface. For the common
+backends, use the factory functions — `redis_checkpointer(...)`,
+`postgresql_checkpointer(...)`, `mysql_checkpointer(...)`,
+`opensearch_checkpointer(...)`, `s3_checkpointer(...)` — which build
+the adapter for you.
 
 ::: tulip.memory.backends.adapters.StorageBackendAdapter
+::: tulip.memory.backends.adapters.redis_checkpointer
+::: tulip.memory.backends.adapters.postgresql_checkpointer
+::: tulip.memory.backends.adapters.mysql_checkpointer
+::: tulip.memory.backends.adapters.opensearch_checkpointer
+::: tulip.memory.backends.adapters.s3_checkpointer

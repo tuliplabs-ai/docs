@@ -44,8 +44,14 @@ The argument hash is the trust boundary:
 - **Different call**: the model emits `isolate_host("WS-015", "INC-92")` →
   different key, body runs.
 
-Caching is keyed on the **canonical JSON form** of the arguments, so
-key order, default values, and whitespace don't matter.
+Dedup compares the **raw arguments dict** the model emitted, exactly as
+it emitted it — a plain `dict == dict` equality on `(tool_name,
+arguments)`. There is no JSON canonicalization and **no schema
+normalization**: defaults are *not* filled in before the comparison, so
+a call that omits an optional argument and a call that passes that
+argument's default value are treated as **different keys** and both fire
+the body. (Dict equality is itself order-independent, so key order alone
+won't break a match.)
 
 ## Why this matters
 

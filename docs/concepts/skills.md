@@ -78,9 +78,14 @@ enrichment = Skill(
 )
 ```
 
-`allowed_tools` scopes which tools the skill may invoke when active —
-enforced at the loop level. A skill with `allowed_tools=None` can use
-any tool registered with the agent.
+`allowed_tools` is an **advisory hint**: when the skill activates, its
+allowed-tools list is surfaced to the model as an `Allowed tools: …`
+line appended to the skill instructions. It is not a hard loop-level
+filter — the model still sees every tool registered on the agent, so
+treat `allowed_tools` as guidance, not enforcement. When you need a tool
+to be genuinely unreachable, don't register it on the agent (or gate it
+with a [hook](hooks.md)). A skill with `allowed_tools=None` adds no such
+line.
 
 ### Filesystem — drop a `SKILL.md`
 
@@ -127,13 +132,16 @@ agent = Agent(config=AgentConfig(model=..., skills=skills))
 
 ### Worked example — a contained incident-response skill
 
-Phishing-link triage, scoped so the loaded skill can read and enrich
-but **cannot** isolate a host — containment stays a deliberate,
-separately-authorised step.
+Phishing-link triage, scoped so the loaded skill is *steered* to read
+and enrich rather than isolate a host — containment stays a deliberate,
+separately-authorised step. (Because `allowed_tools` is advisory, the
+hard guarantee comes from how you register tools, not the skill — see
+below.)
 
 ```python
 from tulip.agent import Agent, AgentConfig
-from tulip.security import security_toolset, ground_finding, is_finding
+from tulip.security import security_toolset, ground_finding, is_finding, Severity
+from tulip.reasoning.gsar import Claim, EvidenceType, Partition
 from tulip.skills import Skill
 
 ir_triage = Skill(
@@ -150,7 +158,7 @@ ir_triage = Skill(
         "4. Recommend containment in prose. Do NOT call `isolate_host` "
         "or `block_indicator` — that is the responder's call.\n"
     ),
-    # read + enrich only; containment tools are deliberately withheld
+    # read + enrich only; steers the model away from containment tools
     allowed_tools=["fetch_alert", "query_siem", "enrich_indicator", "lookup_hash"],
 )
 
@@ -164,19 +172,39 @@ agent = Agent(config=AgentConfig(
 
 result = agent.run("User clicked a link in alert AL-4471 — triage it.")
 
-# gate the verdict: a grounded Finding, or an Abstention
-verdict = ground_finding(result.text, evidence=result.tool_results)
+# Gate the verdict through GSAR: ground_finding ships an Evidence only if
+# the supporting claims clear the threshold, else an Abstention. Build the
+# partition from what your tools actually returned (see GSAR for details).
+partition = Partition(
+    grounded=[
+        Claim(
+            text="enrich_indicator flagged the sender domain as malicious",
+            type=EvidenceType.TOOL_MATCH,
+            evidence_refs=[f"tool:{ex.name}" for ex in result.tool_executions],
+        ),
+    ],
+)
+verdict = ground_finding(
+    title="Phishing compromise confirmed for AL-4471",
+    description="User clicked a link whose sender domain is known-malicious.",
+    severity=Severity.HIGH,
+    asset="AL-4471",
+    remediation="Reset the user's credentials and isolate the host.",
+    partition=partition,
+)
 if is_finding(verdict):
-    print("CONFIRMED:", verdict.summary, verdict.severity)
+    print("CONFIRMED:", verdict.title, verdict.severity)
 else:
-    print("ABSTAINED — insufficient evidence to confirm compromise")
+    print("ABSTAINED —", verdict.reason)
 ```
 
 `security_toolset(allow_containment=True)` registers `isolate_host` and
-`block_indicator` on the agent, but `allowed_tools` keeps them out of
-reach while `ir-phishing-triage` is loaded. The skill investigates; a
-human (or a separate, audited [playbook](playbooks.md)) pulls the
-trigger.
+`block_indicator` on the agent, and the skill's instructions steer the
+model away from them while `ir-phishing-triage` is loaded. Because
+`allowed_tools` is advisory (not a hard filter), if you need containment
+to be *unreachable* during triage, omit `allow_containment=True` so the
+tools are never registered. Either way, a human (or a separate, audited
+[playbook](playbooks.md)) pulls the trigger.
 
 ## Why progressive disclosure earns its keep
 
@@ -215,7 +243,8 @@ of them call.
 |---|---|
 | Skill never activates | `description` doesn't match how the user phrases the request. Rewrite it as a "use when…" sentence with the user's vocabulary. |
 | All skills load every turn | Progressive disclosure only kicks in if `skills=[...]` is set — passing skills as raw text in `system_prompt=` defeats it. |
-| `allowed_tools` is silently ignored | Tools must also be registered on the agent (`tools=[...]`). The skill's `allowed_tools` is a *subset* filter, not a registration. |
+| A tool in `allowed_tools` is never called | `allowed_tools` doesn't register tools — it only adds an advisory `Allowed tools:` hint to the skill. The tool must still be registered on the agent (`tools=[...]`) for the model to call it. |
+| The model called a tool *not* in `allowed_tools` | Expected — `allowed_tools` is advisory, not an enforced filter. To make a tool unreachable, don't register it (or gate it with a hook). |
 | Skill resource file isn't read | The model has to ask for it. If a reference is mandatory, inline its key bullets in `instructions=` instead. |
 
 ## Source and notebook

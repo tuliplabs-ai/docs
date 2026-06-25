@@ -1,21 +1,31 @@
 # SSE event catalogue
 
 Tulip publishes a single canonical stream of events on its in-process
-`EventBus` — a forensic SSE stream suitable for SIEM/Syslog ingestion,
-one event per analyst-visible action (see
-[Observability](observability.md) for the hooks that ship it). Every
-event carries a stable `event_type` string keyed by the component that
-produced it (`agent.*`, `multiagent.*`, `composition.*`, `router.*`,
-`rag.*`, `memory.*`, `a2a.*`, `skills.*`, `deepagent.*`).
+`EventBus` — an observability/telemetry stream, one event per
+component-visible action (see [Observability](observability.md) for the
+hooks that ship it). Every event carries a stable `event_type` string
+keyed by the component that produced it (`agent.*`, `multiagent.*`,
+`composition.*`, `router.*`, `rag.*`, `memory.*`, `a2a.*`, `skills.*`,
+`deepagent.*`).
 
-Each SOC action — every `query_siem`, `enrich_indicator`, `isolate_host`
-— surfaces as a timestamped, span-tied event you can replay during
-incident review.
+Each action — every `query_siem`, `enrich_indicator`, `isolate_host` —
+surfaces as a timestamped, span-tied event you can render live or replay
+from the in-memory history buffer.
 
-This page is the **wire-format contract**. The workbench renderer,
-the JSON log adapter, and any downstream OTEL bridge consume from it —
-it is also the audit trail you forward to a SIEM. If you add a new
-emission site, list it here.
+!!! warning "Not a durable audit log"
+    The `EventBus` is **in-process, single-instance, lossy, and
+    bounded**: events are dropped for a subscriber whose queue stays
+    saturated past a 1-second timeout, history is capped (500 events per
+    run, oldest of 200 runs evicted first), and nothing is persisted. It
+    is excellent for live UIs, dashboards, and forwarding to your own
+    OTEL/SIEM pipeline — but it is **not** a complete or tamper-evident
+    audit trail on its own. Forward events to durable storage if you need
+    retention, and route security decisions through the
+    [`AuditTrail`](agentic-ai-security.md) for a tamper-evident record.
+
+This page is the **wire-format contract**. The workbench renderer, the
+JSON log adapter, and any downstream OTEL bridge consume from it. If you
+add a new emission site, list it here.
 
 ## How emission works
 
@@ -177,8 +187,8 @@ runs.
 | Layer | Cost |
 |---|---|
 | No `run_context` active | One `ContextVar.get()` per emit site. Bus singleton never instantiated. |
-| `run_context` active, no subscriber | `bus.publish()` iterates an empty queue list, appends to per-run history (LRU cap 200 runs × 500 events). Memory bounded. |
-| Slow subscriber | Per-event `wait_for(queue.put, timeout=1s)` drops *that* one event for *that* one slow subscriber, increments `bus._dropped_events`, continues for everyone else. |
+| `run_context` active, no subscriber | `bus.publish()` iterates an empty queue list, appends to per-run history (FIFO: a 500-event `deque` per run; oldest of 200 retained runs evicted first by insertion order). Memory bounded. |
+| Slow subscriber | Per-event `wait_for(queue.put, timeout=1s)` drops *that* one event for *that* one slow subscriber, increments the bus drop counter (surfaced as `dropped_events_total` in `stats()`), continues for everyone else. |
 
 ## Adding a new event
 

@@ -17,12 +17,16 @@ from tulip.security import SecurityContext
 from tulip_integrations.edr.crowdstrike import CrowdStrikeEndpoint
 
 ctx = SecurityContext(endpoint=CrowdStrikeEndpoint())
-await ctx.endpoint.get_host("WIN-ABC", window="24h")   # forensic timeline
-await ctx.endpoint.detections()                         # open detections
+await ctx.endpoint.get_host("WIN-ABC", window="24h")   # host device record (live)
+await ctx.endpoint.detections()                         # open detections (live)
 ```
 
-The read tools pull a host's forensic timeline and open detections from the
-Falcon API; `cs_isolate` network-contains a host — a **write**, so gate it
+On the live path `get_host` queries Falcon's device-entity endpoint
+(`/devices/entities/devices/v2`) and returns the raw device record; the richer
+process/network/file *forensic timeline* is what the bundled offline sample
+returns. `detections` lists open detections — on the live path it queries the
+detect-IDs endpoint and the `host` filter is **offline-only** (the live call
+ignores it). `cs_isolate` network-contains a host — a **write**, so gate it
 through `ctx.actions` / `approve()` first. Passes `tulip.security.testing`
 conformance.
 
