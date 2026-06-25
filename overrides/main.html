@@ -7,7 +7,7 @@
   hover.
 #}
 {% block htmltitle %}
-  {% set tab_title = "tulip agents — the SDK for agents you can let act" %}
+  {% set tab_title = "tulip agents — the control runtime for agents that act" %}
   {% if page and page.title and not page.is_homepage %}
     <title>{{ page.title | striptags }} - {{ tab_title }}</title>
   {% else %}
@@ -25,24 +25,24 @@
   matches the brand assets the team designed.
 #}
 {% block extrahead %}
-  {% set page_title = page.title | striptags if page and page.title and not page.is_homepage else "The SDK for agents you can let act" %}
+  {% set page_title = page.title | striptags if page and page.title and not page.is_homepage else "The control runtime for agents that act" %}
   {% set page_desc = page.meta.description if page and page.meta and page.meta.description else config.site_description %}
   {% set page_url = page.canonical_url if page and page.canonical_url else config.site_url %}
   {% set og_image = (config.site_url ~ "/img/tuliplabs-logo.png") | replace("//img/", "/img/") %}
 
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="tulip agents — the SDK for agents you can let act">
+  <meta property="og:site_name" content="tulip agents — the control runtime for agents that act">
   <meta property="og:title" content="{{ page_title }}">
   <meta property="og:description" content="{{ page_desc }}">
   <meta property="og:url" content="{{ page_url }}">
   <meta property="og:image" content="{{ og_image }}">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="640">
-  <meta property="og:image:alt" content="Tulip — the SDK for agents you can let act · pip install tulip-agents · github.com/tuliplabs-ai/sdk-python">
+  <meta property="og:image:alt" content="Tulip — the control runtime for agents that act · pip install tulip-agents · github.com/tuliplabs-ai/sdk-python">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ page_title }}">
   <meta name="twitter:description" content="{{ page_desc }}">
   <meta name="twitter:image" content="{{ og_image }}">
-  <meta name="twitter:image:alt" content="Tulip — the SDK for agents you can let act · pip install tulip-agents · github.com/tuliplabs-ai/sdk-python">
+  <meta name="twitter:image:alt" content="Tulip — the control runtime for agents that act · pip install tulip-agents · github.com/tuliplabs-ai/sdk-python">
 {% endblock %}
