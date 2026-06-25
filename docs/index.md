@@ -9,15 +9,15 @@ hide:
 
 <p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the control runtime</p>
 
-# Agents you can finally <span class="accent">let act</span>.
+# Let your agent act. <span class="accent">You stay in control.</span>
 
-Let your agent take the actions that matter — move the money, disable the account, isolate the host. Tulip puts every risky step behind a **policy gate**, a **human approval**, and an **audit trail it can't forge** — before it runs.
+Add Tulip to the agent you already have — on any framework. Every risky action it takes — move the money, change the infra, disable the account — runs only after it clears your **policy**, holds for a **human** when it matters, and lands on an **audit trail it can't forge**.
 
 **You can fool the model; you can't talk past the runtime.**
 
-Your agent is one jailbreak from production — so Tulip is a drop-in for the agent you already have, proven first in security (SOC, EDR, identity) where a wrong action is a breach.
+A drop-in for LangChain, CrewAI, the OpenAI Agents SDK, or your own loop — proven first in security (SOC, EDR, identity), where a wrong action is a breach.
 
-<div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[MITRE&nbsp;ATLAS](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;LLM&nbsp;Top&nbsp;10](concepts/security.md)</span> · <span style="white-space:nowrap">[OWASP&nbsp;ASI](concepts/security.md)</span></div>
+<div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[LangChain](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[CrewAI](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[OpenAI&nbsp;Agents](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[LlamaIndex](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[MCP](concepts/mcp.md)</span></div>
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
