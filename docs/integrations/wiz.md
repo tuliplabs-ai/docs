@@ -13,10 +13,11 @@ pip install "tulip-integrations[wiz-aispm]"
 |---|---|
 | **Env** | `WIZ_API_ENDPOINT` · `WIZ_CLIENT_ID` · `WIZ_CLIENT_SECRET` |
 | **Import** | `from tulip_integrations.vuln.wiz import wiz_inventory_tool, wiz_issues_tool` |
-| **Tools** | `wiz_inventory()` · `wiz_issues(severity)` |
-| **Findings** | `wiz_to_findings()` → grounded `Finding[]` |
-| **Adapter** | `wiz_adapter()` → `SecurityAdapter` |
-| **Playbook** | `ai_spm_review()` |
+| **Functions** | `wiz_inventory()` · `wiz_issues(severity)` |
+| **Agent tools** | `wiz_inventory_tool` · `wiz_issues_tool` |
+| **Findings** | `wiz_to_findings()` → `list[GroundedFinding]` (each a `Finding`, or an `Abstention`) |
+| **Adapter** | `wiz_adapter()` → `ToolAdapter` (a `SecurityAdapter`) |
+| **Playbook** | `ai_spm_review()` — from `tulip_integrations.playbooks` |
 
 ```python
 from tulip_integrations.vuln.wiz import wiz_to_findings

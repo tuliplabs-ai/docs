@@ -9,9 +9,10 @@ pip install "tulip-integrations[siem-splunk]"
 | **Env** | `SPLUNK_URL` · `SPLUNK_TOKEN` |
 | **Import** | `from tulip_integrations.siem.splunk import SplunkLogs, splunk_siem_tool` |
 | **Provider** | `SplunkLogs` → `SecurityContext(logs=SplunkLogs())` |
-| **Tools** | `splunk_search(spl, earliest)` |
-| **Adapter** | `splunk_adapter()` → `SecurityAdapter` |
-| **Playbook** | `splunk_threat_hunt()` |
+| **Function** | `splunk_search(spl, earliest)` |
+| **Agent tool** | `splunk_siem_tool` |
+| **Adapter** | `splunk_adapter()` → `ToolAdapter` (a `SecurityAdapter`) |
+| **Playbook** | `splunk_threat_hunt()` — from `tulip_integrations.playbooks` |
 
 ```python
 from tulip.security import security_toolset

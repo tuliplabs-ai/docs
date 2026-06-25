@@ -6,8 +6,9 @@ contract and reuses the core toolkit. It lives in a separate distribution
 discovered by explicit import.
 
 Place it in the **domain package that fits your vendor** — `siem/`, `edr/`,
-`identity/`, `threat_intel/`, `vuln/`, `cloud/`, or `compute/` — one canonical
-home per integration. Copy `tulip_integrations/siem/splunk.py` as the template.
+`identity/`, `threat_intel/`, `vuln/`, `compute/`, `notify/`, or `soar/` — one
+canonical home per integration (add a new domain package if none fits). Copy
+`tulip_integrations/siem/splunk.py` as the template.
 
 ## The contract
 
@@ -28,7 +29,9 @@ from tulip.security import SecurityAdapter, ToolAdapter  # the protocol + a conc
    (`name`, `vendor`, `_tools=[…]`).
 4. **(If it asserts about an asset)** build a GSAR partition with
    `tulip.security.tool_match` / `inference_claim` and route it through
-   `tulip.security.ground_finding`, so an ungrounded result abstains.
+   `tulip.security.ground_finding`, so an ungrounded result abstains. (For
+   threat-intel indicators, `tulip.security.indicator_type` maps a coarse kind —
+   `"ip"` / `"domain"` / `"hash"` — to the typed enum.)
 5. **An optional extra** in `pyproject.toml` (`<area>-<vendor>`) if the live
    path needs a vendor SDK. The offline path must need nothing beyond core.
 
