@@ -288,8 +288,10 @@ nav:
     - CrowdStrike (EDR): integrations/crowdstrike.md
     - Okta (identity): integrations/okta.md
     - Auth0 (identity): integrations/auth0.md
+    - Microsoft Entra ID (identity): integrations/entra.md
     - VirusTotal (threat intel): integrations/virustotal.md
     - Wiz (AI-SPM): integrations/wiz.md
+    - Cortex XSOAR (SOAR): integrations/cortex-xsoar.md
   - Compute:
     - RunPod (GPU probe): integrations/runpod.md
     - Lambda Cloud (GPU probe): integrations/lambda.md

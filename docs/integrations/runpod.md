@@ -21,8 +21,8 @@ measurement abstains instead of asserting an identity.
 The RunPod backend is a **pod + container-image** model: it provisions a real GPU
 pod from your probe image, runs the probe against the target endpoint, collects the
 timing feature vector, tears the pod down, and feeds the vector to core
-[`fingerprint_to_finding`](../concepts/security.md) for a grounded
-`FingerprintFinding`.
+[`fingerprint_to_finding`](../concepts/security.md) for a grounded finding (a
+`FingerprintFinding`, or an `Abstention` when coverage is thin).
 
 ## Install
 
@@ -38,7 +38,7 @@ pip install "tulip-integrations[compute-runpod]"   # pulls the runpod SDK
 | **Install** | `tulip-integrations[compute-runpod]` — needs the `runpod` SDK |
 | **Import** | `from tulip_integrations.compute.runpod import runpod_probe` |
 | **Probe** | `runpod_probe(endpoint)` → timing feature vector |
-| **Grounded** | `probe_to_finding(endpoint, provider="runpod")` → grounded `FingerprintFinding` |
+| **Grounded** | `probe_to_finding(endpoint, provider="runpod")` → `GroundedFinding` (`FingerprintFinding`, or `Abstention`) |
 | **ATLAS** | tags `AML.T0040` (Inference API Access) · `AML.T0024` (Exfiltration via Inference API) |
 
 ## How the RunPod lifecycle works
@@ -69,16 +69,21 @@ print(f.verdict.model, "/", f.verdict.engine, "/", f.verdict.hardware)
 # 7-8B class / vLLM (continuous-batching) / H100/A100 class
 ```
 
-Set `RUNPOD_API_KEY` and point `RUNPOD_PROBE_IMAGE` at your published probe image,
-and the lifecycle above runs against a live GPU.
+Set `RUNPOD_API_KEY` and point `RUNPOD_PROBE_IMAGE` at your published probe image
+to drive the live lifecycle.
+
+!!! warning "Unverified live path"
+    Only the **offline sample path is exercised in CI.** The provision → probe →
+    terminate lifecycle is written to RunPod's documented API and depends on a probe
+    container image you supply; it has not been run end-to-end against a live
+    account. Treat the live path as a reference implementation to validate in your
+    own environment.
 
 ## Grounding
 
 The timing feature vector routes through core `fingerprint_to_finding`, so an
 under-observed endpoint abstains rather than asserting a model identity.
-`runpod_probe()` orchestrates the full provision → probe → terminate lifecycle;
-point `RUNPOD_PROBE_IMAGE` at your published probe image to run it against a
-live GPU.
+`runpod_probe()` orchestrates the full provision → probe → terminate lifecycle.
 
 !!! warning "The live path is billable"
     A live run spins up an H100-class GPU. Gate it behind explicit approval and a

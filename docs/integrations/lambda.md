@@ -34,7 +34,7 @@ pip install "tulip-integrations[compute-lambda]"   # httpx only — no extra SDK
 | **Install** | `tulip-integrations[compute-lambda]` — no extra runtime dep (uses core `httpx`) |
 | **Import** | `from tulip_integrations.compute.lambda_cloud import lambda_probe` |
 | **Probe** | `lambda_probe(endpoint)` → timing feature vector |
-| **Grounded** | `probe_to_finding(endpoint, provider="lambda")` → grounded `FingerprintFinding` |
+| **Grounded** | `probe_to_finding(endpoint, provider="lambda")` → `GroundedFinding` (`FingerprintFinding`, or `Abstention`) |
 | **ATLAS** | tags `AML.T0040` (Inference API Access) · `AML.T0024` (Exfiltration via Inference API) |
 
 ## How the Lambda lifecycle works
@@ -70,6 +70,12 @@ print(f.verdict.model, "/", f.verdict.engine, "/", f.verdict.hardware)
 
 The feature vector routes through core `fingerprint_to_finding` (shared with
 RunPod), so a thin measurement abstains rather than asserting a model identity.
+
+!!! warning "Unverified live path"
+    Only the **offline sample path is exercised in CI.** The launch → poll →
+    terminate lifecycle is written to Lambda Cloud's documented API but has not been
+    run against a live account; you also supply the probe and its result sink. Treat
+    the live path as a reference implementation to validate in your own environment.
 
 !!! warning "The live path is billable"
     A live run boots an H100-class instance. Gate it behind explicit approval and a

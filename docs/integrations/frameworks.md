@@ -2,9 +2,9 @@
 
 You don't have to rebuild your agent on Tulip to get the control runtime. If you
 already have an agent in **LangChain / LangGraph, CrewAI, the OpenAI Agents SDK,
-or LlamaIndex**, keep it — and put Tulip's admission gate around the *actions* it
-takes. The model and orchestration stay yours; the gate, the human-in-the-loop,
-and the tamper-evident audit trail come from Tulip.
+LlamaIndex, or Google ADK**, keep it — and put Tulip's admission gate around the
+*actions* it takes. The model and orchestration stay yours; the gate, the
+human-in-the-loop, and the tamper-evident audit trail come from Tulip.
 
 The reason this works is that the gate is framework-agnostic by construction:
 
@@ -14,9 +14,11 @@ await admit(action, perform, policy=policy, trail=trail)
 ```
 
 `admit()` takes an `Action` (the *what*, with its blast radius and environment)
-and `perform` — **any** zero-argument callable that does the work. That callable
-can be a LangChain tool's function, a CrewAI task, a raw OpenAI tool-call
-handler, or a plain Python function. Nothing about it is Tulip-specific.
+and `perform` — **any** zero-argument **async** callable that does the work. That
+callable can wrap a LangChain tool's function, a CrewAI task, a raw OpenAI
+tool-call handler, or a plain Python function. (Raw `admit()` awaits `perform`, so
+wrap a sync call in an `async def`; the `gate_*_tool` helpers below handle the
+sync↔async bridge for you.) Nothing about it is Tulip-specific.
 
 ## The pattern: wrap the tool's body
 
