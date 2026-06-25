@@ -57,6 +57,23 @@ The same three moves apply to every framework:
 - **CrewAI** — call `admit()` inside the tool's `_run` / async run.
 - **OpenAI Agents SDK** — wrap the function behind your `function_tool`.
 - **LlamaIndex** — wrap the function behind your `FunctionTool`.
+- **Google ADK** — wrap the function behind your `FunctionTool`; the gated tool
+  keeps the original signature so ADK builds the right function declaration.
+
+## Gate vs. compose vs. assure
+
+"Integrating with X" means three different things depending on what X is — don't
+force them into one mould:
+
+| If X is… | …the relationship is | …how |
+|---|---|---|
+| an **agent framework** (LangChain, LangGraph, CrewAI, OpenAI Agents, LlamaIndex, ADK) | **Gate** its tools | `gate_*_tool` (above) |
+| a **model-call gateway** (LiteLLM, Portkey) | **Compose** — it routes the model call, Tulip gates the action | point your model at the gateway *and* wrap the action in `admit()`; they stack |
+| **another agent** you don't control (a chatbot, an endpoint, an OpenClaw-style runtime) | **Assure** — red-team it | the core SDK's `Target` + [`red_team()`](../concepts/security.md) |
+
+A model-call gateway is **not** something you gate — it governs *which model, whose
+key, within what budget*; Tulip governs *whether the action runs*. They're different
+layers and they compose cleanly. Trying to "gate LiteLLM" is a category error.
 
 ## Raise vs. soft mode
 
