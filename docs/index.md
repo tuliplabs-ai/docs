@@ -63,6 +63,37 @@ except AdmissionError as e:
 </div>
 </div>
 
+## Most frameworks help the model *decide*. Tulip governs what it *does*.
+
+The moment an agent stops advising and starts **acting** — moving money, deleting a
+resource, disabling an account, isolating a host — the risk stops being a bad
+sentence and becomes a real consequence. A frontier model can be brilliant and
+still be talked into the catastrophic action; the one thing it *structurally*
+cannot do — no matter how smart — is **prove it won't**. That's not an
+intelligence problem, it's a control problem.
+
+A prompt rule the model *chooses* to follow is advisory by definition — a
+jailbreak, an injected document, or a confused chain talks it past. Tulip makes
+the rule **structural**: the side-effecting call runs only after it clears
+`admit()`, a gate the model has no way to reach around.
+
+### Three ways to "make agents safe"
+
+| | Bare model + prompt rules | Framework guardrails | **Tulip** |
+|---|---|---|---|
+| **Where safety lives** | in a prompt the model can be argued out of | input/output filters around the call | an admission gate **around the action** |
+| **Can a jailbreak bypass it?** | yes — talk the model out of the rule | often — filters score text, not blast radius | **no** — the action runs only if `admit()` allows |
+| **Human-in-the-loop** | ad-hoc, if you wire it | sometimes, per-framework | first-class: `require_human_for` by environment / kind / tag |
+| **Proof of what happened** | logs you can edit | app logs | **hash-chained `AuditTrail`** — `verify()` fails on any edit |
+| **Evidence behind a claim** | "trust the model" | none | **GSAR grounding** — a `Finding` only above threshold, else `Abstention` |
+| **Works with your stack** | — | you adopt the framework | **drop-in**: wrap a call your agent already makes, on any framework |
+
+Guardrails and grounding are good — Tulip ships both. The moat is the gate: a wrong
+action isn't filtered after the fact, it's **prevented before it runs**, and the
+decision is recorded whether it ran or not.
+
+[Why Tulip — the full argument →](why-tulip.md) · [Drop it into your framework →](integrations/frameworks.md)
+
 ## The trust chain
 
 A security agent that *finds* something still must not *act* on its own
@@ -232,6 +263,13 @@ SOC/IR is the second.
 Full catalog → [Notebooks index](notebooks/index.md) · [Capabilities matrix](capabilities.md) · [API reference](api/agent.md)
 
 [gh-examples]: https://github.com/tuliplabs-ai/sdk-python/tree/main/examples
+
+## When Tulip is overkill
+
+If your agent only reads and summarizes — no side effects, no money, no
+infrastructure, no irreversible writes — you may not need an admission gate yet.
+Tulip still gives you grounded findings and a typed event stream, but the control
+runtime earns its keep the moment an action can **cost** something.
 
 ---
 
