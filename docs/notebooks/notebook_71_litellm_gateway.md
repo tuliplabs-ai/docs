@@ -2,11 +2,11 @@
 
 This notebook is the runnable companion to the
 [LiteLLM AI Gateway how-to](../how-to/litellm-gateway.md). It demonstrates
-the production-shaped integration pattern: a Tulip agent talks to a
-LiteLLM AI Gateway via the **existing** `OpenAIModel(base_url=...)`,
-and the gateway handles every upstream concern (provider auth,
-vendor adapters, fallbacks, virtual keys, budgets, observability, cost
-tracking, caching, guardrails).
+the production-shaped integration pattern: a Tulip cloud-operations
+agent talks to a LiteLLM AI Gateway via the **existing**
+`OpenAIModel(base_url=...)`, and the gateway handles every upstream
+concern (provider auth, vendor adapters, fallbacks, virtual keys,
+budgets, observability, cost tracking, caching, guardrails).
 
 **No new Tulip model class. The gateway is OpenAI-shaped by design.**
 
@@ -19,6 +19,8 @@ tracking, caching, guardrails).
    against the alias in `LITELLM_GATEWAY_MODEL` (default
    `gpt-4o`, defined in
    [`examples/litellm-gateway/config.yaml`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/litellm-gateway/config.yaml)).
+   The agent fields a couple of everyday cloud-ops questions (IaC,
+   triaging a failing EC2 health check).
 3. **Streams a response** through the same agent to prove SSE flows
    end-to-end Tulip → gateway → provider.
 

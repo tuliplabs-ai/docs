@@ -1,36 +1,37 @@
-# Vendor Security Review
+# Customer-Support Concession Approval
 
-Real third-party-risk programs have a tier-based escalation chain::
+Real support orgs gate costly concessions behind a tier-based escalation chain::
 
-    Vendor intake (questionnaire on file)
+    Ticket intake (case history on file)
        │
        ▼
-    Questionnaire analyst  (summarises the vendor's security questionnaire)
+    Ticket analyst  (summarises what the customer is asking for and why)
        │
        ▼
-    Posture analyst  (assesses data exposure + control posture)
+    Impact analyst  (assesses concession cost + precedent + churn risk)
        │
        ▼
-    Risk-tier router  ── score < 25 ──> auto-approve (low risk)
-                      ── 25–49     ──> security-manager approval (interrupt)
-                      ── 50–74     ──> manager + GRC approval (two interrupts)
-                      ── >= 75     ──> manager + GRC + CISO approval (three interrupts)
+    Risk-tier router  ── score < 25 ──> auto-approve (small credit)
+                      ── 25–49     ──> support-manager approval (interrupt)
+                      ── 50–74     ──> manager + billing approval (two interrupts)
+                      ── >= 75     ──> manager + billing + director approval (three interrupts)
        │
        ▼
-    Decision recorder  (emits structured VendorDecision)
+    Decision recorder  (emits structured ConcessionDecision)
 
 Each approval gate is a separate `interrupt()` so a reviewer can come
-back to it later. The terminal node is SCRIBE, the SOC's compliance
-reporter: it emits a typed `VendorDecision` Pydantic model that files
-into the vendor-risk register without parsing. Third-party AI services
-widen the agentic supply chain (OWASP ASI04), so the posture step is
-where you weigh attestations (SOC 2, ISO 27001) against what data the
-vendor would actually touch.
+back to it later. The terminal node is SCRIBE, the support org's case
+recorder: it emits a typed `ConcessionDecision` Pydantic model that files
+into the concessions ledger without parsing. A large refund or contract
+make-good spends real money and sets a precedent other customers will
+cite, so the impact step is where you weigh the customer's standing and
+lifetime value against the cost of the concession and the downside of a
+denial (churn, escalation, public complaint).
 
 - Risk-tier router is a plain conditional edge — no DSL, no policy file.
 - Each gate is its own node — easy to add a tier, easy to re-order,
   easy to swap a human gate for an automated rule.
-- `output_schema=VendorDecision` keeps the terminal artifact typed.
+- `output_schema=ConcessionDecision` keeps the terminal artifact typed.
 
 Run it (defaults to the bundled mock model; set `TULIP_MODEL_PROVIDER` to `openai` / `anthropic` for a live model):
 
@@ -40,7 +41,7 @@ Offline:
 
     TULIP_MODEL_PROVIDER=mock python examples/notebook_64_procurement_approval.py
 
-Pin a strong-enough model for the structured VendorDecision schema:
+Pin a strong-enough model for the structured ConcessionDecision schema:
 
     TULIP_MODEL_ID=openai.gpt-4.1 python examples/notebook_64_procurement_approval.py
 

@@ -1,6 +1,9 @@
 # Event Catalogue
 
-Every component in Tulip emits typed events under one stable prefix:
+When a PCI DSS assessor asks "what can your payment agents do, and how
+would you know they did it?", the answer is the event catalogue — and it
+is generated from the code itself rather than a spreadsheet that drifts
+out of date. Every component in Tulip emits typed events under one stable prefix:
 `agent.*`, `multiagent.*`, `composition.*`, `router.*`, `rag.*`,
 `memory.*`, `a2a.*`, `skills.*`, `deepagent.*`. Most of these names are
 defined as `EV_*` constants in `tulip.observability.emit`, so changing a
@@ -23,8 +26,8 @@ Prefix map::
 
 - List every `EV_*` constant and its category prefix (read at import
   time from `tulip.observability.emit`).
-- Drive a `SequentialPipeline` + `LoopAgent` that surfaces
-  `composition.*` events end-to-end.
+- Drive a two-stage dispute-triage `SequentialPipeline` + `LoopAgent`
+  that surfaces `composition.*` events end-to-end.
 
 Run it (defaults to the bundled mock model; set `TULIP_MODEL_PROVIDER` to `openai` / `anthropic` for a live model):
 
