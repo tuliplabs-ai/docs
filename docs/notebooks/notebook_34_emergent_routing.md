@@ -17,7 +17,8 @@ free of model latency. Use the emergent picker when:
 - Custom protocols are registered alongside the built-ins and the
   cost/complexity heuristic doesn't capture their actual fit.
 - You want the model's **rationale** captured as part of the audit
-  trail.
+  trail — useful when the router can fan work out to agents that touch
+  production infrastructure.
 - The frame's `primary_goal` is one where multiple protocols qualify
   (e.g. `COMPARE` → both `specialist_fanout` and `debate`) and the
   pick depends on something the frame alone doesn't encode.
@@ -35,6 +36,18 @@ The picker is strictly limited to disambiguation. The compiler still:
    degradation is observable.
 4. **Runs PolicyGate** after the pick — same risk/approval gating
    regardless of which mode chose the protocol.
+
+## The scenario
+
+Three small SRE tools back both routers — `runbook_search` (on-call
+runbook lookup), `get_slo_metric` (latest value of an SLO / telemetry
+metric), and `list_incidents` (recent on-call incidents). Five on-call
+requests are dispatched, ranging from a plain runbook question to a
+latency-vs-saturation comparison. Most route identically under both
+modes; the `COMPARE` request ("connection draining vs pod eviction")
+is where the picker earns its keep — `debate` and `specialist_fanout`
+both qualify, and the picker can choose with intent-level reasoning
+that the tuple ranker can't see.
 
 ## Run
 

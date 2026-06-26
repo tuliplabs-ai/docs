@@ -2,7 +2,10 @@
 
 Tulip supports OpenAI, Anthropic as first-class providers.
 The same `Agent` code works against any of them — only the model object
-changes.
+changes. A cloud platform team can re-platform a provider (for cost,
+latency, data residency, or an outage failover) without rewriting a
+single runbook: the Gateway is the seam, and routing, rate limits, and
+audit live there rather than in each agent.
 
 Provider matrix:
 

@@ -1,8 +1,10 @@
 # Plugins
 
-Plugins bundle hooks (and optionally tools) into one reusable object.
-Drop a plugin onto an agent and every relevant hook method runs
-automatically.
+Plugins bundle hooks (and optionally tools) into one reusable object —
+the natural way to ship a cloud-ops capability like resource-cost triage
+with its audit trail attached, so every right-sizing recommendation is
+attributable after the fact. Drop a plugin onto an agent and every
+relevant hook method runs automatically.
 
 - `Plugin` base class — subclass it, give it a `name`, decorate any
   method with `@hook` and the agent picks it up.
