@@ -23,9 +23,12 @@ context window ever filling up with raw history.
 All memories are persisted via a
 [`BaseStore`](checkpointers.md#the-built-in-store-inmemorystore) backend
 — the same store abstraction used for cross-thread key-value storage.
-The built-in `InMemoryStore` covers local development and tests;
-implement a custom `BaseStore` subclass over Redis / Postgres / etc.
-for distributed production workloads.
+The built-in `InMemoryStore` is the only `BaseStore` that ships — it
+covers local development and tests, but it is process-local and not
+durable. For distributed or persistent production workloads, implement
+a custom `BaseStore` subclass over Redis / Postgres / etc. (or use
+`Mem0MemoryManager`); no durable `BaseStore` backend ships out of the
+box.
 
 Storage layout inside the store:
 
@@ -271,9 +274,18 @@ from tulip.observability.emit import EV_MEMORY_MANAGER_INJECTED, EV_MEMORY_MANAG
 ## Context bloat vs. recall
 
 The memory manager is designed to keep injected context small.
-Retrieval returns at most `retrieve_limit` memories (default 20).
-Each memory is a single line in the injected block — typically 50–150
-tokens total, regardless of how many sessions have accumulated.
+At session start the built-in injection calls `retrieve()` with its
+default `limit=20`, so at most 20 memories are injected. Each memory is
+a single line in the injected block — typically 50–150 tokens total,
+regardless of how many sessions have accumulated.
+
+!!! note
+    `LLMMemoryManager` accepts a `retrieve_limit` constructor argument,
+    but the built-in `on_session_start` injection calls `retrieve()`
+    without passing it — so today `retrieve_limit` does **not** change
+    how many memories are injected (the effective cap is the `retrieve()`
+    default of 20). To use a different cap, override `retrieve()` as
+    shown below and pass your own `limit`.
 
 For larger memory sets, plug in a vector-capable `BaseStore` backend
 and override `retrieve` to run a semantic similarity search against the
@@ -293,8 +305,11 @@ async def retrieve(self, limit: int = 20) -> list[Memory]:
 - [Conversation management](conversation-management.md) — in-session
   context-window management (`SlidingWindowManager`, `LLMCompactor`).
 - [Checkpointers](checkpointers.md) — thread-level state persistence
-  and the nine native backends.
+  and the native checkpointer backends.
 - [Cross-thread store](checkpointers.md#cross-thread-store) — the
-  `BaseStore` interface all memory backends implement.
+  `BaseStore` interface. Note: only `InMemoryStore` ships as a
+  `BaseStore` today; the checkpointer backends are a separate KV
+  interface and do **not** implement `BaseStore`, so durable cross-thread
+  memory means writing your own `BaseStore` (or using `Mem0MemoryManager`).
 - [Hooks](hooks.md) — intercept `memory.manager.*` events for custom
   logging or routing.

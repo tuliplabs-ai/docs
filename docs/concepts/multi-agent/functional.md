@@ -12,7 +12,7 @@ Two decorators:
 | Decorator | What it does |
 |---|---|
 | **`@task`** | Wraps a coroutine that calls an `Agent`. Returns a `Task` you can `await`, `gather`, retry, time-out — anything asyncio gives you. |
-| **`@entrypoint`** | Marks the top-level coroutine of a workflow. Adds `.run` / `.run_sync` so you can invoke the workflow synchronously from non-async code. |
+| **`@entrypoint`** | Marks the top-level coroutine of a workflow. You `await` it like any coroutine; it also records the last run on `.last_result` / `.get_result()` for inspection. |
 
 These are **not a new orchestration runtime**. They're a thin shim
 that lets agents participate in plain asyncio. The point is to
@@ -55,7 +55,7 @@ async def enrich_all(iocs: list[dict]) -> list[dict]:
     """Enrich every indicator in parallel; gather the results."""
     return await asyncio.gather(*[enrich_ioc(i) for i in iocs])
 
-scored = enrich_all.run_sync(indicators)
+scored = await enrich_all(indicators)        # or: asyncio.run(enrich_all(indicators))
 ```
 
 ## Map/reduce with retries and timeouts

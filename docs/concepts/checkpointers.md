@@ -10,7 +10,7 @@ This is the durability story for production SOC agents. An incident
 outlives a process: a host gets isolated at 02:00, the runner restarts,
 the on-call hands off, and the next shift must pick up the *same*
 investigation — every enriched indicator, every containment receipt,
-the full audit trail intact. Without a checkpointer the agent forgets
+the case record carried forward. Without a checkpointer the agent forgets
 which host it isolated and re-litigates the alert from scratch. With
 one, the same `thread_id` round-trips through restarts, across
 containers, and across regions, so the record of *what was contained
@@ -25,18 +25,28 @@ from tulip.security import security_toolset
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
     tools=security_toolset(),   # query_siem, enrich_indicator, isolate_host, ...
+    # S3Backend is a native checkpointer — pass it straight to the agent.
     checkpointer=S3Backend(
         bucket="soc-case-checkpoints",
         endpoint_url="https://s3.amazonaws.com",
-    ).as_checkpointer(),
+    ),
 )
 
 # 02:00 — triage fires, host gets isolated, the runner crashes mid-loop
 agent.run_sync("Triage alert A-42 and contain the affected host.", thread_id="case-4821")
 
-# 08:00 — next shift, different process, same thread_id: the audit trail is intact
+# 08:00 — next shift, different process, same thread_id: the saved case state is loaded back
 agent.run_sync("What host did we isolate, and on what evidence?", thread_id="case-4821")
 ```
+
+!!! note "What a checkpoint is — and isn't"
+    A checkpoint is the agent's `AgentState` serialised to plain,
+    mutable JSON. Each save overwrites the thread's latest record; there
+    is no signing, no append-only history, and no integrity guarantee on
+    the stored bytes. It gives you **durability and resumability**, not a
+    tamper-evident audit log. For a tamper-evident record of decisions,
+    route those through the [`AuditTrail`](agentic-ai-security.md) hash
+    chain instead.
 
 ## Picking a backend
 
@@ -64,13 +74,13 @@ from tulip.memory.backends.file import FileCheckpointer
 agent = Agent(
     model=...,
     tools=[...],
-    checkpointer=FileCheckpointer(directory="./threads"),
+    checkpointer=FileCheckpointer(base_dir="./threads"),
 )
 ```
 
 One JSON file per `thread_id` in the directory — one file per case.
 Zero dependencies; the on-disk case file is grep-able when you need to
-eyeball an investigation's audit trail by hand.
+eyeball an investigation's saved state by hand.
 
 ### Production: `S3Backend`
 
@@ -80,11 +90,12 @@ from tulip.memory.backends import S3Backend
 agent = Agent(
     model=...,
     tools=[...],
+    # S3Backend implements BaseCheckpointer directly — no adapter needed.
     checkpointer=S3Backend(
         bucket="soc-case-checkpoints",
         endpoint_url="https://s3.amazonaws.com",  # or a MinIO / R2 endpoint
         prefix="prod/",
-    ).as_checkpointer(),
+    ),
 )
 ```
 
@@ -103,7 +114,7 @@ agent = Agent(
     tools=[...],
     checkpointer=postgresql_checkpointer(
         dsn="postgresql://user:pass@host:5432/tulip",
-        schema="tulip_threads",
+        schema_name="tulip_threads",
     ),
 )
 ```
@@ -150,25 +161,27 @@ auto-expire once the alert is closed.
 
 ### SQL: `PostgreSQLBackend` / `MySQLBackend`
 
-If your stack is already on PostgreSQL or MySQL, the SDK ships native
-checkpointers so agent state can live alongside your app data. One row
-per `thread_id` (upsert), `list_threads` / `vacuum` / `search` over a
-JSON column.
+If your stack is already on PostgreSQL or MySQL, the SDK ships storage
+backends so agent state can live alongside your app data. One row per
+`thread_id` (upsert), `list_threads` / `vacuum` / `search` over a JSON
+column. These are **storage backends**, not native checkpointers, so go
+through the `postgresql_checkpointer` / `mysql_checkpointer` factories
+(which wrap the backend in a `StorageBackendAdapter`):
 
 ```python
-from tulip.memory.backends import PostgreSQLBackend
+from tulip.memory.backends import postgresql_checkpointer
 
 agent = Agent(
     model=...,
     tools=[...],
-    checkpointer=PostgreSQLBackend(
+    checkpointer=postgresql_checkpointer(
         dsn="postgresql://tulip_app:pass@host:5432/tulip",
         table_name="tulip_checkpoints",
-    ).as_checkpointer(),
+    ),
 )
 ```
 
-`MySQLBackend` mirrors the same shape on the official MySQL
+`mysql_checkpointer` mirrors the same shape on the official MySQL
 Connector/Python asyncio driver.
 
 ## Two checkpointer shapes — the gotcha to know
@@ -178,17 +191,21 @@ to wire them differently:
 
 1. **Native checkpointers** implement `BaseCheckpointer` directly and
    accept `AgentState`:
-   - `MemoryCheckpointer`, `FileCheckpointer`, `HTTPCheckpointer`.
+   - `MemoryCheckpointer`, `FileCheckpointer`, `HTTPCheckpointer`, and
+     **`S3Backend`** (despite the `Backend` name, it subclasses
+     `BaseCheckpointer`).
    - Pass straight to `Agent(checkpointer=...)`.
 
-2. **Storage backends** expose a simpler dict-shaped interface and
-   need adapter wrapping:
+2. **Storage backends** expose a simpler dict-shaped `save(thread_id,
+   data)` interface and need adapter wrapping:
    - `RedisBackend`, `PostgreSQLBackend`, `MySQLBackend`,
-     `OpenSearchBackend`, `S3Backend`.
-   - Use `.as_checkpointer()`.
+     `OpenSearchBackend`.
+   - Wrap with the matching `*_checkpointer()` factory — there is **no
+     `.as_checkpointer()` method**.
 
 ```python
-# WRONG — passing a storage backend directly will fail at save time
+# WRONG — passing a storage backend directly fails: the agent calls
+# save(state, thread_id) but RedisBackend.save expects (thread_id, data)
 from tulip.memory.backends.redis import RedisBackend
 agent = Agent(..., checkpointer=RedisBackend(url="..."))   # ✗
 
@@ -200,6 +217,8 @@ agent = Agent(..., checkpointer=redis_checkpointer(url="..."))  # ✓
 The `*_checkpointer()` factory wraps the storage backend in a
 `StorageBackendAdapter` that translates the agent's `save(state,
 thread_id)` calls into the backend's `save(thread_id, dict)` shape.
+(`s3_checkpointer()` is the exception — it returns the native `S3Backend`
+unchanged, since `S3Backend` already implements `BaseCheckpointer`.)
 
 ## Capabilities — feature detection
 
@@ -235,10 +254,10 @@ if caps.list_threads:
 
 ## Building your own
 
-Subclass `BaseCheckpointer`, implement `save`, `load`,
-`list_checkpoints`, `exists`, `delete`. Advertise your capabilities.
-Pass the instance directly to `Agent(checkpointer=...)` — no glue
-needed.
+Subclass `BaseCheckpointer` and implement the three abstract methods —
+`save`, `load`, `list_checkpoints` — and override `delete` / `exists`
+if the defaults don't fit. Advertise your `capabilities`. Pass the
+instance directly to `Agent(checkpointer=...)` — no glue needed.
 
 See [how-to/custom-checkpointer](../how-to/custom-checkpointer.md)
 for a worked example.
@@ -254,8 +273,8 @@ single investigation.
 from tulip.memory.store import InMemoryStore   # tests / REPL
 
 store = InMemoryStore()
-store.put(("tulip_memory", "soc"), "containment_policy", {"content": "Isolate on confirmed C2 beacon"})
-hit = store.get(("tulip_memory", "soc"), "containment_policy")
+await store.put(("tulip_memory", "soc"), "containment_policy", {"content": "Isolate on confirmed C2 beacon"})
+hit = await store.get(("tulip_memory", "soc"), "containment_policy")
 ```
 
 The interface is `put / get / list / delete` keyed on a `(namespace,
@@ -283,14 +302,14 @@ hits = await store.search(("memory", "host-u42"), query=None, limit=5)
 
 | Symptom | Likely cause |
 |---|---|
-| `AttributeError: 'RedisBackend' has no attribute 'save'` (with `state` arg) | Storage backend passed without the adapter. Use `.as_checkpointer()`. |
-| Open cases forgotten between deployments | `FileCheckpointer` directory inside an ephemeral container — the audit trail dies with the pod. Mount a volume, or move to `S3Backend`. |
+| `TypeError` on save (e.g. `save()` got an unexpected positional/`AgentState` where a dict was expected) | Storage backend (`RedisBackend` etc.) passed directly: its `save(thread_id, data)` signature doesn't match the agent's `save(state, thread_id)`. Wrap it with the matching `*_checkpointer()` factory. |
+| Open cases forgotten between deployments | `FileCheckpointer` directory inside an ephemeral container — the saved state dies with the pod. Mount a volume, or move to `S3Backend`. |
 | Two replicas show different case state for the same thread | The checkpointer isn't shared between replicas, so one worker doesn't know the host was already isolated. `FileCheckpointer` is per-host; switch to a centralised backend (Redis, Postgres, MySQL, S3). |
 | Slow first save | Some backends auto-create schema on first call. Pre-create in your deployment script if startup latency matters. |
 
 ## Source
 
-- [`tulip.memory.backends`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/memory/backends) — every backend, plus `StorageBackendAdapter` and `.as_checkpointer()`.
+- [`tulip.memory.backends`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/memory/backends) — every backend, plus `StorageBackendAdapter` and the `redis_checkpointer` / `postgresql_checkpointer` / `mysql_checkpointer` / `opensearch_checkpointer` / `s3_checkpointer` factory functions.
 
 ## See also
 

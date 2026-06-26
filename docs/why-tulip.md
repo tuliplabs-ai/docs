@@ -36,7 +36,7 @@ approval → admission → audit. That last gate is the whole difference.
 | **Can a jailbreak bypass it?** | Yes — talk the model out of the rule | Often — filters score text, not the action's blast radius | **No** — the action runs only if `admit()` allows it |
 | **Human-in-the-loop** | Ad-hoc, if you wire it | Sometimes, per-framework | First-class: `require_human_for` by environment / kind / tag |
 | **Proof of what happened** | Logs you can edit | App logs | **Hash-chained `AuditTrail`** — `verify()` fails on any edit |
-| **Evidence behind a claim** | "Trust the model" | None | **GSAR grounding** — a `Finding` exists only above threshold, else `Abstention` |
+| **Evidence behind a claim** | "Trust the model" | None | **GSAR grounding** — an `Evidence` exists only above threshold, else `Abstention` |
 | **Works with your stack** | — | You adopt the framework | Drop-in: wrap a call your agent already makes |
 
 Guardrails and grounding are good and Tulip ships both. But the moat is the
@@ -46,10 +46,10 @@ before it runs, and the decision is recorded whether it ran or not.
 ## See it in ~8 lines
 
 ```python
-from tulip.security import (
-    Action, admit, SecurityPolicy, AuditTrail, AdmissionError)
+from tulip.control import (
+    Action, admit, ControlPolicy, AuditTrail, AdmissionError)
 
-policy = SecurityPolicy()   # conservative: production → human
+policy = ControlPolicy()   # conservative: production → human
 trail = AuditTrail()        # tamper-evident, replayable
 
 risky = Action(name="refund", asset="cust:4821",
@@ -76,5 +76,5 @@ runtime earns its keep the moment an action can *cost* something.
 
 - [Quickstart](how-to/quickstart.md) — a working agent, then gate its action in step 3.5.
 - [The security layer](concepts/security.md) — the full policy + admission surface.
-- [GSAR grounding](concepts/gsar.md) — why a `Finding` can't exist without evidence.
+- [GSAR grounding](concepts/gsar.md) — why an `Evidence` can't exist without evidence.
 - [Drop Tulip into your framework](integrations/frameworks.md) — keep LangChain / CrewAI / your stack; add the gate.

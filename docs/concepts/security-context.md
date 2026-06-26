@@ -35,7 +35,14 @@ handle is the same whether the provider is the offline reference or a live vendo
 | `ctx.actions` | decide on **and run** a response action | `request_approval(action, finding=…, verdict=…)` · `execute(action, perform, finding=…, verdict=…)` |
 
 Reads are plain domain calls. **Writes** — `endpoint.isolate`, `identity.disable` —
-are real-world actions: run them through the [admission gate](#admission-control-the-enforcement-point) so they fire only after the chain clears.
+model real-world actions: run them through the [admission gate](#admission-control-the-enforcement-point) so they fire only after the chain clears.
+
+!!! note "Writes are simulated today"
+    In the current build the bundled reference adapters **and** the vendor
+    templates (Entra/Okta/Auth0 `disable`, CrowdStrike `isolate`) return a
+    **simulated offline-sample receipt** — they record the decision but do
+    **not** lock an account out or quarantine a host. Wire and verify the live
+    vendor write path before treating these as enforcement.
 
 ## Zero-config by default
 
@@ -88,10 +95,11 @@ have to be true — the data is real, the claim is verified, and the action is
 gated. `SecurityContext` puts the trust spine right in the path:
 
 ```python
-from tulip.security import Action, Finding, SecurityContext, Severity, verify
+from tulip.control import Action
+from tulip.security import Evidence, SecurityContext, Severity, verify
 from tulip_integrations.identity.auth0 import Auth0Identity
 
-# Real identity provider. ctx.actions defaults to SecurityPolicy(), which sends
+# Real identity provider. ctx.actions defaults to ControlPolicy(), which sends
 # production account-disables to a human.
 ctx = SecurityContext(identity=Auth0Identity())
 
@@ -101,7 +109,7 @@ risk = await ctx.identity.risk("mallory@corp.com")
 
 # 2. FORM A FINDING, then VERIFY it. An independent skeptic challenges the
 #    evidence and re-scores confidence — a thin claim is refuted, not acted on.
-finding = Finding(
+finding = Evidence(
     title="Account compromise: impossible-travel sign-ins",
     description="High-risk Auth0 user with impossible travel between two sign-ins.",
     severity=Severity.HIGH,
@@ -121,7 +129,8 @@ decision = ctx.actions.request_approval(
 # decision.outcome -> "require_human": a person decides, with the evidence
 # and the verdict attached. The agent never disables a prod account on its own.
 
-# 4. ON APPROVAL, ACT — against the real tenant.
+# 4. ON APPROVAL, ACT. NB: in the current build `disable` returns a simulated
+#    offline-sample receipt — it does not yet lock the account out.
 if decision.allowed:
     await ctx.identity.disable("mallory@corp.com")
 ```
@@ -132,13 +141,13 @@ if decision.allowed:
 > the trust spine — [grounding](gsar.md), verification, policy, and a hash-chained
 > audit trail — applies no matter whose API is behind the port.
 
-The gate in step 3 is a `SecurityPolicy`: `require_human_for={"production"}` by
+The gate in step 3 is a `ControlPolicy`: `require_human_for={"production"}` by
 default, alongside `require_verification_score`, `max_blast_radius`, `deny_for`,
 and `min_severity`. To enforce a custom policy, call `approve(action, policy=…,
 finding=…, verdict=…)` directly — `ctx.actions.request_approval` is the
 convenience wrapper around it.
 
-`verify()` is framework-agnostic by design: it accepts a Tulip `Finding` **or a
+`verify()` is framework-agnostic by design: it accepts a Tulip `Evidence` **or a
 finding-shaped dict** produced by any other agent (LangGraph, CrewAI, anything),
 which is what lets Tulip sit *above* the stack as the verification layer rather
 than competing with the frameworks below it.
@@ -152,7 +161,7 @@ chain clears (`approve()` → ALLOW); otherwise it raises `AdmissionError`, and 
 attempt is recorded to the audit trail either way:
 
 ```python
-from tulip.security import Action, AdmissionError, verify
+from tulip.control import Action, AdmissionError, verify
 
 verdict = await verify(finding)
 try:

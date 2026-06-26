@@ -15,7 +15,7 @@ This notebook covers:
   `max_parallel_specialists` (an `asyncio.Semaphore`).
 - `RoutingDecision` — the typed object the planner returns: which
   specialists, which sub-task per specialist, and the reasoning.
-- `OrchestrationResult` — each specialist's output, the decisions
+- `OrchestratorResult` — each specialist's output, the decisions
   trail, and a correlated summary.
 
 ## Prerequisites

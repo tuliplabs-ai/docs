@@ -12,7 +12,7 @@ positive *by construction* — there is no public path that builds one.
 
 [`ground_finding()`][gh] takes a candidate finding plus the GSAR
 `Partition` of its claims, scores the partition, and returns either a
-typed `Finding` (it ships) or an `Abstention` (it is withheld, with an
+typed `Evidence` (it ships) or an `Abstention` (it is withheld, with an
 audit record of why).
 
 ```python
@@ -42,9 +42,9 @@ else:
     print("WITHHELD", result.decision, "—", result.reason)
 ```
 
-A `Finding` carries the `gsar_score` that admitted it and the
+An `Evidence` carries the `gsar_score` that admitted it and the
 `evidence_refs` flattened from its claims — it always knows how strongly
-it is grounded and what it is grounded in. `Finding` has no constructor
+it is grounded and what it is grounded in. `Evidence` has no constructor
 without a score, so the invariant holds at the type level, not by
 convention.
 
@@ -66,8 +66,10 @@ from tulip.security import AtlasTechnique, OwaspLLM
 taxonomy = [OwaspLLM.PROMPT_INJECTION, AtlasTechnique.PROMPT_INJECTION]  # LLM01 / AML.T0051
 ```
 
-Every ID in these three catalogues maps to a runnable defense gist — see the
-[threat-scenarios coverage matrix](threat-scenarios.md).
+Every ID in the encoded taxonomy enums maps to a runnable defense gist — see the
+[threat-scenarios coverage matrix](threat-scenarios.md). (The OWASP LLM/ASI
+enums are complete; the `AtlasTechnique` enum encodes a representative subset
+of MITRE ATLAS.)
 
 ## Inference fingerprinting
 
@@ -97,13 +99,13 @@ model, engine, and accelerator serving an endpoint leave a signature in
 *timing* — time-to-first-token, inter-token cadence, throughput under
 contention.
 
-The measurement runs where the hardware is. Tulip integrates with
-**dedicated GPU clusters** — Lambda, RunPod, AWS, and other GPU cloud
-providers — dispatching a probe to real target-class accelerators, then
-turning the returned timing profile into a grounded finding. The
-dispatch target is provider-agnostic; the grounding contract is the
-same everywhere, and an under-observed probe abstains rather than
-asserting a fingerprint.
+The measurement runs where the hardware is. Tulip dispatches probes to
+**dedicated GPU clusters** — RunPod and Lambda backends ship today, and
+the dispatch target is provider-agnostic so other GPU cloud providers can
+be wired in — provisioning a probe on real target-class accelerators, then
+turning the returned timing profile into a grounded finding. The grounding
+contract is the same everywhere, and an under-observed probe abstains
+rather than asserting a fingerprint.
 
 The pattern is always the same three steps — **measure → classify →
 ground** — with the agent orchestrating tools and `ground_fingerprint`
@@ -116,8 +118,8 @@ from tulip.security import (
 )
 from tulip.reasoning.gsar import Claim, EvidenceType, Partition
 
-# 1. MEASURE — a probe runs on a dedicated GPU cluster (Lambda / RunPod /
-#    AWS / …) against the target endpoint and returns a timing feature
+# 1. MEASURE — a probe runs on a dedicated GPU cluster (RunPod / Lambda /
+#    …) against the target endpoint and returns a timing feature
 #    vector. Here the values are illustrative.
 features = {
     "ttft_ms": 41.2, "inter_token_ms_p50": 7.8,

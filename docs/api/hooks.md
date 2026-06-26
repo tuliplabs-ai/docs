@@ -4,8 +4,9 @@
 
 `HookProvider` is the base class every hook subclasses; `HookRegistry`
 collects providers and dispatches events in priority order.
-`HookPriority` is the integer-backed enum that determines dispatch
-order (lower = earlier; security hooks run before observability hooks).
+`HookPriority` is a plain class of integer constants that determine
+dispatch order (lower = earlier; security hooks run before observability
+hooks).
 `ProtectedEvent` marks events whose payloads can be mutated by hooks
 (model calls, tool calls) versus the read-only lifecycle events.
 

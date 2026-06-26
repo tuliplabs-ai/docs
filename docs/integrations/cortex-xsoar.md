@@ -17,7 +17,7 @@ pip install "tulip-integrations[soar-cortex-xsoar]"
 | **Provider** | `CortexXSOAR` — methods `get_incident` · `search` · `close` (write) |
 | **Functions** | `xsoar_get_incident(id)` · `xsoar_search_incidents(query)` · `xsoar_close_incident(id, reason=…)` ⚠️ write |
 | **Agent tools** | `xsoar_incident_tool` · `xsoar_search_tool` · `xsoar_close_tool` (⚠️ closes an incident) |
-| **Grounding** | `xsoar_incident_to_finding(id)` → `GroundedFinding` (a `Finding`, or an `Abstention`) |
+| **Grounding** | `xsoar_incident_to_finding(id)` → `GroundedFinding` (an `Evidence`, or an `Abstention`) |
 | **Adapter** | `xsoar_adapter()` → `ToolAdapter` (a `SecurityAdapter`) |
 
 ```python
@@ -28,7 +28,7 @@ from tulip.security import is_finding
 xsoar_search_incidents("travel")          # -> {"total": 1, "incidents": [...]}
 xsoar_get_incident("INC-1001")            # -> {"found": True, "incident": {...severity: 3}}
 
-# A high-severity incident grounds to a typed Finding; a low one abstains.
+# A high-severity incident grounds to a typed Evidence; a low one abstains.
 result = xsoar_incident_to_finding("INC-1001")
 print(result.title if is_finding(result) else f"withheld: {result.reason}")
 ```
@@ -46,14 +46,14 @@ in an `Action` and route it through `admit()` so policy (and a human, in
 production) clears it first, and the decision lands on the audit trail:
 
 ```python
-from tulip.security import Action, admit, SecurityPolicy, AuditTrail
+from tulip.control import Action, admit, ControlPolicy, AuditTrail
 from tulip_integrations.soar.cortex_xsoar import xsoar_close_incident
 
 trail = AuditTrail()
 await admit(
     Action(name="xsoar_close", asset="INC-1001", environment="production", kind="soar"),
     lambda: xsoar_close_incident("INC-1001", reason="auto-triaged: benign"),
-    policy=SecurityPolicy(), trail=trail,
+    policy=ControlPolicy(), trail=trail,
 )
 ```
 

@@ -1,11 +1,11 @@
 # Verify findings — the SDK that prevents security hallucinations
 
-A ``Finding`` is a *claim*. Before you act on it, ``verify()`` puts it through an
+A Tulip ``Evidence`` is a *claim*. Before you act on it, ``verify()`` puts it through an
 independent skeptic that challenges the evidence and scores confidence. A
 well-grounded finding **survives**; an unsupported or fabricated one is
 **refuted** — so a hallucinated "critical" never drives a real action.
 
-``verify()`` is framework-agnostic: it takes a Tulip ``Finding`` *or* a
+``verify()`` is framework-agnostic: it takes a Tulip ``Evidence`` *or* a
 finding-shaped dict produced by any other agent (LangGraph, CrewAI, anything),
 which is what lets Tulip sit **above** the stack as the verification layer. The
 notebook verifies a real grounded finding (survives), a fabricated one with no

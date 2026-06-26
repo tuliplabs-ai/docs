@@ -12,15 +12,16 @@ responds.
 
 ## The shape
 
+The SDK ships a built-in `ask_user` tool. The model calls it like any
+other tool; instead of returning a value, the run **pauses** — the
+agent yields an `InterruptEvent` and stops. Your app reads the question
+off the event, gets an answer, and calls `agent.resume(answer)` to
+continue.
+
 ```python
 from tulip.agent import Agent
+from tulip.core.events import InterruptEvent
 from tulip.tools.decorator import tool
-
-@tool
-def request_human_approval(reason: str, action: str) -> dict:
-    """Pause the run for human approval. The runner pauses until
-    your app calls agent.resume(response=...)."""
-    raise PendingApproval(reason=reason, action=action)
 
 @tool(idempotent=True)
 def isolate_host(host_id: str, incident_id: str) -> dict:
@@ -28,18 +29,27 @@ def isolate_host(host_id: str, incident_id: str) -> dict:
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, request_human_approval, isolate_host],
+    tools=[query_siem, isolate_host],   # ask_user is auto-registered
     system_prompt=(
         "You are a SOC incident responder. "
-        "Always call request_human_approval before isolate_host."
+        "Always call ask_user for approval before isolate_host."
     ),
 )
+
+async for event in agent.run("Contain host WS-014 if the beacon is malicious."):
+    if isinstance(event, InterruptEvent):
+        answer = input(f"{event.question} ")   # or Slack / web / email
+        async for resumed in agent.resume(answer):
+            print(resumed)
 ```
 
-`PendingApproval` is your own sentinel exception. When the agent
-calls the tool, the SDK catches the exception, persists state to the
-checkpointer, and exits with `TerminateEvent(reason="PendingApproval")`.
-Your app reads the reason out of `state.metadata` and asks the human.
+When the model calls `ask_user`, the runtime captures the question and
+yields an `InterruptEvent(question=..., options=..., interrupt_id=...)`,
+then pauses. Your app surfaces the question to a human and threads the
+answer back via `agent.resume(...)`. You can also expose your own
+pause-for-input by calling
+[`interrupt(...)`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/interrupt.py)
+from inside a tool body — `ask_user` is just the built-in wrapper.
 
 ## Three ways the human responds
 
@@ -57,16 +67,18 @@ def cli_approval(reason: str) -> dict:
 
 ### Async — checkpointer-mediated
 
-For long-running workflows, the agent persists state and exits when
-the approval tool raises `PendingApproval`. A separate process
-(browser, Slack action, email link) eventually calls:
+For long-running workflows, the agent yields an `InterruptEvent` and
+pauses when the model calls `ask_user`. A separate process (browser,
+Slack action, email link) eventually resumes. `agent.resume(...)` is an
+**async generator**, so you iterate it — you don't `await` it:
 
 ```python
-await agent.resume(response="approved")
+async for event in agent.resume("approved"):
+    handle(event)
 ```
 
-The loop rehydrates from the checkpointer, threads the response into
-the next Think, and continues.
+The loop threads the response into the next Think and continues
+streaming events.
 
 ### Steering — a second model votes
 
@@ -80,7 +92,7 @@ from tulip.hooks.builtin.steering import SteeringHook
 agent = Agent(
     ...,
     hooks=[SteeringHook(
-        judge_model="anthropic:claude-sonnet-4-6",
+        model="anthropic:claude-sonnet-4-6",
         policy="Reject any tool call that doesn't match the analyst's stated request.",
     )],
 )
@@ -117,12 +129,13 @@ termination algebra to fire:
 
 3. **`agent.cancel()`.** Sets a flag the runner polls between nodes;
    the loop exits at the next safe point with
-   `TerminateEvent(reason="Cancelled")`. State still flushes to the
-   checkpointer first, so the conversation can resume cleanly later.
+   `TerminateEvent(reason="cancelled")` (and `result.stop_reason ==
+   "cancelled"`). State still flushes to the checkpointer first, so the
+   conversation can resume cleanly later.
 
-In all three cases the loop emits a final
-`TerminateEvent(reason="Cancelled: …")` so your downstream
-observability gets a clean signal.
+In the `agent.cancel()` case the loop emits a final
+`TerminateEvent(reason="cancelled")` so your downstream observability
+gets a clean signal.
 
 ## What you don't lose on cancel
 
@@ -133,9 +146,9 @@ debugging, or branch off a new thread from the partial conversation.
 
 ## See also
 
-- [Agent Loop](agent-loop.md) — where Cancel directives are
-  observed in the runner.
-- [Hooks](hooks.md) — write custom hooks that return `Cancel`.
+- [Agent Loop](agent-loop.md) — where cancellation is observed in the
+  runner.
+- [Hooks](hooks.md) — write custom hooks that raise to abort the run.
 - [Conversation Management](conversation-management.md) — how
   `thread_id` resumption works.
 - [Human in the loop](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_19_human_in_the_loop.py)

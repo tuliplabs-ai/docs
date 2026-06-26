@@ -9,7 +9,7 @@ human-in-the-loop, and the tamper-evident audit trail come from Tulip.
 The reason this works is that the gate is framework-agnostic by construction:
 
 ```python
-from tulip.security import admit, Action, SecurityPolicy, AuditTrail
+from tulip.control import admit, Action, ControlPolicy, AuditTrail
 await admit(action, perform, policy=policy, trail=trail)
 ```
 
@@ -27,9 +27,9 @@ Here it is inside a LangChain tool:
 
 ```python
 from langchain_core.tools import tool
-from tulip.security import admit, Action, SecurityPolicy, AuditTrail, AdmissionError
+from tulip.control import admit, Action, ControlPolicy, AuditTrail, AdmissionError
 
-policy = SecurityPolicy()   # production → human
+policy = ControlPolicy()   # production → human
 trail = AuditTrail()
 
 @tool

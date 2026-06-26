@@ -149,7 +149,7 @@ production you'd map your tool taxonomy onto these.
 - [`src/tulip/reasoning/gsar_evaluator.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/gsar_evaluator.py)
   — Algorithm-1 outer loop with `K_max` budget.
 - [`tests/unit/test_gsar.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/tests/unit/test_gsar.py)
-  — 54 tests verifying properties P1–P6 + Appendix-E worked example.
+  — property tests verifying P1–P6 + the Appendix-E worked example.
 - [`tests/unit/test_gsar_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/tests/unit/test_gsar_judge.py)
   — schema validation + structured-output fallback chain.
 - [`tests/unit/test_gsar_evaluator.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/tests/unit/test_gsar_evaluator.py)

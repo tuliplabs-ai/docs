@@ -15,8 +15,8 @@ agent = Agent(
     model="anthropic:claude-sonnet-4-6",
     tools=[...],
     checkpointer=S3Backend(
-        bucket_name="tulip-threads",
-        namespace="<your-namespace>",
+        bucket="tulip-threads",
+        prefix="<your-prefix>/",
     ),
 )
 
@@ -151,7 +151,7 @@ GET /threads/case-7731-triage
 
 ## See also
 
-- [Checkpointers](checkpointers.md) — the nine native backends and
+- [Checkpointers](checkpointers.md) — the eight native backends and
   their tradeoffs.
 - [Streaming & Server](server.md) — `AgentServer` and SSE.
 - [Hooks](hooks.md) — observe save/load events.

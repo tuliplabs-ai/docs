@@ -10,8 +10,11 @@ the Tulip defense stopping it.
 ![Each OWASP LLM, OWASP ASI and MITRE ATLAS ID maps to a runnable scenario gist — threat, agent, defense — that produces a grounded Finding or an Abstention](../img/patterns/threat-coverage.svg){ .diagram }
 
 Every gist is **runnable offline with no credentials**. Together they map
-*every* ID in all three catalogues to at least one runnable example, and a
-single runner keeps that mapping honest:
+*every* ID encoded in Tulip's three taxonomy enums (`OwaspLLM`, `OwaspASI`,
+and `AtlasTechnique`) to at least one runnable example, and a single runner
+keeps that mapping honest. The OWASP LLM/ASI enums encode their full
+published top-10s; `AtlasTechnique` encodes a representative subset of MITRE
+ATLAS:
 
 ```bash
 # in a checkout of tuliplabs-ai/sdk-python
@@ -77,8 +80,10 @@ that way.
 | AML.T0110 | AI Agent Tool Poisoning | [`supply_chain.py`][sc] |
 | AML.T0048 | External Harms | [`code_execution.py`][ce] |
 
-Every ID in `AtlasTechnique`, `OwaspLLM`, and `OwaspASI` appears above —
-coverage is complete, and `run_all.py` keeps it runnable. `model_extraction.py`
+Every ID in the `AtlasTechnique`, `OwaspLLM`, and `OwaspASI` enums appears
+above — coverage of the encoded enums is complete (the `AtlasTechnique` enum
+is a representative subset of published MITRE ATLAS), and `run_all.py` keeps
+it runnable. `model_extraction.py`
 exercises the real streaming **timing probe** (offline sample with no key) that
 underpins [inference fingerprinting](security.md#inference-fingerprinting).
 
@@ -86,7 +91,7 @@ underpins [inference fingerprinting](security.md#inference-fingerprinting).
 
 A scenario shows the defense *firing*. To turn that into an auditable,
 SIEM-ready record, wrap the observation in [`ground_finding`](security.md):
-the result is a typed `Finding` tagged with the same taxonomy IDs in the
+the result is a typed `Evidence` finding tagged with the same taxonomy IDs in the
 tables above — or an `Abstention` when the evidence doesn't clear the bar. The
 [cloud-posture agent](cloud-posture.md) is the worked end-to-end version of
 that loop against a real AWS account.

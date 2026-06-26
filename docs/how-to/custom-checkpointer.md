@@ -85,7 +85,10 @@ if checkpointer.capabilities.search:
 
 ## Test the contract
 
-Copy `tests/integration/test_checkpoint_backends.py::TestS3Backend`
-— it exercises the full `BaseCheckpointer` contract (round-trip,
-list, delete, branch, capabilities). Adapt the fixture to your
-backend's connection config and you have a complete test suite.
+Model your suite on `tests/integration/test_checkpoint_backends.py` —
+`TestBackendCompatibility` checks the save/load round-trip every backend
+must satisfy, and the per-backend classes (`TestMemoryCheckpointer`,
+`TestRedisBackend`, `TestPostgreSQLBackend`, `TestMySQLBackend`,
+`TestOpenSearchBackend`) show how to exercise list, delete, and
+capabilities against a live store. Adapt the fixtures to your backend's
+connection config and you have a complete test suite.

@@ -71,8 +71,9 @@ re-isolating the host. See [Idempotency](idempotency.md).
 ## Errors don't kill the group (concurrent mode)
 
 If one tool raises while three are running, the other two finish
-normally. The error becomes a `ToolErrorEvent` and a tool-error
-message in state; the next Think sees:
+normally. The failure surfaces as a `ToolCompleteEvent` with its
+`error` field set (there is no separate `ToolErrorEvent`), plus a
+tool-error message in state; the next Think sees:
 
 > *Tool `query_siem` failed with: ConnectionTimeout(after 30s).*
 
@@ -108,7 +109,8 @@ def lookup_hash(sha256: str) -> dict:
 ```
 
 For non-transient errors, raise — the loop will see a
-`ToolErrorEvent` and the model will decide what to do.
+`ToolCompleteEvent` with its `error` set and the model will decide what
+to do.
 
 ## See also
 

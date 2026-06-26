@@ -53,7 +53,7 @@ agent = Agent(
 | Regulated workflow (NIST 800-61 IR phases, evidence handling, host isolation) | **yes** |
 | Multi-step process where order matters | **yes** |
 | Repeatable runbook the team executes manually today | **yes — encode it** |
-| Audit-trail requirement: "every containment follows the same sequence" | **yes — the execution log *is* the audit trail** |
+| Audit-trail requirement: "every containment follows the same sequence" | **yes — the enforcer's in-memory execution log captures the sequence** (persist it, or pair it with [`AuditTrail`](agentic-ai-security.md), for a durable record) |
 | One-shot exploration, freeform Q&A | no — overhead's not worth it |
 | You want the model to choose tools freely | no — that's what `Agent(tools=[...])` already gives you |
 
@@ -145,10 +145,11 @@ steps:
 ```python
 from tulip.playbooks.hook import PlaybookEnforcerHook
 
+enforcer_hook = PlaybookEnforcerHook(playbook=nist_ir)
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
     tools=[query_siem, enrich_indicator, isolate_host],
-    hooks=[PlaybookEnforcerHook(playbook=nist_ir)],
+    hooks=[enforcer_hook],
 )
 
 result = agent.run_sync("Triage alert ALT-7 (host WS-014) and contain if malicious.")
@@ -175,19 +176,21 @@ For compliance-grade workflows, keep both at their defaults. For
 
 ## Inspecting execution
 
-The enforcer maintains a `PlaybookPlan` — an audit-grade record of
-every step's status, tool calls, and timestamps. Read it after the
-run:
+The enforcer maintains a `PlaybookPlan` — an in-memory record of
+every step's status, tool calls, and counts. It lives on the hook's
+`enforcer` (not on the result), so read it off the hook after the run:
 
 ```python
-plan = result.playbook_plan
-for execution in plan.executions:
+plan = enforcer_hook.enforcer.plan
+for execution in plan.step_executions.values():
     print(f"{execution.step_id}: {execution.status.value} "
           f"({len(execution.tool_calls)} tool calls)")
 ```
 
-`StepStatus` is one of `pending`, `in_progress`, `completed`,
-`skipped`, `failed`.
+`plan.step_executions` is a `dict[str, StepExecution]`; `StepStatus` is one of
+`pending`, `in_progress`, `completed`, `skipped`, `failed`. The plan is an
+ephemeral Pydantic object — serialize it (or wire an [`AuditTrail`](agentic-ai-security.md))
+if you need a record that outlives the process.
 
 ## Common gotchas
 
