@@ -6,7 +6,7 @@ LlamaIndex, or Google ADK**, keep it — and put Tulip's admission gate around t
 *actions* it takes. The model and orchestration stay yours; the gate, the
 human-in-the-loop, and the tamper-evident audit trail come from Tulip.
 
-The reason this works is that the gate is framework-agnostic by construction:
+This works because the gate doesn't care which framework you use:
 
 ```python
 from tulip.control import admit, Action, ControlPolicy, AuditTrail
@@ -75,7 +75,7 @@ force them into one mould:
 
 A model-call gateway is **not** something you gate — it governs *which model, whose
 key, within what budget*; Tulip governs *whether the action runs*. They're different
-layers and they compose cleanly. Trying to "gate LiteLLM" is a category error.
+layers and they stack cleanly. Trying to "gate LiteLLM" confuses the two.
 
 ## Raise vs. soft mode
 

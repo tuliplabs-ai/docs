@@ -1,10 +1,10 @@
 # Security layer — evidence-grounded findings
 
-`tulip.security` is the layer that points Tulip's runtime at cybersecurity:
-a security **finding can only be produced from
-evidence that clears the [GSAR](gsar.md) grounding threshold.** Below the
-bar, the agent abstains and records why. An ungrounded finding is a false
-positive *by construction* — there is no public path that builds one.
+`tulip.security` applies Tulip's runtime to cybersecurity. A security
+**finding can only be built from evidence that clears the [GSAR](gsar.md)
+grounding threshold.** Below the bar, the agent abstains and records why.
+An ungrounded finding would be a false positive, so the API gives you no
+way to create one: every finding carries the evidence that earned it.
 
 ![A candidate finding plus typed, weighted evidence claims pass through ground_finding; only those clearing the GSAR threshold become a Finding, the rest abstain with a recorded reason](../img/patterns/grounded-findings.svg){ .diagram }
 

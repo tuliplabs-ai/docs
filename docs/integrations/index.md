@@ -3,9 +3,10 @@
 An integration lets a Tulip agent reach a real tool — and, where it can take
 action, do so **on your terms**. Tulip is a control runtime: it decides whether
 an agent's action runs. The integrations that ship today are the **security
-domain** (your SIEM, your EDR, your identity provider) — the proven-first set —
-but the same gate applies to any side effect: issue a refund, roll out a deploy,
-grant access. Some integrations only **read evidence** (search logs, look up a
+domain** (your SIEM, your EDR, your identity provider) — the ones we built and
+hardened first — but the same gate applies to any side effect: issue a refund,
+roll out a deploy, grant access. Some integrations only **read evidence** (search
+logs, look up a
 reputation, pull cloud posture); the higher-stakes ones let the agent **act** —
 network-contain a host, disable an account. Tulip treats those two very
 differently.
@@ -52,8 +53,9 @@ So even if an injected prompt talks the model into "isolate every host," the
 write still has to clear the policy and (in production) a human — and, with a
 trail wired in, every attempt is recorded. (`ctx.actions.execute(action,
 perform)` runs the same gate; pass it through `admit(..., trail=trail)` when you
-want the decision on a hash chain.) **You can fool the model; you can't talk past
-the runtime.** The integrations that actually take action (writes): **CrowdStrike**
+want the decision on a hash chain.) **An injected prompt can change what the model
+decides, but it can't make the action run — that's the policy's call, not the
+model's.** The integrations that actually take action (writes): **CrowdStrike**
 (contain a host), **Okta** / **Auth0** / **Entra ID** (disable an account),
 **Cortex XSOAR** (close an incident), and **Slack** (post to a channel). The rest
 are read-only evidence sources.

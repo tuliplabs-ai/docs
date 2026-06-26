@@ -10,6 +10,12 @@ interface.
   `QdrantVectorStore`, `ChromaVectorStore`. Swapping is one line; the
   retrieve/add API is identical.
 
+The corpus here is a payments-operations runbook — decline codes,
+dispute reason codes, refund SLAs, and ACH returns — the same knowledge
+a support agent leans on to answer a merchant. Picking the embedding
+model and distance metric is an operations decision: it sets retrieval
+precision, and weak retrieval routes the agent to the wrong runbook.
+
 What the four parts cover:
 
 - Part 1 — embedding-model selection (small vs large dimensions).
