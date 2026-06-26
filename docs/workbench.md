@@ -1,10 +1,11 @@
-<p class="tulip-product-name">the control runtime</p>
+<p class="tulip-product-name">tulip agents · the workbench</p>
 
 # Workbench
 
-A browser-based playground for every Tulip SDK pattern. Two ways to
-run it — straight from source on your laptop, or inside a Docker
-container — both end at the same UI at <http://localhost:5173>.
+A browser playground for every Tulip pattern — pick one, paste a
+provider key, hit **Run**, and watch a real agent stream events back.
+Run it from source or in Docker; both land at the same UI on
+<http://localhost:5173>.
 
 [View on GitHub](https://github.com/tuliplabs-ai/sdk-python){ .md-button .md-button--primary }
 [Workbench README](https://github.com/tuliplabs-ai/sdk-python/tree/main/workbench){ .md-button }
@@ -42,22 +43,24 @@ It's also the canonical demo: visitors arrive at this app, pick a
 workflow, and learn the SDK by running real ones.
 
 ```
-┌───────────────────────────────────────┐
-│  workbench/web   — vanilla TS + Vite  │  :5173
-│  Notebook catalog · provider settings │
-└───────────────────┬───────────────────┘
-                    │ /api/*
-                    ▼
-┌───────────────────────────────────────┐
-│  workbench/bff   — Node Express       │  :3101
-│  Same-origin proxy + cookie surface   │
-└───────────────────┬───────────────────┘
-                    │ /api/*
-                    ▼
-┌───────────────────────────────────────┐
-│  workbench/backend — FastAPI runner   │  :8100
-│  One endpoint per tulip pattern       │
-└───────────────────────────────────────┘
+  Browser ─▶ http://localhost:5173
+
+┌──────────────────────────────────────────────────┐
+│  workbench/web      ·  :5173                     │
+│  vanilla TS + Vite — the notebook UI             │
+└────────────────────────┬─────────────────────────┘
+                         │ proxies /api/*
+                         ▼
+┌──────────────────────────────────────────────────┐
+│  workbench/bff      ·  :3101                     │
+│  Node/Express — same-origin proxy + cookies      │
+└────────────────────────┬─────────────────────────┘
+                         │ forwards /api/*
+                         ▼
+┌──────────────────────────────────────────────────┐
+│  workbench/backend  ·  :8100                     │
+│  FastAPI — one endpoint per Tulip pattern        │
+└──────────────────────────────────────────────────┘
 ```
 
 You paste your provider key once per tab — **the workbench never
@@ -80,7 +83,7 @@ debugging a pattern, or extending the runner.
 
 ```bash
 git clone https://github.com/tuliplabs-ai/sdk-python.git
-cd tulip
+cd sdk-python
 pip install -e ".[server,openai,anthropic]"  # core + provider extras
 ```
 
@@ -143,7 +146,7 @@ Python and Node toolchains directly.
 
 ```bash
 git clone https://github.com/tuliplabs-ai/sdk-python.git
-cd tulip
+cd sdk-python
 docker build -t tulip-workbench -f workbench/Dockerfile .
 ```
 
@@ -194,10 +197,9 @@ happen.
 
 ## What you can run
 
-The catalog populates from the BFF's `/api/notebooks` endpoint
-(aliased to `/api/notebooks` for backwards compatibility), which
-walks `examples/notebook_*.py`. As of writing the workbench has 9
-dedicated FastAPI pattern endpoints:
+The catalog populates from the BFF's `/api/notebooks` endpoint, which
+walks `examples/notebook_*.py`. The workbench ships 9 dedicated
+FastAPI pattern endpoints:
 
 | Pattern | What it shows |
 |---|---|
