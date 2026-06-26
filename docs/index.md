@@ -37,9 +37,11 @@ from tulip.control import (
     Action, admit, ControlPolicy,
     AuditTrail, AdmissionError)
 
-# Drop the gate around an action your agent
-# already takes — policy + audit trail.
-policy = ControlPolicy()   # prod → human
+# Hold production actions for a human; the
+# rest run. Every decision hits the trail.
+policy = ControlPolicy(
+    require_verification_score=0.0,
+    require_human_for={"production"})
 trail = AuditTrail()
 
 # The model decided to refund a customer.
@@ -47,6 +49,8 @@ risky = Action(
     name="refund", asset="cust:4821",
     blast_radius=1, kind="payment",
     environment="production")
+
+async def refund(cust): ...   # your side effect
 
 try:
     await admit(
@@ -56,7 +60,6 @@ except AdmissionError as e:
     print(e.decision.outcome)
     # -> "require_human"; refund NOT run.
 
-# Held for a human, on the audit trail.
 # The gate runs before the action, so a
 # jailbreak can't remove it.
 ```
