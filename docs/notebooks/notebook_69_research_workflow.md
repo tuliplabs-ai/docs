@@ -1,10 +1,11 @@
 # Research Workflow
 
 The end-of-series capstone: a research-shaped pipeline that strings six
-node primitives into a single `StateGraph` and streams every step.
-Mirrors the production pattern used by specialist research agents —
-gather evidence, infer causality, summarise, judge the summary's
-grounding, and recover when the score is low.
+node primitives into a single `StateGraph` and streams every step. Here
+a customer-support analyst investigates the known-issue knowledge base —
+gather evidence from KB tools, infer the root cause, summarise, judge the
+summary's grounding, and recover when the score is low. An ungrounded
+claim is a hallucinated answer, so it never reaches the customer reply.
 
 ## What you learn
 

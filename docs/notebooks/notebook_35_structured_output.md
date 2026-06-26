@@ -1,8 +1,9 @@
 # Structured Output
 
 Get a Pydantic object back from a model call instead of a string you
-have to re-parse. Every part below fires a real model call and prints
-a `[model call: X.XXs · prompt→completion tokens]` banner.
+have to re-parse — a typed ticket update the rest of the help desk can
+route on. Every part below fires a real model call and prints a
+`[model call: X.XXs · prompt→completion tokens]` banner.
 
 - `extract_json` / `parse_structured` — pull JSON out of a model reply
   and validate it against a Pydantic schema (a typed model the LLM

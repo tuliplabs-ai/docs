@@ -11,8 +11,12 @@ What you'll see:
 - Binary and multi-way branching with `add_conditional_edges`.
 - Optional `targets` mapping to translate router output to node ids.
 - `default` for handling unexpected router output.
-- Two routers in sequence (auth → role).
+- Two routers in sequence (source → role).
 - An LLM acting as the router for one node.
+
+The running scenario is cloud incident escalation: low-severity
+monitoring alerts auto-resolve, high-severity ones page an on-call SRE,
+and an LLM sorts raw alerts into families (compute, storage, network).
 
 Runs on the same default (mock) as the rest of the notebooks:
 

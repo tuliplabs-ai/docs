@@ -1,6 +1,6 @@
-# DPA & Security-Addendum Review
+# Vendor DPA & Data-Privacy Review
 
-Reviewing a vendor's Data Processing Agreement involves multiple
+Reviewing a data processor's Data Processing Agreement involves multiple
 stakeholders working in parallel, then a back-and-forth negotiation
 phase, then sign-off::
 
@@ -11,9 +11,9 @@ phase, then sign-off::
        │
        ▼
     Scatter to 3 parallel reviewers
-       ├── Privacy     (breach notice, residency, sub-processors, deletion)
-       ├── Security    (encryption, audit rights, incident response)
-       └── Compliance  (attestations, GDPR Art. 28 terms, liability for fines)
+       ├── Legal       (lawful basis, data-subject rights, consent, purpose)
+       ├── Governance  (minimisation, retention/deletion, residency, sub-processors)
+       └── Compliance  (GDPR/CCPA, DPIA, transfer mechanisms, liability for fines)
        ▼
     Synthesizer  (consolidated review report)
        │
@@ -28,10 +28,12 @@ phase, then sign-off::
                                                 ▼
                                           ContractDecision (typed)
 
-The DPA governs a processor in the AI stack's supply chain (OWASP ASI04),
-so a weak breach-notification window or a missing audit right is a real
-control gap, not a paperwork nit. SCRIBE — the SOC's compliance reporter
-— writes the typed sign-off.
+The processor here is a marketing-analytics SaaS that ingests your
+customers' personal data, so a weak erasure SLA or a vague
+international-transfer mechanism is a real compliance gap, not a
+paperwork nit — the breach-notification window should track the GDPR
+Art. 33 72-hour timeline. The DPO — the privacy office's data-protection
+officer — writes the typed sign-off.
 
 - `Send`: three reviewers run concurrently.
 - `add_conditional_edges` with cycles enabled: negotiation can loop

@@ -1,7 +1,8 @@
 # Basic Agent
 
-The smallest end-to-end Tulip example. Build an agent, send it a prompt
-two ways (blocking and streaming), and look at what comes back.
+The smallest end-to-end Tulip example. Build LEDGER, a tier-1
+transaction-triage agent for a payments team, send it a prompt two ways
+(blocking and streaming), and look at what comes back.
 
 What you'll learn:
 
@@ -10,7 +11,11 @@ What you'll learn:
   `agent.run(...)` (an async stream of events).
 - The fields on `AgentResult`: `message`, `success`, `stop_reason`,
   `metrics`.
-- Reusing the same agent across multiple prompts.
+- Reusing the same agent to triage many transactions in a row.
+
+The sample transactions map to common payments patterns: card testing
+(many small declines then a charge), an authorized recurring
+subscription, and a friendly-fraud chargeback.
 
 Run it:
 

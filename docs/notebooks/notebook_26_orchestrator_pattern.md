@@ -1,15 +1,19 @@
 # Orchestrator Pattern
 
-An orchestrator routes a task to a chosen set of specialist agents, runs
-them in parallel under a semaphore, then correlates their outputs into a
-single summary. Compared with a swarm, the decision of who
-does what is centralised here instead of emerging from capability tags.
+A privacy officer routes a data-subject request to a chosen set of
+specialist agents, runs them in parallel under a semaphore, then
+correlates their outputs into a single privacy assessment. Compared with
+a swarm, the decision of who investigates what is centralised here
+instead of emerging from capability tags — a single, auditable choke
+point that constrains which systems each specialist may touch, exactly
+the accountability and data-minimization posture GDPR and CCPA expect.
 
 This notebook covers:
 
 - `Specialist` — domain-focused agent with tools, system prompt, and a
   confidence threshold. Tulip ships pre-built ones for logs, metrics,
-  traces, and code.
+  traces, and code — useful evidence sources when tracing where personal
+  data flows.
 - `Orchestrator` — registers specialists, emits `RoutingDecision`
   objects, and runs the chosen ones concurrently behind
   `max_parallel_specialists` (an `asyncio.Semaphore`).

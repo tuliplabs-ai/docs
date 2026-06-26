@@ -1,16 +1,22 @@
 # RAG Basics
 
 Retrieval-Augmented Generation grounds an agent's answers in your own
-documents. This notebook drives the four-step pipeline against the
-bundled in-memory vector store.
+documents. This notebook drives the four-step pipeline over a cloud
+Well-Architected best-practice catalogue, using the bundled in-memory
+vector store.
 
 - **Embed** — `OpenAIEmbeddings` (`text-embedding-3-small`, 1536 dims).
-- **Store** — `InMemoryVectorStore` keeps vectors in process; swap in
-  `PgVectorStore` / `OpenSearchVectorStore` / `QdrantVectorStore` /
-  `ChromaVectorStore` for a durable backend.
+- **Store** — `QdrantVectorStore` (in-memory) keeps vectors in process;
+  swap in `PgVectorStore` / `OpenSearchVectorStore` / `ChromaVectorStore`
+  for a durable backend.
 - **Search** — nearest-neighbour by cosine distance.
 - **Retrieve** — `RAGRetriever` wraps embed + chunk + store behind one
-  call.
+  call, tagging each chunk with the pillar/practice metadata the cloud-ops
+  agent uses to narrow results.
+
+The corpus is AWS Well-Architected best practices (`REL-xx`, `COST-xx`,
+`SEC-xx`, `OPS-xx`) mapped to your runbooks — the Index the cloud-ops
+agent (STRATUS, notebook 40) reads from.
 
 ## Run it
 

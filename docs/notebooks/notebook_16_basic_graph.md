@@ -1,10 +1,12 @@
 # Basic Graph
 
-Build a workflow as a graph of nodes that pass state to each other. A
-`StateGraph` is a directed graph where each node is an async function
-that takes the current state in and returns updates to merge back. Use
-it when one Agent isn't enough — multi-step pipelines, branching
-logic, fan-out / fan-in, human approval gates.
+Build a data-subject-request triage workflow as a graph of nodes that
+pass state to each other. A `StateGraph` is a directed graph where each
+node is an async function that takes the current state in and returns
+updates to merge back. Use it when one Agent isn't enough — multi-step
+privacy pipelines (parse → enrich → verdict), branching logic, fan-out /
+fan-in across enrichment lookups, human approval gates before a DSAR
+response goes out.
 
 What you'll see:
 

@@ -3,7 +3,9 @@
 A swarm is a pool of agents pulling tasks from a shared queue. No
 supervisor decides who does what — each task finds the worker whose
 declared capabilities fit best, and the swarm runs them in parallel
-where it can.
+where it can. Here the swarm is an outage war room: mitigation,
+diagnostics, and comms responders claiming work off the same board
+during a production incident.
 
 This notebook covers:
 

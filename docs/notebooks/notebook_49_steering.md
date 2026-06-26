@@ -11,7 +11,11 @@ plus the agent's activity so far, then returns one of three actions:
   approval (returns a `REQUIRES APPROVAL` message).
 
 The result is a real-time guardrail you can author in plain English —
-no rules engine, no policy DSL.
+no rules engine, no policy DSL. In an infra/devops setting this lets you
+hold an on-call agent to a read-only diagnostics session: it can query
+Prometheus and read logs, but a mutating operation — restarting a
+service, scaling a deployment, terminating an instance — is blocked
+unless a human approves it.
 
 - `SteeringHook(model=..., policy="...")` — attach it to any agent via
   the `hooks=` parameter.

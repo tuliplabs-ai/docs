@@ -1,24 +1,27 @@
 # Agent Server
 
+This notebook deploys an on-call incident triage copilot as an HTTP API.
 `AgentServer` wraps any Tulip `Agent` in a FastAPI app: synchronous
-invoke, streaming SSE, and persisted threads. Auth is a single shared
-bearer API key (constructor arg or `TULIP_SERVER_API_KEY`); the
-presented key namespaces the thread checkpoints, so thread ids can't be
-resumed across a different key namespace.
+invoke, streaming SSE, and persisted incident threads. Auth is a single
+shared bearer API key (constructor arg or `TULIP_SERVER_API_KEY`); the
+presented key namespaces the thread checkpoints, so incident thread ids
+can't be resumed across a different key namespace. That is what keeps two
+on-call engineers sharing one server from reading each other's incidents.
 
 Endpoints:
 
 - `POST /invoke` — synchronous invocation.
 - `POST /stream` — SSE streaming.
-- `GET /threads/{tid}` — load a persisted thread.
-- `DELETE /threads/{tid}` — drop a persisted thread.
+- `GET /threads/{tid}` — load a persisted incident thread.
+- `DELETE /threads/{tid}` — drop a persisted incident thread.
 - `GET /health` — health check.
 
 When to use `AgentServer` vs `A2AServer`:
 
 - **AgentServer**: first-party HTTP API. Persisted threads,
   single shared-key bearer auth, key-namespaced thread checkpoints. Use
-  when Tulip is the system of record and clients are yours.
+  when Tulip is the system of record and clients are yours (a PagerDuty
+  webhook or a deploy dashboard).
 - **A2AServer**: cross-framework interop with the A2A message spec.
   Use when another framework (Strands, ADK) needs to call your Tulip
   agent.

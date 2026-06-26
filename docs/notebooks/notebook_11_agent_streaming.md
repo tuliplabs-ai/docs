@@ -4,6 +4,11 @@
 think, call tools, and terminate — live, in order. This is what lets you
 build progress bars, dashboards, audit logs, and SSE endpoints.
 
+This notebook follows a data-privacy scenario: triaging data-subject
+access requests (DSARs) under GDPR Art. 15. The agent extracts PII,
+checks consent, classifies requests, and files reports — all on
+fabricated subjects (`*.example` domains, 555-01xx phone numbers).
+
 What you'll learn:
 
 - The event types: `ThinkEvent`, `ToolStartEvent`, `ToolCompleteEvent`,
