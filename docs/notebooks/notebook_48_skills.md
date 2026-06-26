@@ -1,10 +1,11 @@
 # Skills
 
 A Skill (the AgentSkills.io shape) bundles a name, a description, and
-a block of instructions. The `SkillsPlugin` exposes a catalog of
-skills to the agent and only injects the full instructions once the
-agent activates a specific one. Progressive disclosure keeps the
-system prompt small and the agent focused.
+a block of instructions — a vetted payments-ops procedure such as
+dispute triage or refund-policy review. The `SkillsPlugin` exposes a
+catalog of skills to the agent and only injects the full instructions
+once the agent activates a specific one. Progressive disclosure keeps
+the system prompt small and the payments agent focused.
 
 - `Skill` — built in code or loaded from a `SKILL.md` file with YAML
   front-matter.
@@ -34,7 +35,8 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_48_skills.py
 - An OpenAI or Anthropic API key, or `TULIP_MODEL_PROVIDER` set to
   `openai` / `anthropic` / `mock`.
 - Optional: an `examples/skills/` directory with one or more
-  `SKILL.md` files for Part 2 to find.
+  `SKILL.md` files for Part 2 to find (e.g. dispute-triage,
+  refund-policy, fraud-scoring, ledger-query).
 
 ## Source
 

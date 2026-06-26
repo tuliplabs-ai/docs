@@ -3,8 +3,8 @@
 A playbook is a typed, ordered sequence of steps with declared
 `expected_tools`. Wire it into an agent and the agent is constrained
 to walk the steps in order, calling only the tools each step allows.
-Useful for incident response, deployments, and any procedure where
-you want auditability over agent freedom.
+Useful for GDPR data-subject requests, right-to-erasure workflows, and
+any privacy procedure where you want auditability over agent freedom.
 
 - `PlaybookStep` — id, description, expected tools, hints, validation
   rules.

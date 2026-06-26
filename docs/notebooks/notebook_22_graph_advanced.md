@@ -1,11 +1,13 @@
 # Advanced Graphs
 
 Per-node retry and caching, plus graph diagrams and live streaming.
-The executor lets you attach policies to individual nodes — so a flaky
-API call retries with backoff without touching the rest of the graph,
-and an expensive lookup gets cached without changing how it's called.
-The visualisation helpers and streaming hooks give you the operational
-story to go with it.
+The scenario is a resilient cloud-provisioning workflow — launch a VM,
+attach it, run a health check — where the control plane is flaky by
+nature. The executor lets you attach policies to individual nodes, so a
+throttled instance-launch call retries with backoff without touching the
+rest of the graph, and a repeated machine-image lookup gets cached
+without changing how it's called. The visualisation helpers and
+streaming hooks give you the operational story to go with it.
 
 What you'll see:
 

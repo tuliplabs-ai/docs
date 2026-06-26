@@ -1,9 +1,10 @@
 # Debate with Judge
 
-PRO and CON take turns arguing a resolution. After N rounds a Judge
-reads the full transcript and emits a typed `Verdict` — winner,
-confidence, key points, reasoning — that downstream systems (tickets,
-audit logs, databases) can consume directly.
+An INCIDENT advocate and a NOISE advocate take turns arguing over a
+cloud-monitoring alert. After N rounds a Judge reads the full transcript
+and emits a typed `Verdict` — call, confidence, key points, reasoning —
+that downstream systems (incident tooling, audit logs, on-call paging)
+can consume directly.
 
 This notebook covers:
 
@@ -18,8 +19,13 @@ This notebook covers:
   constrained-decoding support.
 
 ```text
-PRO r0 → CON r0 → PRO r1 → CON r1 → ... → judge → END
+incident r0 → noise r0 → incident r1 → noise r1 → ... → judge → END
 ```
+
+The judge's `Verdict.call` lands on `incident`, `noise`, or
+`inconclusive` — it only picks a side when one advocate clearly
+outargued the other, which keeps a two-agent debate from manufacturing
+false certainty about an ambiguous alert.
 
 ## Prerequisites
 

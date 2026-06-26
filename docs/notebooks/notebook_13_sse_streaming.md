@@ -1,9 +1,10 @@
 # SSE Streaming
 
-Server-Sent Events is the simplest way to push live agent updates from a
-Python backend to a browser. Tulip ships two handlers that turn the
-agent event stream into SSE wire format: a buffered `SSEHandler` for
-tests and a queue-based `AsyncSSEHandler` for production streaming.
+Server-Sent Events is the simplest way to push live payment-review
+updates from a Python backend to a payments operations dashboard. Tulip
+ships two handlers that turn the agent event stream into SSE wire format:
+a buffered `SSEHandler` for tests and a queue-based `AsyncSSEHandler` for
+production streaming.
 
 What you'll learn:
 

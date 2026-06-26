@@ -5,6 +5,14 @@ Every example is a runnable `.py` file that works end-to-end against the bundled
 Anthropic) by setting one environment variable. Within each track they build on
 each other.
 
+The examples span the high-stakes actions agents actually take: refunding a
+payment, deploying to production, changing a customer's account, deleting
+personal data, terminating a cloud resource, and containing a security
+incident. The pattern is the same in every domain — the agent proposes the
+action, a gate you wrote decides whether it runs, and every decision lands on a
+tamper-evident audit trail. Security is the most fully worked track because it
+came first, not because the runtime is security-only.
+
 <div class="notebook-filter">
   <input
     type="search"
@@ -25,14 +33,34 @@ python examples/<file>.py
 ```
 
 !!! tip "New to Tulip?"
-    Skim **Foundations** for the agent mechanics, then go to **Agentic
-    AI-security** for the flagship capstones. In a hurry? The security track
-    stands on its own — everything before it is the SOC plumbing it relies on.
+    Start with **Gate a high-stakes action** — five short examples that put a
+    policy gate in front of a refund, a deploy, an account change, a data
+    deletion, and a cloud resource. Each one stands on its own. From there,
+    pick the domain track that matches your work, or skim **Foundations** for
+    the agent mechanics underneath.
 
-## Agentic AI-security
+## Gate a high-stakes action
 
-The flagship trust layer — point at another AI and red-team it, verify a finding
-before acting, gate the action by policy, and investigate by domain.
+One pattern, five domains. The agent proposes an action; `admit()` checks it
+against a `ControlPolicy` you wrote; the side effect runs only if the policy
+allows it; every decision — allowed or held — lands on a tamper-evident
+`AuditTrail`. Fooling the model does not move money, ship to production, or
+delete a record, because the gate runs in code before the action, not in the
+prompt.
+
+| Example | What it shows |
+|---|---|
+| [Refund gate (payments)][nb83] | Pay out a small refund automatically; hold a $4,000 reversal for a human |
+| [Deploy gate (infrastructure)][nb84] | Ship to staging on the agent's authority; stop every production change for a person |
+| [Account-change gate (support)][nb85] | Apply a routine credit; hold a plan upgrade or a large goodwill credit |
+| [Data-deletion gate (privacy)][nb86] | Run a GDPR export on the agent's own authority; a DPO signs off before any erasure |
+| [Cloud-resource gate (cloud)][nb87] | Resize a dev box on its own; hold terminate-prod-DB and open-IAM for a human |
+
+## Security operations
+
+The most fully worked domain — point at another AI and red-team it, verify a
+finding before acting, gate the action by policy, and investigate across
+vendors. The same gate as the section above, applied to incident response.
 
 | Example | What it shows |
 |---|---|
@@ -49,9 +77,10 @@ before acting, gate the action by policy, and investigate by domain.
 
 ## Foundations
 
-The agent loop wired for security work — `security_toolset`,
-`create_soc_analyst`, and `ground_finding` so a triage agent abstains when the
-evidence isn't there. Hooks and termination are your kill-switch.
+The agent loop itself — model, system prompt, tools, memory, streaming, and the
+hooks and termination conditions that act as your kill-switch. The examples use
+a security triage agent to make it concrete, but the mechanics here are the same
+whatever the agent does — refund a payment, deploy a build, or answer a ticket.
 
 | Example | What it shows |
 |---|---|
@@ -262,3 +291,8 @@ live vendor integrations (IOC intel, SIEM) through a cost-tracked gateway.
 [nb80]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_80_model_fingerprint.py
 [nb81]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_81_ir_audit_trail.py
 [nb82]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_82_investigate_with_ctx.py
+[nb83]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_83_payment_refund_gate.py
+[nb84]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_84_infra_deploy_gate.py
+[nb85]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_85_support_account_gate.py
+[nb86]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_86_data_deletion_gate.py
+[nb87]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_87_cloud_resource_gate.py

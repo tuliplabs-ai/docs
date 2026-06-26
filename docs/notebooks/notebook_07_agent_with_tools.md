@@ -23,6 +23,11 @@ openai / anthropic for a live model; keep `TULIP_MODEL_PROVIDER=mock`
 for an offline run. Tool-calling also works
 against OpenAI, Anthropic.
 
+Here the agent works a deployment-readiness scenario: it looks up a
+container image digest in the build registry, pulls a service's DNS and
+health record, and only then calls go or no-go. The data is fictional —
+`example.com` hostnames, placeholder digests, and made-up service names.
+
 Prerequisite: the agent-basics notebook.
 
 ## Source

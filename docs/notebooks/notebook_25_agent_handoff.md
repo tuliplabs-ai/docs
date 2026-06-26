@@ -1,9 +1,13 @@
 # Agent Handoff
 
-A handoff is one agent saying "I'm done, please take this further." The
-source packages the task, its findings, and a reason into a typed
-`HandoffContext` so the target inherits the work state — not just a
-string.
+A handoff is one support agent saying "I'm done, please take this
+further." The source packages the ticket, its findings, and a reason into
+a typed `HandoffContext` so the next tier inherits the case state — not
+just a string. No re-asking the customer, no lost context.
+
+The running case is a support tier escalation: a customer reports a
+duplicate subscription charge, and the ticket walks L1 → L2 → L3 with
+billing lookups and account history gathered along the way.
 
 This notebook covers:
 
@@ -16,8 +20,8 @@ This notebook covers:
   transfer.
 - `manager.chain_handoff(agent_chain, task)` — walks a chain
   end-to-end, each agent inheriting prior findings.
-- "Model B" slot (`TULIP_MODEL_ID_B`) — drives the triage seat with a
-  cheaper model; falls back to Model A when unset.
+- "Model B" slot (`TULIP_MODEL_ID_B`) — drives the L1 front-line seat
+  with a cheaper model; falls back to Model A when unset.
 
 ## Prerequisites
 

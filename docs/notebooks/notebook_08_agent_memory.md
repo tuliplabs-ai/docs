@@ -2,13 +2,13 @@
 
 Give an agent a checkpointer and every conversation turn is persisted to
 a real store. Restart the process, attach a new agent to the same Redis
-and the same `thread_id`, and the conversation resumes — messages,
-tool history, confidence score and all.
+and the same `thread_id`, and the support conversation resumes —
+messages, ticket notes, tool history, confidence score and all.
 
 What you'll learn:
 
 - Building a `RedisBackend` checkpointer.
-- Keying conversations with `thread_id`.
+- Keying conversations with `thread_id` (one per customer ticket).
 - Writing a checkpoint after every iteration so a crash mid-tool-call
   still recovers.
 - Loading the saved `AgentState` and inspecting it field by field.
