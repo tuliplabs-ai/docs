@@ -1,9 +1,11 @@
 # Agent Yield Bridge
 
-Every `Agent.run` is decorated with `@_bus_bridge` so the nine typed
-events it yields get republished on the bus as `agent.*` events when a
-`run_context` is open. No hook registration, no config flag — the
-bridge is always there; it only fires when telemetry is active.
+A data-privacy review agent's tool calls are the part DPOs and auditors
+care about most. Every `Agent.run` is decorated with `@_bus_bridge` so
+the nine typed events it yields get republished on the bus as `agent.*`
+events when a `run_context` is open. No hook registration, no config
+flag — the bridge is always there; it only fires when telemetry is
+active. Every dataset the reviewer inspects shows up in the run stream.
 
 Event mapping::
 
@@ -23,9 +25,11 @@ Event mapping::
 - How nine yielded `TulipEvent` types map to `agent.*` bus events.
 - Tool-call telemetry with `span_id` pairing —
   `agent.tool.started` and `agent.tool.completed` share an id so
-  consumers can compute durations without subtracting timestamps.
+  consumers can compute durations without subtracting timestamps. Each
+  tool span is one auditable review step (classify a field's
+  sensitivity, count PII records in a dataset).
 - Token usage from `result.metrics` — the canonical source for cost
-  meters and budget enforcers.
+  meters and budget enforcers on always-on privacy-review automation.
 
 Run it (defaults to the bundled mock model; set `TULIP_MODEL_PROVIDER` to `openai` / `anthropic` for a live model):
 

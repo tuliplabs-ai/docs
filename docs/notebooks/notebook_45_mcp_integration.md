@@ -1,19 +1,26 @@
 # MCP Integration
 
 MCP (Model Context Protocol) is the open standard that lets AI
-assistants call tools running in a different process. Tulip speaks
-both sides of it.
+assistants call tools running in a different process — exactly how a
+support desk wires its order system, help center, and billing services
+into an agent without bundling them. Tulip speaks both sides of it.
 
-- Publish a Tulip agent as an MCP server — tools and the agent's own
-  `run_agent` become MCP methods.
-- Connect a Tulip agent to an external MCP server and use its tools as
-  ordinary `@tool`-decorated callables.
+- Publish a Tulip support agent as an MCP server — tools and the agent's
+  own `run_agent` become MCP methods.
+- Connect a Tulip agent to an external MCP server (an order system, a
+  knowledge base) and use its tools as ordinary `@tool`-decorated
+  callables.
 - Convert tool schemas in both directions
   (`tulip_tool_to_mcp` / `mcp_tool_to_tulip`).
 - Handle `tools/list` and `tools/call` requests programmatically.
+- Expose a **refund-eligibility probe** as an MCP tool: a deterministic
+  classifier returns an `EligibilityVerdict`, and a GSAR grounding step
+  (`gsar_score` / `decide`) either ships the refund decision or abstains
+  when signal coverage is too low.
 
 The configured provider drives the agent. The MCP layer is transport-only
-— the same agent works against any provider.
+— the same agent works against any provider. All tool outputs are mock
+data (invented order ids, fixed signals) — no live order system.
 
 ## Run it
 

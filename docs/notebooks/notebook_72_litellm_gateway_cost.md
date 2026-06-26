@@ -3,7 +3,7 @@
 Companion to the [LiteLLM AI Gateway notebook](notebook_71_litellm_gateway.md) for the
 enterprise piece: **who spent what on which model**.
 
-Issues virtual keys for two pretend teams, drives traffic on each,
+Issues virtual keys for two pretend payments teams, drives traffic on each,
 then walks the gateway's full spend surface:
 
 - `/spend/logs` — per-request rows (model, tokens, USD cost, team metadata)
@@ -17,13 +17,14 @@ the gateway is the source of truth.
 ## What enterprises use this for
 
 - **Charge-back / showback to business units.** Finance pulls a monthly
-  report; teams see what they cost.
+  report; the fraud-ops and dispute-ops teams see what they cost.
 - **"What did Cohere Command cost across all teams this week?"** Drill
   per upstream model.
 - **"Who's about to blow their budget?"** Aggregate-per-key view +
-  `max_budget` field.
+  `max_budget` field. A runaway fraud-scoring loop hits its $5 cap, not
+  your invoice.
 - **Audit.** Append-only spend log keyed by virtual key + metadata,
-  one place for SOC-2 / ISO-27001 review.
+  one place for PCI-DSS / SOC-2 review.
 
 See the [LiteLLM AI Gateway how-to](../how-to/litellm-gateway.md#cost-tracking)
 for the curl-level API and the [enterprise patterns
@@ -55,3 +56,5 @@ python examples/notebook_72_litellm_gateway_cost.py
 - [LiteLLM AI Gateway how-to](../how-to/litellm-gateway.md) — when to
   use the gateway, auth boundary, scope, and the enterprise patterns
   the cost surface unlocks.
+</content>
+</invoke>
