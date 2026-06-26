@@ -7,7 +7,7 @@ facts it actually observed. It is the worked, end-to-end application of the
 findings; [GSAR grounding](gsar.md) decides which ones ship.
 
 A commodity "AWS agent" will confidently narrate misconfigurations it never
-observed. Here an ungrounded claim *cannot* become a `Finding` — it abstains —
+observed. Here an ungrounded claim *cannot* become a grounded `Evidence` finding — it abstains —
 so the report is trustworthy by construction, and the agent is read-only by
 construction, so the auditor can't become the incident.
 
@@ -85,7 +85,7 @@ tools (threat-intel, SIEM) alongside the AWS ones via `tools=[...]`.
 
 The agent submits a `PostureReport` of proposed `PostureFinding`s, each citing
 its evidence. `ground_report()` runs each one through GSAR: a finding ships as
-a typed `Finding` only if its cited evidence clears the threshold, otherwise it
+a typed `Evidence` only if its cited evidence clears the threshold, otherwise it
 abstains.
 
 ```python

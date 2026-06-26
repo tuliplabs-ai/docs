@@ -1,13 +1,20 @@
 # Agent Server
 
-`AgentServer` is the reference way to run a SOC agent as a service —
-drop in a security `Agent`, get a FastAPI app with `/invoke`,
-`/stream`, and per-case thread management out of the box. It re-emits
-the same event stream the Python API exposes as Server-Sent Events,
-gated by bearer-token auth with per-principal (per-analyst, per-tenant)
-thread isolation by default. One containment-grade containment agent,
-fronted for many analysts without leaking one tenant's investigation
-into another's.
+`AgentServer` is the reference way to run any Tulip `Agent` as a
+service — drop in an `Agent` (a refund bot, a deploy operator, an
+access-grant approver, or a SOC triage agent), and get a FastAPI app
+with `/invoke`, `/stream`, and per-thread management out of the box. It
+re-emits the same event stream the Python API exposes as Server-Sent
+Events, gated by optional bearer-token auth.
+
+!!! note "Single shared key — single principal"
+    `AgentServer` takes **one** `api_key`. Every authenticated request
+    presents that same token, so all callers hash to the **same**
+    principal and share one thread namespace. The principal prefix on
+    thread IDs stops an *unauthenticated* guesser and keeps thread IDs
+    from colliding — it does **not** give you per-analyst or per-tenant
+    isolation behind a shared key. For real multi-tenant isolation, run
+    one keyed `AgentServer` instance per tenant.
 
 ```python
 from tulip.server import AgentServer
@@ -26,10 +33,10 @@ if __name__ == "__main__":
 
 | Situation | Use AgentServer? |
 |---|---|
-| Exposing a triage agent to analysts via a SOC console / mobile app | **yes — SSE plus per-case thread persistence is what you want** |
-| Internal one-off hunt, single Python script | no — call `agent.run_sync(...)` directly |
-| Embedding triage in your own SOAR / FastAPI service | possible, but consider importing `AgentServer.app` and mounting it under your existing app |
-| Scaling out across many workers, one case resumable on any of them | yes, **with** an `S3Backend` (or another shared checkpointer) so every worker sees the same investigation history |
+| Exposing an agent to a web/mobile UI (a support console, an ops dashboard, a SOC console) | **yes — SSE plus per-thread persistence is what you want** |
+| Internal one-off task, single Python script | no — call `agent.run_sync(...)` directly |
+| Embedding an agent in your own FastAPI / SOAR service | possible, but consider importing `AgentServer.app` and mounting it under your existing app |
+| Scaling out across many workers, one thread resumable on any of them | yes, **with** an `S3Backend` (or another shared checkpointer) so every worker sees the same thread state |
 
 ## Getting started
 
@@ -47,7 +54,7 @@ agent = Agent(
     tools=security_toolset(siem=True, edr=True, threat_intel=True),
     system_prompt="You are a SOC analyst. Cite SIEM/EDR evidence; abstain without it.",
     reflexion=True,
-    checkpointer=FileCheckpointer(directory="./cases"),
+    checkpointer=FileCheckpointer(base_dir="./cases"),
     termination=(ToolCalled("isolate_host") & ConfidenceMet(0.9)) | MaxIterations(8),
 )
 
@@ -70,63 +77,87 @@ incrementally.
 
 ### 3. Call `/stream` (Server-Sent Events)
 
+`/stream` is a **POST** endpoint: the prompt comes from the JSON body
+and the token from the `Authorization` header. The browser `EventSource`
+API only issues GET requests, so it can't drive this route — use
+`fetch()` + a `ReadableStream` reader and parse the `data:` frames
+yourself. Each frame is `data: {json}\n\n`; the JSON carries a `type`
+field (`think`, `tool_start`, `tool_complete`, `done`, `error`), and the
+stream ends with a literal `data: [DONE]` frame. The route does **not**
+emit named SSE events.
+
 ```javascript
-const es = new EventSource(
-  "/stream?token=" + encodeURIComponent(token),
-);
-
-es.addEventListener("model_chunk", (e) => {
-  const { content } = JSON.parse(e.data);
-  output.innerText += content;
+const res = await fetch("/stream", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + token,
+  },
+  body: JSON.stringify({ prompt: "Triage alert A-42.", thread_id: "case-4821" }),
 });
 
-es.addEventListener("tool_start", (e) => {
-  const { tool_name } = JSON.parse(e.data);     // query_siem, enrich_indicator, isolate_host…
-  status.innerText = `running ${tool_name}`;
-});
-
-es.addEventListener("terminate", (e) => {
-  // reason === "PendingApproval" → a gated write (isolate_host /
-  // block_indicator) is parked, waiting on a human. See HITL below.
-  es.close();
-});
+const reader = res.body.getReader();
+const decoder = new TextDecoder();
+let buf = "";
+for (;;) {
+  const { value, done } = await reader.read();
+  if (done) break;
+  buf += decoder.decode(value, { stream: true });
+  const frames = buf.split("\n\n");
+  buf = frames.pop();                               // keep the partial frame
+  for (const frame of frames) {
+    const line = frame.replace(/^data: /, "");
+    if (line === "[DONE]") continue;
+    const evt = JSON.parse(line);
+    if (evt.type === "tool_start") {
+      status.innerText = `running ${evt.tool}`;     // query_siem, isolate_host…
+    } else if (evt.type === "done") {
+      output.innerText = evt.message;
+    }
+  }
+}
 ```
 
-Every typed event becomes its own SSE event-name; the `data:` payload
-is the JSON-serialised event. Same shape as the Python API's
-`async for event in agent.run(...)`.
+The `data:` payload is the JSON projection of each agent event (`type`
+plus its fields), derived from the same `async for event in
+agent.run(...)` stream the Python API exposes.
 
 ## Endpoints
 
 | Path | Method | Body | Returns |
 |---|---|---|---|
-| `/invoke` | POST | `{"prompt": "...", "thread_id": "..."}` | full `AgentResult` JSON |
-| `/stream` | POST | same | `text/event-stream` SSE of typed events |
-| `/resume` | POST | `{"thread_id": "...", "response": "approved"}` | continues a case parked on `PendingApproval` |
+| `/invoke` | POST | `{"prompt": "...", "thread_id": "..."}` | `InvokeResponse` JSON (`message`, `success`, `stop_reason`, `iterations`, `tool_calls`, `duration_ms`) |
+| `/stream` | POST | same | `text/event-stream` SSE of `data: {json}` frames |
 | `/health` | GET | — | liveness probe (200 OK) |
-| `/threads/{tid}` | GET | — | case history (requires checkpointer) |
-| `/threads/{tid}` | DELETE | — | drop a case thread |
+| `/threads/{tid}` | GET | — | thread state (requires checkpointer) |
+| `/threads/{tid}` | DELETE | — | drop a thread |
+
+There is no `/resume` route on the reference `AgentServer` — see
+[Human-in-the-loop](#human-in-the-loop) below for how the in-process
+interrupt/resume flow actually works.
 
 `/docs`, `/redoc`, and `/openapi.json` are only mounted when
 `debug=True` in your settings — production deployments don't expose
 schema by default.
 
-## Auth and tenant isolation
+## Auth and thread scoping
 
-- **Bearer token.** Pass `api_key="..."` to the constructor or set
-  `TULIP_SERVER_API_KEY`. Every request must carry
-  `Authorization: Bearer <token>`. Constant-time compared with
-  `hmac.compare_digest`.
+- **Bearer token (opt-in).** Auth is **off by default**. Pass
+  `api_key="..."` to the constructor or set `TULIP_SERVER_API_KEY` to
+  turn it on; then every request must carry `Authorization: Bearer
+  <token>`, constant-time compared with `hmac.compare_digest`.
 - **Loopback-only fallback.** If you don't configure auth and don't
   pass `allow_unauthenticated=True`, the server warns and binds to
-  loopback only — no accidental open agent endpoints (each one a SIEM
-  read and a containment write) on `0.0.0.0`.
-- **Per-principal thread namespacing.** The principal — the analyst or
-  tenant behind the bearer token — is derived server-side; case
-  thread IDs are prefixed with it. One authenticated analyst can't
-  read or resume another tenant's investigation by guessing the
-  `thread_id` (CWE-639: authorization bypass through a user-controlled
-  key). The same prefix scopes `/threads/{tid}` and `/resume`.
+  loopback only — no accidental open agent endpoint on `0.0.0.0`.
+- **Single-principal thread namespacing.** The principal is derived
+  server-side from the presented key — `sha256(token)[:12]`, or `anon`
+  when unauthenticated. Because the server holds **one** shared
+  `api_key`, every authenticated caller resolves to the **same**
+  principal, and thread IDs are prefixed with it (`<principal>:<tid>`).
+  This prefix stops an unauthenticated peer from reading or guessing a
+  thread (CWE-639) and namespaces threads per *server instance* — it
+  does **not** separate two analysts sharing the same key. For
+  per-tenant isolation, run one keyed `AgentServer` per tenant.
 
 ```python
 server = AgentServer(
@@ -142,41 +173,41 @@ server = AgentServer(agent=agent, allow_unauthenticated=True)
 server.run(host="127.0.0.1", port=8080)   # never 0.0.0.0
 ```
 
-## Human-in-the-loop containment
+## Human-in-the-loop
 
 Reads (`query_siem`, `enrich_indicator`, `lookup_hash`, `fetch_alert`)
-auto-run. Writes that change the world — `isolate_host`,
-`block_indicator` — should pause for a human. Gate the write tool with
-your own `PendingApproval` sentinel (see
-[Interrupts](interrupts.md)); the server catches it, checkpoints the
-case, and ends the run with `TerminateEvent(reason="PendingApproval")`.
+can auto-run. Writes that change the world — `isolate_host`,
+`block_indicator`, issuing a refund, rolling out a deploy — should pause
+for a human first. The SDK primitive for this is the in-process
+`interrupt()` / `ask_user()` call: a tool calls it, the agent yields an
+`InterruptEvent` and pauses, and the caller continues with
+`agent.resume(response)` (see [Interrupts](interrupts.md)).
 
 ```python
+from tulip.core.interrupt import interrupt
+
 @tool
-def request_human_approval(reason: str, action: str) -> dict:
-    """Park the case for an incident lead to approve."""
-    raise PendingApproval(reason=reason, action=action)
+def request_human_approval(reason: str, action: str) -> str:
+    """Pause the run until a human approves the pending action."""
+    return interrupt({"reason": reason, "action": action})
 ```
 
-The analyst's console reads the reason off the terminate event,
-surfaces an approve/deny prompt, and resumes the parked case — scoped
-to the same principal, so only this tenant can release the
-containment action:
-
-```bash
-curl -X POST http://localhost:8080/resume \
-  -H "Authorization: Bearer $TULIP_SERVER_API_KEY" \
-  -d '{"thread_id":"case-4821", "response":"approved"}'
-```
-
-`/resume` rehydrates from the checkpointer, threads the human's answer
-back into the loop, and `isolate_host` fires only after sign-off.
+!!! warning "AgentServer does not expose this over HTTP yet"
+    There is **no `PendingApproval` exception** in the SDK and **no
+    `/resume` endpoint** on the reference `AgentServer`. The
+    interrupt/resume flow above runs in-process. Over `/stream`, an
+    unexpected tool exception is caught and returned as a sanitized
+    `{"type": "error", "error": "internal error", "correlation_id": ...}`
+    frame (details land in the server log under that id) — it does **not**
+    park a resumable case. To drive human-in-the-loop over HTTP today,
+    handle `InterruptEvent` in your own wrapper around `Agent.run` /
+    `Agent.resume` and add your own resume route.
 
 ## Case persistence
 
 If the underlying `Agent` has a checkpointer, the server honours
-`thread_id` in the request body for cross-request continuity. Same
-analyst + same `thread_id` → same case, same investigation memory.
+`thread_id` in the request body for cross-request continuity. Same key +
+same `thread_id` → same thread, same accumulated state.
 
 ```bash
 # Day 1
@@ -185,11 +216,12 @@ curl -X POST .../invoke -d '{"prompt":"Open investigation for alert A-42", "thre
 curl -X POST .../invoke -d '{"prompt":"What did we establish so far?", "thread_id":"case-4821"}'
 ```
 
-For multi-worker deployments, swap the checkpointer to one workers
-share so a case parked for approval on one worker can be `/resume`d on
-any other — `S3Backend(bucket=..., namespace=...)` is the
-zero-friction path; `RedisCheckpointer` and
-`PostgresCheckpointer` work too.
+For multi-worker deployments, swap the checkpointer to one the workers
+share so a thread written on one worker can be loaded on any other —
+`S3Backend(bucket=..., prefix=...)` is the zero-friction path (it
+implements `BaseCheckpointer` directly, so pass it straight to the
+agent); the `redis_checkpointer(...)` and `postgresql_checkpointer(...)`
+factories work too. See [Checkpointers](checkpointers.md).
 
 ## Deployment
 
@@ -213,8 +245,8 @@ your platform expects.
 |---|---|
 | Server starts but binds to loopback only | No `api_key` and no `allow_unauthenticated=True`. Pick one. |
 | Console SSE drops mid-investigation (~30s) | Reverse-proxy idle timeout. Bump `proxy_read_timeout` in nginx / `idle_timeout` on the LB, or have the agent send heartbeats every ~25s. A long `query_siem` is the usual trigger. |
-| Cases don't persist across restarts | `FileCheckpointer` writes to disk in the working directory — ephemeral container filesystems lose parked, awaiting-approval cases. Mount a volume or move to `S3Backend`. |
-| `/threads/{tid}` or `/resume` 404s for the right tid | Case IDs are scoped to the principal — `<principal>:<tid>` is what's stored. The path you pass is *your* tid; the server prefixes. Resuming under a different token won't find the parked case. |
+| Threads don't persist across restarts | `FileCheckpointer` writes to disk in the working directory — ephemeral container filesystems lose state on restart. Mount a volume or move to `S3Backend`. |
+| `/threads/{tid}` 404s for the right tid | Thread IDs are prefixed with the principal — `<principal>:<tid>` is what's stored. The path you pass is *your* tid; the server prefixes. A request under a different key (or unauthenticated) won't find it. |
 
 ## Source and notebook
 
@@ -223,7 +255,7 @@ your platform expects.
 
 ## See also
 
-- [Interrupts](interrupts.md) — the `PendingApproval` / `agent.resume(...)` flow `/resume` is built on.
+- [Interrupts](interrupts.md) — the in-process `interrupt()` / `agent.resume(...)` human-in-the-loop flow.
 - [Streaming](streaming.md) — the Python iterator the SSE stream is built on.
 - [Events](events.md) — every event type the server re-emits.
 - [Checkpointers](checkpointers.md) — picking a backend that survives restarts, keeps parked cases, and scales out.

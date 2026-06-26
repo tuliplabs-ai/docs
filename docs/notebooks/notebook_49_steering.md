@@ -5,8 +5,10 @@ every tool call. The steering model reads a natural-language policy
 plus the agent's activity so far, then returns one of three actions:
 
 - `PROCEED` — let the tool call go through.
-- `GUIDE` — let it through but inject a note for the agent to read.
-- `INTERRUPT` — block the tool call and return a refusal message.
+- `GUIDE` — cancel the tool call and return the guidance message in
+  its place, so the agent reads the correction instead of the result.
+- `INTERRUPT` — cancel the tool call and flag it as requiring human
+  approval (returns a `REQUIRES APPROVAL` message).
 
 The result is a real-time guardrail you can author in plain English —
 no rules engine, no policy DSL.

@@ -158,7 +158,7 @@ builder, validation-error formatter.
   covers both the standalone `parse_structured()` parser (useful for
   non-Agent flows) and the Agent `output_schema=` integration above.
 - [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_32_debate_with_judge.py)
-  — typed `Verdict` as the workflow boundary artifact.
+  — typed `VerificationResult` as the workflow boundary artifact.
 - [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py)
   — typed `Postmortem` as the terminal artifact of an incident graph.
 - [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)

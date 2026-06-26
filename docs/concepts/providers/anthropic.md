@@ -5,11 +5,11 @@ Opus for the hardest problems, Sonnet as the everyday workhorse,
 Haiku for high-volume cheap calls — and want to talk to Anthropic
 without going through an intermediary.
 
-Two things make this provider distinct: **prompt caching** (a long
+What makes this provider distinct is **prompt caching**: a long
 threat-intel block or SOC playbook reused across an investigation pays
-1/10th the input cost on repeat turns) and **extended thinking** (Claude
-surfaces its reasoning as a stream of typed events — useful for showing
-forensic depth on a hard triage call).
+1/10th the input cost on repeat turns. Each turn's assistant message is
+also surfaced as a typed `ThinkEvent`, so a UI can show the model's
+working as it streams.
 
 ## When to pick Anthropic
 
@@ -17,7 +17,7 @@ forensic depth on a hard triage call).
 |---|---|
 | Claude Opus / Sonnet / Haiku from Anthropic directly | ✓ |
 | Threat-intel context / SOC playbooks amortised across a long investigation | ✓ — built-in prompt caching |
-| Forensic reasoning surfaced for the analyst to audit | ✓ — `ThinkEvent` stream |
+| Each turn's reasoning surfaced for the analyst to follow | ✓ — `ThinkEvent` stream |
 
 ## Getting started
 
@@ -48,8 +48,8 @@ result = agent.run_sync("Summarise the triage findings for alert A-42 in three b
 print(result.message)
 ```
 
-That's the full setup. Streaming, tool calling, prompt caching, and
-extended thinking work without extra configuration.
+That's the full setup. Streaming, tool calling, and prompt caching
+work without extra configuration.
 
 ## What you get out of the box
 
@@ -152,14 +152,15 @@ When it kicks in:
 on `AgentResult.metrics` so observability hooks can chart cache hits
 and the cost saved.
 
-### Extended thinking — visible reasoning
+### Per-turn reasoning — visible message stream
 
-Claude models with `thinking_enabled` reason before answering — worth
-the extra tokens when a triage call hinges on forensic depth (correlating
-a beacon against process lineage, weighing weak signals before escalating).
-Anthropic surfaces those thinking blocks in the response; the SDK emits a
-`ThinkEvent` for each one so the analyst can audit how the model reached a
-finding:
+Each agent turn surfaces the model's assistant message as a
+`ThinkEvent` before any tool calls run, so the analyst can follow how
+the model is working through a triage call. The SDK builds the
+`ThinkEvent` from the turn's `message.content` (the Anthropic response
+parser handles `text` and `tool_use` blocks); it does **not** send an
+extended-thinking request param, so this is the normal per-turn message
+text, not a separate hidden chain-of-thought channel:
 
 ```python
 async for event in agent.run("..."):
@@ -178,7 +179,7 @@ async for event in agent.run("..."):
 | `404 not_found_error` on the model id | Model id is wrong; check `https://docs.anthropic.com/en/docs/about-claude/models/all-models` |
 | `429 overloaded_error` | Anthropic capacity; the `ModelRetryHook` re-tries with backoff if installed |
 | Prompt caching not visible in usage stats | Cache window expired (5 min ephemeral) or prompt below the threshold |
-| `ThinkEvent`s never fire | Model not in the extended-thinking subset, or `thinking_enabled` not set in `model_config` |
+| `ThinkEvent`s never fire | The turn produced no assistant `message.content` (e.g. tool-call-only turn) |
 
 ## Source
 

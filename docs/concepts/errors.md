@@ -48,10 +48,10 @@ TulipError                       kind="tulip_error"
 │   ├── CheckpointNotFoundError  kind="checkpoint_not_found"
 │   └── CheckpointSerializationError  kind="checkpoint_serialization"
 ├── RAGError                     kind="rag_error"
-│   ├── EmbeddingError           kind="embedding"
-│   └── VectorStoreError         kind="vector_store"
-├── ValidationError              kind="validation"     (public-API input)
-└── ConfigError                  kind="config"         (invalid/missing config)
+│   ├── EmbeddingError           kind="embedding_error"
+│   └── VectorStoreError         kind="vector_store_error"
+├── ValidationError              kind="validation_error"   (public-API input)
+└── ConfigError                  kind="config_error"       (invalid/missing config)
 ```
 
 Class names may evolve; `kind` strings are part of the stable contract.
@@ -143,6 +143,6 @@ log adapters — you don't lose context.
 
 ## See also
 
-- [Retry](retry.md) — built-in retry hook keyed on `ModelThrottledError`.
+- [Retry](retry.md) — the opt-in `ModelRetryHook` (retries empty model responses).
 - [Hooks](hooks.md) — `AfterToolCallEvent` carries any exception raised by the body.
 - [Tools](tools.md) — when `ToolValidationError` and `ToolExecutionError` fire.

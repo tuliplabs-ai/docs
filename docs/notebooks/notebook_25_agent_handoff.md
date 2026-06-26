@@ -11,8 +11,9 @@ This notebook covers:
   findings dict, confidence, instructions, and the full chain.
 - `HandoffReason` — `SPECIALIZATION`, `ESCALATION`, `DELEGATION`,
   `COMPLETION`, `FAILURE`. Drives prompt templating and audit trails.
-- `HandoffManager` — registers a pool, enforces a `max_handoff_chain`
-  cap, records every transfer.
+- `create_handoff_manager(...)` — builds a `Handoff` manager that
+  registers a pool, enforces a `max_handoff_chain` cap, records every
+  transfer.
 - `manager.chain_handoff(agent_chain, task)` — walks a chain
   end-to-end, each agent inheriting prior findings.
 - "Model B" slot (`TULIP_MODEL_ID_B`) — drives the triage seat with a

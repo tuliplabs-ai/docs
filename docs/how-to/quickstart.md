@@ -27,10 +27,11 @@ export OPENAI_API_KEY=sk-...          # OpenAI
 export ANTHROPIC_API_KEY=sk-ant-...   # Anthropic
 ```
 
-the model's `base_url` — no key needed. See
-[Models](../concepts/models.md) for the per-provider matrix. With no key
-set, Tulip falls back to a bundled mock model so the quickstart still
-runs offline.
+For OpenAI-compatible gateways or local servers, point `OpenAIModel` at
+the model's `base_url` instead. See
+[Models](../concepts/models.md) for the per-provider matrix. A provider
+key for the model you choose is required — there is no offline mock model
+in the SDK.
 
 ## 3. Your first agent
 
@@ -52,7 +53,7 @@ def check_domain_reputation(domain: str) -> dict:
     return {"domain": domain, "verdict": "malicious", "sources": 4}
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="openai:gpt-4o",
     tools=[scan_endpoint, check_domain_reputation],
     system_prompt="You are a SOC analyst triaging alerts. "
                   "Cite the evidence behind every verdict.",
@@ -89,11 +90,11 @@ That's the whole point of Tulip: wrap the action in `admit()` and it runs
 warrants it, and lands on a tamper-evident audit trail either way.
 
 ```python
-from tulip.security import (
-    Action, admit, SecurityPolicy, AuditTrail, AdmissionError)
+from tulip.control import (
+    Action, admit, ControlPolicy, AuditTrail, AdmissionError)
 
-policy = SecurityPolicy()   # conservative defaults: production → human
-trail = AuditTrail()        # hash-chained, replayable, can't forge
+policy = ControlPolicy()    # conservative defaults: production → human
+trail = AuditTrail()        # hash-chained, replayable, tamper-evident
 
 # The triage above said "isolate 192.0.2.10". Don't just do it — admit it.
 risky = Action(
@@ -157,10 +158,10 @@ checkpointer and a `thread_id`:
 from tulip.memory.backends.file import FileCheckpointer
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="openai:gpt-4o",
     tools=[...],
     system_prompt="...",
-    checkpointer=FileCheckpointer(directory="./threads"),
+    checkpointer=FileCheckpointer(base_dir="./threads"),
 )
 
 # Day 1
@@ -170,7 +171,7 @@ agent.run_sync("Open the investigation for alert A-42.", thread_id="case-4821")
 agent.run_sync("What did we establish so far?", thread_id="case-4821")
 ```
 
-For vendor-neutral durability, swap to `S3Backend(bucket=..., namespace=...)`.
+For vendor-neutral durability, swap to `S3Backend(bucket=..., prefix=...)`.
 See [Conversation Management](../concepts/conversation-management.md).
 
 ## 6. Make it production-grade
@@ -189,11 +190,11 @@ def isolate_host(host_id: str, incident_id: str) -> dict:
     return edr.isolate(host_id, incident_id)
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="openai:gpt-4o",
     tools=[query_siem, isolate_host],
     system_prompt="...",
     reflexion=True,
-    checkpointer=S3Backend(bucket="tulip-threads", namespace="..."),
+    checkpointer=S3Backend(bucket="tulip-threads", prefix="..."),
     termination=(
         ToolCalled("isolate_host") & ConfidenceMet(0.9)
     ) | MaxIterations(8),
@@ -229,12 +230,15 @@ the problem:
 ```python
 from tulip.server import AgentServer
 
-server = AgentServer(agent=agent)
+server = AgentServer(agent=agent, api_key="change-me")
 server.run(host="0.0.0.0", port=8080)
 ```
 
-`POST /invoke`, `POST /stream`, `GET /threads/{id}`. Deploys
-anywhere FastAPI runs — see [Deploy](deploy.md).
+`POST /invoke`, `POST /stream`, `GET /threads/{id}`, `GET /health`.
+Binding to a non-loopback host requires an `api_key` (or
+`allow_unauthenticated=True`); every route except `/health` then
+expects that bearer token. Deploys anywhere FastAPI runs — see
+[Deploy](deploy.md).
 
 ## Where to next
 
