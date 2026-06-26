@@ -11,11 +11,11 @@ hide:
 
 # Let your agent act. <span class="accent">You stay in control.</span>
 
-Add Tulip to the agent you already have, on any framework. Every risky action — issue the refund, roll out the deploy, isolate the host — runs only after it clears a **policy** you write, pauses for a **human** when the stakes are high, and lands on a **tamper-evident audit trail** that flags any later edit.
+Tulip is an open-source agentic framework with a security and control layer built into the core. Build agents the usual way — tools, memory, multi-agent orchestration, RAG — and every action they take (refund a customer, ship a deploy, change an account) runs only after it clears rules you write, pauses for a human when the stakes are high, and is recorded so you can always see what happened.
 
-The check is code that runs *before* the action, not a line in the prompt. A jailbreak or an injected document can change what the model *decides* — it can't remove the gate that decides what actually *happens*.
+The check is real code, not an instruction in a prompt — so even if your agent gets tricked or goes off-script, it still can't act outside your rules. A limit it can't cross, not a guideline it can ignore.
 
-A drop-in for any framework or your own loop — proven first in security (SOC, EDR, identity), where a wrong action is a breach.
+Build on Tulip, or drop just the control layer into an agent you already have — LangChain, CrewAI, the OpenAI Agents SDK, or your own loop. Proven first in security, where a wrong action is a breach.
 
 <div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[LangChain](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[CrewAI](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[OpenAI&nbsp;Agents](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[LlamaIndex](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[MCP](concepts/mcp.md)</span></div>
 
@@ -63,6 +63,52 @@ except AdmissionError as e:
 
 </div>
 </div>
+
+## Two ways to use Tulip
+
+**Build your agent on Tulip.** It's a complete agentic framework — tools, memory, multi-agent, RAG — with the control layer native to it.
+
+```python
+from tulip import Agent, tool
+
+@tool
+def lookup_order(order_id: str) -> str:
+    """Look up an order's status."""
+    return orders.get(order_id)          # your data — @tool exposes it to the model
+
+agent = Agent(
+    model="anthropic:claude-sonnet-4-6",  # or openai:gpt-4o
+    tools=[lookup_order],
+    system_prompt="You are a support assistant.",
+)
+
+print(agent.run_sync("What's the status of order ord-4821?").text)
+# -> "Order ord-4821 has shipped — arrives Tuesday."
+```
+
+**Already on another framework? Add just the control layer.** Wrap one tool and a risky action is policy-gated, human-approvable, and audited — the rest of your LangChain / CrewAI / OpenAI-Agents agent is untouched.
+
+```python
+from langchain_core.tools import tool
+from tulip.control import Action, AuditTrail
+from tulip_frameworks.langchain import gate_langchain_tool
+from tulip_frameworks.policy_presets import action_gate_policy
+
+@tool
+def refund(order_id: str, amount_usd: float) -> str:
+    """Issue a customer refund."""
+    return payments.refund(order_id, amount_usd)   # in real life, this moves money
+
+safe_refund = gate_langchain_tool(
+    refund,
+    action=lambda name, a: Action(name=name, asset=a["order_id"],
+                                  blast_radius=1, kind="payment", environment="production"),
+    policy=action_gate_policy(),          # production → human
+    trail=AuditTrail(),
+)
+# Hand `safe_refund` to your agent in place of `refund`. A $250 production refund now returns:
+#   {"status": "held_for_approval", "reason": "labels ['production'] require human approval"}
+```
 
 ## Most frameworks help the model *decide*. Tulip governs what it *does*.
 
