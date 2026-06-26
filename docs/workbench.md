@@ -251,9 +251,9 @@ no mocks. Can you explain JWT vs session tokens briefly?
 ```
 
 ```
-I'm a SOC analyst focused on detection engineering. I work in Python and use
-OpenSearch for log storage. The project deadline is end of Q2. What's a good
-metric for measuring detection coverage against MITRE ATT&CK?
+I'm a payments ops lead handling refunds and chargebacks. I work in Python and
+use Postgres for the ledger. The reconciliation deadline is end of Q2. What's a
+good metric for measuring chargeback-dispute win rate?
 ```
 
 The reply shows three sections: the Session 1 answer, the extracted
