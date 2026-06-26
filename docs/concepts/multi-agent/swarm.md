@@ -10,9 +10,12 @@ queue, run them, and may post follow-up tasks for any peer to pick up.
 
 Three pieces:
 
-- A **`SharedContext`** — a dict every agent reads and writes.
-- A **task queue** — agents pull from it; agents push to it.
-- N **agents** — each with its own tools and system prompt.
+- A **`SharedContext`** — a typed blackboard (findings, messages, and
+  task results) every agent reads and writes.
+- A **task queue** — agents pull from it; `add_task` (and task
+  decomposition) push to it.
+- N **`SwarmAgent`s** — each with its own `capabilities` tags and
+  system prompt.
 
 Each iteration, every available agent picks the next task it's
 qualified for, runs it, and may emit follow-up tasks. The swarm
@@ -40,62 +43,70 @@ exits when the queue empties or `max_iterations` is hit.
 ## Code
 
 ```python
-from tulip.multiagent import Swarm
+from tulip.multiagent import create_swarm, create_swarm_agent
 
-hunter = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, enrich_ioc],
-    system_prompt="You are a threat hunter. Pull alerts, enrich indicators, post follow-ups.",
+model = "anthropic:claude-sonnet-4-6"
+
+hunter = create_swarm_agent(
+    name="Hunter",
+    capabilities=["hunt", "enrich", "investigate"],
+    system_prompt="You are a threat hunter. Pull alerts, enrich indicators, scope leads.",
 )
-forensics = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[pull_edr_timeline, scan_host],
+forensics = create_swarm_agent(
+    name="Forensics",
+    capabilities=["forensics", "analyze", "examine"],
     system_prompt="You are a forensics analyst. Confirm compromise, scope the blast radius.",
 )
-reporter = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[draft_notes, revise],
+reporter = create_swarm_agent(
+    name="Reporter",
+    capabilities=["write", "summarize", "document"],
     system_prompt="You are an incident reporter. Take confirmed findings, draft the IR write-up.",
 )
 
-swarm = Swarm(
+swarm = create_swarm(
+    name="IR research swarm",
     agents=[hunter, forensics, reporter],
-    shared_context={"incident": "INC-0042", "scope": "ws-0042"},
-    max_iterations=12,
-    initial_tasks=["pull alerts", "enrich top indicators"],
+    model=model,
 )
+swarm.max_iterations = 12
 
-result = swarm.run_sync()
-print(result.final_artefact)
+result = await swarm.execute(
+    initial_task="Investigate INC-0042 on ws-0042: hunt, confirm compromise, draft a write-up.",
+)
+print(result.summary)
+for task in result.completed_tasks:
+    print(task.description, "→", task.status)
 ```
 
-## How agents post follow-up tasks
+A `SwarmAgent` carries free-form `capabilities` tags (not a tool list);
+tasks are matched to agents by those tags. `execute()` is async and
+returns a `SwarmResult` with `completed_tasks`, `failed_tasks`, a shared
+`context`, and a `summary`.
 
-Each agent's tool surface includes (implicitly) a `post_task(...)`
-mechanism. When an agent finishes, it can append new tasks to the
-shared queue:
+## How tasks enter the queue
+
+You can seed the queue directly with `add_task(...)` (higher `priority`
+runs first), and `execute(decompose_tasks=True)` will also break the
+initial task into capability-matched sub-tasks:
 
 ```python
-# inside a tool the agent calls
-@tool
-def enrich_and_followup(indicator: str, ctx: ToolContext) -> dict:
-    verdict = enrich_ioc(indicator)
-    if verdict.get("malicious"):
-        ctx.swarm.post_task(f"confirm compromise on host touching: {indicator}")
-    return {"verdict": verdict}
+swarm = create_swarm(name="IR War Room", agents=[hunter, forensics, reporter], model=model)
+
+swarm.add_task("Collect a memory image from WS-0142", priority=10)
+swarm.add_task("Draft the stakeholder status update", priority=3)
+
+result = await swarm.execute()
 ```
 
-The next iteration, any qualifying agent (here — the fact-checker)
-picks up that task.
+Each iteration, any qualifying agent claims the next task it's eligible
+for and works it, recording findings on the shared `context`.
 
 ## Termination
 
 Swarms stop when:
 
 - The queue empties **and** no agent emits new tasks, OR
-- `max_iterations` is hit, OR
-- A custom `terminate` condition matches (the swarm honours
-  [Termination algebra](../termination.md) the same way an `Agent` does).
+- `max_iterations` is hit.
 
 ## Notebook
 

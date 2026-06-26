@@ -11,9 +11,9 @@ hide:
 
 # Let your agent act. <span class="accent">You stay in control.</span>
 
-Add Tulip to the agent you already have — on any framework. Every risky action it takes — move the money, change the infra, disable the account — runs only after it clears your **policy**, holds for a **human** when it matters, and lands on an **audit trail it can't forge**.
+Add Tulip to the agent you already have — on any framework. Every risky action it takes — issue the refund, roll out the deploy, grant the access, isolate the host — runs only after it clears a **policy** you write, pauses for a **human** when the stakes are high, and is written to a **tamper-evident audit trail** that flags any later edit.
 
-**You can fool the model; you can't talk past the runtime.**
+The check is code that runs *before* the action, not a line in the prompt. So a jailbreak or an injected document can change what the model *decides* — but it can't remove the gate that decides what actually *happens*. A rule the model is asked to follow is advisory; running it as a gate makes it mandatory. That is the difference between a library you may call and a runtime that always runs.
 
 A drop-in for LangChain, CrewAI, the OpenAI Agents SDK, or your own loop — proven first in security (SOC, EDR, identity), where a wrong action is a breach.
 
@@ -33,13 +33,13 @@ pip install "tulip-agents[openai]"   # OpenAI · Anthropic
 <div class="tulip-hero__code" markdown>
 
 ```python
-from tulip.security import (
-    Action, admit, SecurityPolicy,
+from tulip.control import (
+    Action, admit, ControlPolicy,
     AuditTrail, AdmissionError)
 
 # Drop the gate around an action your agent
 # already takes — policy + audit trail.
-policy = SecurityPolicy()   # prod → human
+policy = ControlPolicy()   # prod → human
 trail = AuditTrail()
 
 # The model decided to refund a customer.
@@ -85,7 +85,7 @@ the rule **structural**: the side-effecting call runs only after it clears
 | **Can a jailbreak bypass it?** | yes — talk the model out of the rule | often — filters score text, not blast radius | **no** — the action runs only if `admit()` allows |
 | **Human-in-the-loop** | ad-hoc, if you wire it | sometimes, per-framework | first-class: `require_human_for` by environment / kind / tag |
 | **Proof of what happened** | logs you can edit | app logs | **hash-chained `AuditTrail`** — `verify()` fails on any edit |
-| **Evidence behind a claim** | "trust the model" | none | **GSAR grounding** — a `Finding` only above threshold, else `Abstention` |
+| **Evidence behind a claim** | "trust the model" | none | **GSAR grounding** — an `Evidence` only above threshold, else `Abstention` |
 | **Works with your stack** | — | you adopt the framework | **drop-in**: wrap a call your agent already makes, on any framework |
 
 Guardrails and grounding are good — Tulip ships both. The moat is the gate: a wrong
@@ -102,15 +102,16 @@ authority. Tulip gives you the whole chain — and an admission gate that makes 
 
 **evidence → grounding → verification → policy → approval → admission → audit**
 
-- **Grounding** — a claim becomes a typed `Finding` only above the GSAR
-  threshold, else an `Abstention`. Enforced by the type: no ungrounded `Finding`
+- **Grounding** — a claim becomes a typed `Evidence` only above the GSAR
+  threshold, else an `Abstention`. Enforced by the type: no ungrounded `Evidence`
   can be constructed.
 - **Verification** — `verify()` independently challenges the finding and rescores it.
-- **Policy + approval** — `approve()` weighs a `SecurityPolicy` (verification
+- **Policy + approval** — `approve()` weighs a `ControlPolicy` (verification
   score, blast radius, `require_human_for`).
-- **Admission** — `admit()` (or `ctx.actions.execute()`) runs a side-effecting
-  action **only if** approval allows, recording the decision to the audit trail
-  either way; otherwise it raises `AdmissionError`.
+- **Admission** — `admit()` runs a side-effecting action **only if** approval
+  allows, recording the decision to the `AuditTrail` you pass either way;
+  otherwise it raises `AdmissionError`. `ctx.actions.execute()` is the same gate
+  inside a `SecurityContext`.
 
 That last gate is what makes Tulip a *runtime*, not a library: route an action
 through it and "no action without a verified, approved warrant" stops being a
@@ -123,9 +124,9 @@ convention and becomes enforced code.
 Security is the one domain where a hallucinated claim isn't an
 embarrassment — it's a false positive that burns an analyst's night, or
 a false negative that ships a breach. `tulip.security` turns a GSAR
-evidence partition into a typed `Finding` **only** when it clears the
+evidence partition into a typed `Evidence` **only** when it clears the
 grounding threshold; otherwise you get an auditable `Abstention`, never
-a finding. There is no public constructor that builds a `Finding`
+a finding. There is no public constructor that builds an `Evidence`
 without a score.
 
 ```python
@@ -144,7 +145,7 @@ result = ground_finding(
     ]),
 )
 print(result.title if is_finding(result) else f"withheld: {result.reason}")
-# Grounded partition → a typed Finding. Ungrounded → an Abstention.
+# Grounded partition → a typed Evidence. Ungrounded → an Abstention.
 ```
 
 Findings carry **MITRE ATLAS** (`AML.Txxxx`), **OWASP Top 10 for LLM
@@ -160,7 +161,7 @@ they drop into a SIEM without translation.
 - :material-shield-search:{ .lg .middle } **[Grounded findings](concepts/security.md)**
 
     ---
-    `ground_finding()` emits a typed `Finding` only above the GSAR
+    `ground_finding()` emits a typed `Evidence` only above the GSAR
     threshold — else an auditable `Abstention`. Ungrounded is
     unshippable by construction. Tagged to ATLAS · OWASP LLM · OWASP ASI.
 
@@ -175,7 +176,7 @@ they drop into a SIEM without translation.
 - :material-shield-lock:{ .lg .middle } **[Admission gate](concepts/security-context.md)**
 
     ---
-    `approve()` weighs a `SecurityPolicy` (blast radius, verification
+    `approve()` weighs a `ControlPolicy` (blast radius, verification
     score, `require_human_for={"production"}`); `admit()` then **runs the
     action only if that decision allows** — else raises `AdmissionError` —
     and records the attempt to the audit trail either way.
@@ -206,8 +207,9 @@ they drop into a SIEM without translation.
 
     ---
     One `run_context()` streams 60+ canonical events from every layer.
-    Every model call, tool call, guardrail verdict, and approval is an
-    immutable event you can ship to a SIEM and replay in a postmortem.
+    Every model call, tool call, guardrail verdict, and approval is a
+    typed, write-protected event you can ship to a SIEM and replay in a
+    postmortem.
 
 - :material-graph:{ .lg .middle } **[Multi-agent coordination](concepts/multi-agent.md)**
 

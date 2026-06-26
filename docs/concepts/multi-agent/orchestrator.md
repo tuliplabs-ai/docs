@@ -8,17 +8,21 @@ Think *project manager + team*.
 
 ## What it is
 
-The coordinator is a regular `Agent` whose tool-set is **the
-specialists**. Calling a specialist runs that specialist's full
-agent loop and returns the answer. When the coordinator dispatches
-to multiple specialists in one turn they run in parallel.
+The coordinator uses its `model` to pick which specialists handle a
+task, then runs each selected specialist's full agent loop and
+correlates the results. When the coordinator dispatches to multiple
+specialists in one turn they run in parallel (bounded by
+`max_parallel_specialists`).
 
-Each `Specialist` has:
+Each `Specialist` is its own self-contained agent. Its fields:
 
 - a `name` — what the coordinator calls it by
-- an `agent` — the specialist's own `Agent` (its own model, tools, system prompt)
+- a `specialist_type` — a short type tag (e.g. `"forensics"`)
 - a `description` — what the specialist is good at (the coordinator reads this)
-- an optional `confidence_floor` — below this the specialist declines
+- a `system_prompt` — the specialist's own instructions
+- its own `tools` and `model`
+- an optional `confidence_threshold` (default `0.85`) — the bar the
+  specialist's self-estimated confidence is measured against
 
 ## When to use it
 
@@ -39,52 +43,52 @@ Each `Specialist` has:
 ## Code
 
 ```python
-from tulip.multiagent import Orchestrator, Specialist
+from tulip.multiagent import Specialist, create_orchestrator
+
+model = "anthropic:claude-sonnet-4-6"
 
 triage = Specialist(
     name="triage",
-    agent=Agent(
-        model="anthropic:claude-sonnet-4-6",
-        tools=[fetch_alerts, enrich_ioc],
-        system_prompt="You are the Triage specialist.",
-    ),
+    specialist_type="triage",
     description="Reads the alerts. Enriches indicators. Scores severity.",
+    system_prompt="You are the Triage specialist.",
+    tools=[fetch_alerts, enrich_ioc],
 )
 
 forensics = Specialist(
     name="forensics",
-    agent=Agent(
-        model="anthropic:claude-sonnet-4-6",
-        tools=[pull_edr_timeline, scan_host, search_iocs],
-        system_prompt="You are the Forensics specialist.",
-    ),
+    specialist_type="forensics",
     description="Reconstructs the host timeline. Confirms compromise. Flags blast radius.",
+    system_prompt="You are the Forensics specialist.",
+    tools=[pull_edr_timeline, scan_host, search_iocs],
 )
 
 containment = Specialist(
     name="containment",
-    agent=Agent(
-        model="anthropic:claude-sonnet-4-6",
-        tools=[isolate_host, page_oncall],     # ← idempotent writes
-        system_prompt="You are the Containment specialist.",
-    ),
+    specialist_type="containment",
     description="Isolates hosts and pages the on-call. Only after triage + forensics agree.",
+    system_prompt="You are the Containment specialist.",
+    tools=[isolate_host, page_oncall],     # ← idempotent writes
 )
 
-orchestrator = Orchestrator(
-    coordinator_model="anthropic:claude-sonnet-4-6",
+orchestrator = create_orchestrator(
+    name="incident commander",
     specialists=[triage, forensics, containment],
-    system_prompt=(
-        "You are the incident commander. Delegate enrichment to triage, "
-        "host analysis to forensics, and only after both confirm call containment."
-    ),
+    model=model,                           # the coordinator's routing model
+)
+orchestrator.system_prompt = (
+    "You are the incident commander. Delegate enrichment to triage, "
+    "host analysis to forensics, and only after both confirm call containment."
 )
 
-result = orchestrator.run_sync(
+result = await orchestrator.execute(
     "Sev-1: ransomware detected on ws-0042. Investigate, contain, and recommend remediation.",
-    thread_id="inc-2026-0042",
 )
 ```
+
+`create_orchestrator` registers the specialists and propagates the
+coordinator's `model` into any specialist that doesn't carry its own.
+`execute()` is async — `await` it (or wrap in `asyncio.run`).
 
 ## What runs in parallel
 
@@ -94,19 +98,22 @@ parallel: triage, enrich the indicators on ws-0042; forensics, pull
 the host's EDR timeline" — both specialists run at the same time and
 their results merge back before the coordinator's next Think.
 
-## Confidence floors
+## Confidence thresholds
 
-A specialist can **decline** with low confidence. The coordinator
-sees the decline and tries another expert (or asks the user):
+Each specialist carries a `confidence_threshold` (default `0.85`).
+Every `SpecialistResult` reports a self-estimated `confidence`, so you
+can compare it against the threshold and decide whether to trust the
+output or route the sub-task to another expert:
 
 ```python
 Specialist(
     name="malware-rev",
-    agent=malware_agent,
+    specialist_type="malware_analysis",
     description="Reverse-engineers suspicious binaries and flags capabilities.",
-    confidence_floor=0.7,    # below 0.7 the specialist returns
-                             # ("decline", reason) and the coordinator
-                             # routes elsewhere
+    system_prompt="You reverse-engineer suspicious binaries.",
+    tools=[disassemble, sandbox_detonate],
+    confidence_threshold=0.7,    # the bar this specialist's
+                                 # self-estimated confidence is held to
 )
 ```
 
