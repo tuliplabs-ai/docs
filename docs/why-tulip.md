@@ -4,10 +4,10 @@ Most agent frameworks help the model **decide**. Tulip governs what happens
 **after** it decides — the moment an agent stops advising and starts *acting*:
 moving money, deleting a resource, disabling an account, isolating a host.
 
-A frontier model can be brilliant and still be talked into the catastrophic
-action. The thing it structurally **cannot** do — no matter how smart — is
-*prove it won't*. That proof is not an intelligence problem; it's a control
-problem. Tulip is the control layer.
+Even the best model can be talked into a harmful action — by a clever prompt, a
+poisoned document, or its own confused reasoning. And no model, however capable,
+can *prove* it won't. That's not a problem you solve with more intelligence. You
+solve it with control. Tulip is that control layer.
 
 ## The one thing a bare model can't do
 
@@ -17,9 +17,10 @@ production"), and a good model will follow it — until a jailbreak, an injected
 document, or a confused chain of reasoning talks it past the rule. A rule the
 model *chooses* to follow is advisory by definition.
 
-Tulip makes the rule **structural**. The side-effecting call runs only after it
-clears an admission gate — `admit()` — that the model has no way to reach around.
-Fool the model all you like; you can't talk past the runtime.
+Tulip makes the rule **structural**. The action runs only after it clears an
+admission gate — `admit()` — that lives in your code, not in the prompt. You can
+trick the model into *trying* the action. You cannot trick the gate that decides
+whether it actually runs.
 
 ## Library vs. runtime
 

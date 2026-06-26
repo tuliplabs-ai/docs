@@ -11,11 +11,11 @@ hide:
 
 # Let your agent act. <span class="accent">You stay in control.</span>
 
-Add Tulip to the agent you already have — on any framework. Every risky action it takes — issue the refund, roll out the deploy, grant the access, isolate the host — runs only after it clears a **policy** you write, pauses for a **human** when the stakes are high, and is written to a **tamper-evident audit trail** that flags any later edit.
+Add Tulip to the agent you already have, on any framework. Every risky action — issue the refund, roll out the deploy, isolate the host — runs only after it clears a **policy** you write, pauses for a **human** when the stakes are high, and lands on a **tamper-evident audit trail** that flags any later edit.
 
-The check is code that runs *before* the action, not a line in the prompt. So a jailbreak or an injected document can change what the model *decides* — but it can't remove the gate that decides what actually *happens*. A rule the model is asked to follow is advisory; running it as a gate makes it mandatory. That is the difference between a library you may call and a runtime that always runs.
+The check is code that runs *before* the action, not a line in the prompt. A jailbreak or an injected document can change what the model *decides* — it can't remove the gate that decides what actually *happens*.
 
-A drop-in for LangChain, CrewAI, the OpenAI Agents SDK, or your own loop — proven first in security (SOC, EDR, identity), where a wrong action is a breach.
+A drop-in for any framework or your own loop — proven first in security (SOC, EDR, identity), where a wrong action is a breach.
 
 <div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[LangChain](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[CrewAI](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[OpenAI&nbsp;Agents](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[LlamaIndex](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[MCP](concepts/mcp.md)</span></div>
 
@@ -57,7 +57,8 @@ except AdmissionError as e:
     # -> "require_human"; refund NOT run.
 
 # Held for a human, on the audit trail.
-# Fool the model; you can't talk past it.
+# The gate runs before the action, so a
+# jailbreak can't remove it.
 ```
 
 </div>
@@ -275,4 +276,4 @@ runtime earns its keep the moment an action can **cost** something.
 
 ---
 
-**Evidence-grounded. Standards-aligned. Open to everyone.**
+**Evidence-grounded. Standards-aligned. Apache-2.0.**
