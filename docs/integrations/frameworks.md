@@ -1,36 +1,139 @@
 # Drop Tulip into your agent framework
 
-You don't have to rebuild your agent on Tulip to get the control runtime. If you
+You don't have to rebuild your agent on Tulip to get the control layer. If you
 already have an agent in **LangChain / LangGraph, CrewAI, the OpenAI Agents SDK,
 LlamaIndex, or Google ADK**, keep it — and put Tulip's admission gate around the
 *actions* it takes. The model and orchestration stay yours; the gate, the
 human-in-the-loop, and the tamper-evident audit trail come from Tulip.
 
-This works because the gate doesn't care which framework you use:
+The [`tulip-frameworks`](https://github.com/tuliplabs-ai/tulip-frameworks) package
+ships a thin bridge per framework. You wrap a tool once and give the gated version to
+your agent in its place — same name, same schema. From then on, when the agent
+decides to act, the gate decides whether that action runs, is held for a human, or is
+denied — and records the decision either way.
 
-```python
-from tulip.control import admit, Action, ControlPolicy, AuditTrail
-await admit(action, perform, policy=policy, trail=trail)
+## Install
+
+```bash
+pip install "tulip-frameworks[langchain]"        # or [langgraph] / [openai-agents]
+pip install "tulip-frameworks[crewai]"           # or [llama-index] / [adk]
+pip install "tulip-frameworks[all]"              # everything
 ```
 
-`admit()` takes an `Action` (the *what*, with its blast radius and environment)
-and `perform` — **any** zero-argument **async** callable that does the work. That
-callable can wrap a LangChain tool's function, a CrewAI task, a raw OpenAI
-tool-call handler, or a plain Python function. (Raw `admit()` awaits `perform`, so
-wrap a sync call in an `async def`; the `gate_*_tool` helpers below handle the
-sync↔async bridge for you.) Nothing about it is Tulip-specific.
+`import tulip_frameworks` pulls in **no** framework package; each bridge imports its
+framework lazily and tells you which extra to install if it's missing.
 
-## The pattern: wrap the tool's body
-
-Take a tool your agent already calls and route its side effect through the gate.
-Here it is inside a LangChain tool:
+## Wrap a tool — LangChain
 
 ```python
 from langchain_core.tools import tool
-from tulip.control import admit, Action, ControlPolicy, AuditTrail, AdmissionError
+from tulip.control import Action, AuditTrail
+from tulip_frameworks.langchain import gate_langchain_tool
+from tulip_frameworks.policy_presets import action_gate_policy
 
-policy = ControlPolicy()   # production → human
+@tool
+def refund(order_id: str, amount_usd: float) -> str:
+    "Issue a customer refund."
+    return payments.refund(order_id, amount_usd)
+
 trail = AuditTrail()
+safe_refund = gate_langchain_tool(
+    refund,
+    action=lambda name, a: Action(name=name, asset=a["order_id"],
+        blast_radius=1, kind="payment", environment="production"),
+    policy=action_gate_policy(),   # production → held for a human
+    trail=trail,
+)
+# Drop it in where `refund` went: agent = create_react_agent(model, tools=[safe_refund])
+```
+
+Your agent is otherwise unchanged — but the moment it decides to refund a production
+order, the action is **held for a human**, the function never executes, and the
+decision (run or held) is on a trail you can `verify()` and `export_jsonl()` into a
+SIEM. A prompt injection that talks the model into a thousand refunds produces a
+thousand *held* actions and zero executed ones.
+
+!!! note "This is tested against a real model, not a mock"
+    The package's integration suite runs a real LangChain agent (Claude) and a real
+    OpenAI Agents agent (GPT) that genuinely decide to call a gated production action
+    — and asserts the side effect never executes, even under a `SYSTEM OVERRIDE`
+    prompt injection. The model can be fooled; the gate still can't be talked past.
+
+## The same shape, every framework
+
+Pass the tool you already have, an `action`, and a `policy`; get back a gated tool in
+that framework's native type.
+
+| Framework | Bridge | Returns |
+|---|---|---|
+| LangChain | `gate_langchain_tool(tool, …)` | `StructuredTool` |
+| LangGraph | `gate_langchain_tool` (for `ToolNode`); `gate_node(node_fn, …)` for a raw side-effect node | gated tool / node |
+| OpenAI Agents SDK | `gate_openai_tool(function_tool, …)` | `FunctionTool` |
+| CrewAI | `gate_crewai_tool(tool, …)` | `BaseTool` |
+| LlamaIndex | `gate_llamaindex_tool(tool, …)` | `FunctionTool` |
+| Google ADK | `gate_adk_tool(tool_or_fn, …)` | `FunctionTool` |
+
+Each bridge keeps the original name, description, and argument schema, so it drops
+into the agent or graph that consumed the original — nothing else changes.
+
+## What the gate decides on
+
+Every bridge wraps one primitive — `gate_callable` — which is the only thing that
+calls the core SDK's `admit()`. Three inputs drive it:
+
+- **Action** — what the agent is about to do: its `asset`, `blast_radius`,
+  `environment`, `kind`, `tags`. Pass a constant `Action`, or (recommended) a
+  `(name, kwargs) -> Action` callable that derives risk from the call's arguments — a
+  $5 refund in staging is not the same action as a $50,000 refund in production.
+- **Policy** — `action_gate_policy()` gates ordinary tools on labels + blast radius;
+  or bring a full `ControlPolicy` and pass grounded `finding` / `verdict` for the
+  complete trust chain.
+- **Trail** — an `AuditTrail` that hash-chains every decision so tampering is
+  detectable.
+
+The outcome is one of **allow**, **require_human**, or **deny** — and the side effect
+runs only on *allow*. The audit record is written **before** a hold or denial
+surfaces, so a held action can never become an un-recorded side effect.
+
+## Held or raised
+
+`mode` controls how a non-admitted action surfaces inside your agent loop:
+
+- **`mode="soft"`** (default) — the gated call returns a structured *held-for-approval*
+  result the model can read and react to (explain to the user, try a safer path, poll
+  for the human decision). The run stays alive.
+- **`mode="raise"`** — the gate re-raises `AdmissionError` to stop a deterministic
+  pipeline cold.
+
+For an out-of-band human decision, pass an `ApprovalBridge`: the held result then
+carries an `approval_id` the agent can poll while a person approves elsewhere on a
+channel the agent can't reach. The [`tulip-gateway`](index.md) broker satisfies it.
+
+## Test your gate offline
+
+`tulip_frameworks.testing` asserts a tool admits or holds **without a model or
+network**, so the behaviour you check in CI is the behaviour production gets:
+
+```python
+from tulip_frameworks import gate_callable, action_gate_policy
+from tulip_frameworks.testing import Spy, assert_held
+from tulip.control import Action
+
+async def test_production_refund_is_held():
+    spy = Spy()
+    gated = gate_callable(spy, name="refund",
+        action=Action(name="refund", environment="production", kind="payment"),
+        policy=action_gate_policy())
+    assert_held(await gated(order_id="ord-9"), spy)   # never ran; held
+```
+
+## Under the hood: raw `admit()`
+
+The bridges are convenience. The gate itself is framework-agnostic and depends on
+nothing but the core SDK, so you can call it directly with no extra package:
+
+```python
+from tulip.control import admit, Action, ControlPolicy, AuditTrail, AdmissionError
 
 @tool
 async def refund(order_id: str, amount_usd: float) -> str:
@@ -39,28 +142,17 @@ async def refund(order_id: str, amount_usd: float) -> str:
                     kind="payment", environment="production")
     try:
         await admit(action, lambda: payments.refund(order_id, amount_usd),
-                    policy=policy, trail=trail)
+                    policy=ControlPolicy(), trail=trail)
         return f"refunded {order_id}"
     except AdmissionError as e:
-        # Soft mode: hand the model a result it can act on, don't crash the run.
         return f"HELD for approval: {e.decision.outcome} — {e.decision.reason}"
 ```
 
-Now your existing LangChain agent is unchanged — but the moment it decides to
-refund a production order, the action is held for a human, and the decision (run
-or held) is on a trail you can `verify()` and `export_jsonl()` into a SIEM. A
-prompt injection that talks the model into a thousand refunds still can't get one
-*executed*.
-
-The same three moves apply to every framework:
-
-- **LangGraph** — wrap the tool (above); `ToolNode` consumes it unchanged. For a
-  raw graph node that performs a side effect, wrap the node body the same way.
-- **CrewAI** — call `admit()` inside the tool's `_run` / async run.
-- **OpenAI Agents SDK** — wrap the function behind your `function_tool`.
-- **LlamaIndex** — wrap the function behind your `FunctionTool`.
-- **Google ADK** — wrap the function behind your `FunctionTool`; the gated tool
-  keeps the original signature so ADK builds the right function declaration.
+`admit()` takes an `Action` and `perform` — **any** zero-argument async callable that
+does the work. That callable can wrap a LangChain tool's function, a CrewAI task, a
+raw OpenAI tool-call handler, or a plain function. Nothing about it is framework-
+specific; the `gate_*_tool` helpers just remove this boilerplate and handle the
+sync↔async bridge for you.
 
 ## Gate vs. compose vs. assure
 
@@ -76,29 +168,5 @@ force them into one mould:
 A model-call gateway is **not** something you gate — it governs *which model, whose
 key, within what budget*; Tulip governs *whether the action runs*. They're different
 layers and they stack cleanly. Trying to "gate LiteLLM" confuses the two.
-
-## Raise vs. soft mode
-
-`admit()` raises `AdmissionError` when an action is denied or held for a human.
-You have two sensible responses inside an agent loop:
-
-- **Soft** (shown above) — catch it and return a structured "held for approval"
-  string the model can see and react to (explain to the user, try a safer path,
-  poll for the human decision). The run stays alive.
-- **Raise** — let it propagate to stop a deterministic pipeline cold.
-
-Either way the audit record is written *before* the exception, so a held action
-can never become an un-audited side effect.
-
-## Convenience wrappers — `tulip-frameworks`
-
-The pattern above works today with core `tulip-agents` alone. For less
-boilerplate, the **`tulip-frameworks`** package ships thin per-framework wrappers
-that do the wrapping for you — e.g. `gate_langchain_tool(tool, action=..., policy=...,
-trail=...)` returns a gated tool in the framework's native format, with a
-`mode="soft"|"raise"` switch and an optional out-of-band approval bridge. It
-depends one-way on core (the same core + community split as
-[`tulip-integrations`](index.md)), with a per-framework install extra
-(`tulip-frameworks[langchain]`, `[crewai]`, …).
 
 → [Why Tulip](../why-tulip.md) · [The security layer](../concepts/security.md) · [Build a vendor integration](build.md)
