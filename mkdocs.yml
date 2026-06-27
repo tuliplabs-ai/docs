@@ -130,14 +130,6 @@ nav:
 - Learn:
   - Why Tulip: why-tulip.md
   - Capabilities: capabilities.md
-  - Security:
-    - Agentic AI-security: concepts/agentic-ai-security.md
-    - Grounded findings: concepts/security.md
-    - GSAR (typed grounding): concepts/gsar.md
-    - SecurityContext: concepts/security-context.md
-    - Guardrails: concepts/safety.md
-    - Threat scenarios: concepts/threat-scenarios.md
-    - Cloud-posture agent: concepts/cloud-posture.md
   - Agents:
     - Overview: concepts/agent.md
     - Agent Loop: concepts/agent-loop.md
@@ -177,6 +169,7 @@ nav:
     - DeepAgent: concepts/deepagent.md
     - Production-readiness: concepts/multi-agent/production.md
   - Cognitive Router: concepts/router.md
+  - GSAR grounding: concepts/gsar.md
   - Skills & Playbooks:
     - Skills: concepts/skills.md
     - Playbooks: concepts/playbooks.md
@@ -189,6 +182,13 @@ nav:
     - Observability: concepts/observability.md
     - SSE event catalogue: concepts/sse-events.md
     - Evaluation: concepts/evaluation.md
+  - Security (flagship proof domain):
+    - Agentic AI-security: concepts/agentic-ai-security.md
+    - Grounded findings: concepts/security.md
+    - SecurityContext: concepts/security-context.md
+    - Guardrails: concepts/safety.md
+    - Threat scenarios: concepts/threat-scenarios.md
+    - Cloud-posture agent: concepts/cloud-posture.md
 - Notebooks:
   - Quickstart: how-to/quickstart.md
   - Overview: notebooks/index.md
@@ -204,18 +204,6 @@ nav:
     - Adversarial debate + judge: notebooks/notebook_32_debate_with_judge.md
     - Multi-agent + human-in-the-loop: notebooks/notebook_33_multiagent_human_in_loop.md
     - Emergent routing: notebooks/notebook_34_emergent_routing.md
-  - Agent security:
-    - Red-team an AI agent: notebooks/notebook_75_agent_red_team.md
-    - Red-team a support bot: notebooks/notebook_76_redteam_support_bot.md
-    - CI security gate: notebooks/notebook_77_ci_security_gate.md
-    - Verify findings: notebooks/notebook_78_verify_findings.md
-    - Guardrails & security: notebooks/notebook_50_guardrails_security.md
-    - Guardrails: notebooks/notebook_51_guardrails_advanced.md
-    - Investigate with SecurityContext: notebooks/notebook_82_investigate_with_ctx.md
-    - SOC alert triage: notebooks/notebook_79_soc_alert_triage.md
-    - IR with a tamper-evident audit trail: notebooks/notebook_81_ir_audit_trail.md
-    - SOC playbooks: notebooks/notebook_74_security_playbooks.md
-    - Model & hardware fingerprinting: notebooks/notebook_80_model_fingerprint.md
   - Foundations:
     - Basic agent: notebooks/notebook_06_basic_agent.md
     - Agent with tools: notebooks/notebook_07_agent_with_tools.md
@@ -259,6 +247,18 @@ nav:
     - Agent yield bridge + token usage: notebooks/notebook_60_agent_yield_bridge.md
     - EventBus subscriber patterns: notebooks/notebook_61_eventbus_subscribers.md
     - Full event catalogue tour: notebooks/notebook_62_event_catalogue.md
+  - Agent security:
+    - Red-team an AI agent: notebooks/notebook_75_agent_red_team.md
+    - Red-team a support bot: notebooks/notebook_76_redteam_support_bot.md
+    - CI security gate: notebooks/notebook_77_ci_security_gate.md
+    - Verify findings: notebooks/notebook_78_verify_findings.md
+    - Guardrails & security: notebooks/notebook_50_guardrails_security.md
+    - Guardrails: notebooks/notebook_51_guardrails_advanced.md
+    - Investigate with SecurityContext: notebooks/notebook_82_investigate_with_ctx.md
+    - SOC alert triage: notebooks/notebook_79_soc_alert_triage.md
+    - IR with a tamper-evident audit trail: notebooks/notebook_81_ir_audit_trail.md
+    - SOC playbooks: notebooks/notebook_74_security_playbooks.md
+    - Model & hardware fingerprinting: notebooks/notebook_80_model_fingerprint.md
   - Real-world security workflows:
     - On-call incident response: notebooks/notebook_63_incident_response.md
     - Tiered procurement approval: notebooks/notebook_64_procurement_approval.md
