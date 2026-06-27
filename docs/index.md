@@ -15,6 +15,10 @@ Tulip is an open-source, full-stack agent framework — tools, memory, multi-age
 
 These checks are real code, **outside the model** — so safety is built into the runtime, not a prompt the model can be talked out of: the right shape gets picked, ungrounded claims step aside, and a consequential action clears your policy first.
 
+Need more than one agent? Build any multi-agent workflow — every orchestration shape is first-class, all from the one `Agent` class:
+
+<div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[Sequential](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Parallel](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Loop](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Graph](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Orchestrator](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Swarm](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Handoff](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[A2A](concepts/multi-agent.md)</span></div>
+
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
 [GitHub](https://github.com/tuliplabs-ai/sdk-python){ .md-button }
