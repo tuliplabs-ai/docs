@@ -57,7 +57,8 @@ print(agent.run_sync(
 
 Everything you'd expect, behind one `Agent` class — tools, durable memory, RAG, streaming,
 sync or async. Swap models with a string (`anthropic:…` or `openai:…`). Build your first
-agent in five lines, then compose eight multi-agent shapes from the same class.
+agent in five lines — then build any multi-agent workflow from the same class, with every
+orchestration shape built in.
 
 ```python
 from tulip import Agent, tool
@@ -132,12 +133,12 @@ recorded whether it ran or not.
     fan-out, debate, or an approval-gated action. The model classifies; routing
     is deterministic.
 
-- :material-graph:{ .lg .middle } **[Multi-agent coordination](concepts/multi-agent.md)**
+- :material-graph:{ .lg .middle } **[Multi-agent workflows](concepts/multi-agent.md)**
 
     ---
-    Seven shapes — pipeline, fan-out, loop, orchestrator, swarm, handoff,
-    and cross-process A2A — for tiered escalation, parallel work, and
-    debate-to-decision. One `Agent` class, one event stream.
+    Every shape for building multi-agent workflows — pipeline, fan-out,
+    loop, state graph, orchestrator, swarm, handoff, and cross-process A2A.
+    Whatever topology you need, one `Agent` class and one event stream.
 
 - :material-shield-search:{ .lg .middle } **[Grounded by construction](concepts/gsar.md)**
 
