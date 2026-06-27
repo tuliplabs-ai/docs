@@ -182,7 +182,7 @@ nav:
     - Observability: concepts/observability.md
     - SSE event catalogue: concepts/sse-events.md
     - Evaluation: concepts/evaluation.md
-  - Security (flagship proof domain):
+  - Agent security:
     - Agentic AI-security: concepts/agentic-ai-security.md
     - Grounded findings: concepts/security.md
     - SecurityContext: concepts/security-context.md
@@ -226,7 +226,7 @@ nav:
     - Structured output: notebooks/notebook_35_structured_output.md
     - Reasoning patterns: notebooks/notebook_36_reasoning_patterns.md
     - GSAR typed grounding: notebooks/notebook_37_gsar_typed_grounding.md
-  - Threat-intel RAG:
+  - RAG:
     - RAG basics: notebooks/notebook_38_rag_basics.md
     - RAG providers: notebooks/notebook_39_rag_providers.md
     - RAG agents: notebooks/notebook_40_rag_agents.md
@@ -259,7 +259,7 @@ nav:
     - IR with a tamper-evident audit trail: notebooks/notebook_81_ir_audit_trail.md
     - SOC playbooks: notebooks/notebook_74_security_playbooks.md
     - Model & hardware fingerprinting: notebooks/notebook_80_model_fingerprint.md
-  - Real-world security workflows:
+  - Real-world workflows:
     - On-call incident response: notebooks/notebook_63_incident_response.md
     - Tiered procurement approval: notebooks/notebook_64_procurement_approval.md
     - Contract review + negotiation: notebooks/notebook_65_contract_review.md

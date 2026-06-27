@@ -13,7 +13,7 @@ hide:
 
 Tulip is an open-source, full-stack agent framework — tools, memory, multi-agent, RAG, streaming — and the safest one to build on. Control isn't a guardrail you remember to add; it's wired through the core. The **[cognitive router](concepts/router.md)** picks the right shape for the task, **[GSAR](concepts/gsar.md)** grounds every claim or makes the agent abstain, and the **admission gate** lets a consequential action run only after it clears a policy you write.
 
-The check is real code, **outside the model.** Jailbreak it, poison its context, confuse its reasoning — the action still can't run if your policy says no. A wall, not a warning.
+These checks are real code, **outside the model** — so safety is built into the runtime, not a prompt the model can be talked out of: the right shape gets picked, ungrounded claims step aside, and a consequential action clears your policy first.
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
@@ -176,7 +176,7 @@ recorded whether it ran or not.
 
 </div>
 
-## How the gate can't be bypassed
+## How the admission gate works
 
 Route an action through Tulip and "no action without an approved warrant" stops being a
 convention and becomes enforced code. The chain is short and every link is real:
@@ -213,13 +213,12 @@ async def safe_refund(order_id: str, usd: float):
 
 [The control layer →](concepts/security-context.md) · [Grounding & verification →](concepts/security.md)
 
-## Proven where a wrong action is a breach
+## Agent security
 
-Tulip earned the gate in the hardest place to act on a machine's say-so: security. There, a
-hallucinated claim isn't an embarrassment — it's a false positive that burns an analyst's
-night or a false negative that ships a breach. So `tulip.security` makes a finding
-*unshippable* unless it's grounded: there is no public constructor that builds an `Evidence`
-without a score.
+Security is Tulip's flagship proof domain — the place where control matters most, so it's
+where the SDK is hardened hardest. A finding ships only when it's grounded: `tulip.security`
+has no public constructor that builds an `Evidence` without a score, so an ungrounded claim
+becomes an auditable abstention instead of a false alarm.
 
 ```python
 from tulip.security import ground_finding, Severity, is_finding
