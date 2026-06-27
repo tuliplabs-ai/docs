@@ -2,7 +2,12 @@
 
 The source for **[tulipagents.ai](https://tulipagents.ai/)** — the
 documentation site for [Tulip](https://github.com/tuliplabs-ai/sdk-python),
-the open-source SDK for building auditable agent teams.
+the open-source, full-stack agent framework and the safest way to build
+agentic AI. Everything you'd expect — tools, memory, multi-agent, RAG,
+streaming — behind one `Agent` class, with control wired through the core:
+a cognitive router picks the right shape, GSAR grounds every claim or
+abstains, and an admission gate lets a consequential action run only after
+it clears a policy you write.
 
 Built with [MkDocs](https://www.mkdocs.org/) +
 [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/). The API

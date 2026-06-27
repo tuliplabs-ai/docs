@@ -1,9 +1,11 @@
-# Drop Tulip into your agent framework
+# Bring Tulip's control layer to an existing agent
 
-You don't have to rebuild your agent on Tulip to get the control layer. If you
-already have an agent in **LangChain / LangGraph, CrewAI, the OpenAI Agents SDK,
-LlamaIndex, or Google ADK**, keep it — and put Tulip's admission gate around the
-*actions* it takes. The model and orchestration stay yours; the gate, the
+Tulip is a full-stack agent framework and the safest way to build agentic AI — its
+admission gate, human-in-the-loop, and tamper-evident audit trail are the same
+control layer whether or not the agent runs on Tulip. So you don't have to rebuild
+to get it. If you already have an agent in **LangChain / LangGraph, CrewAI, the
+OpenAI Agents SDK, LlamaIndex, or Google ADK**, keep it — put Tulip's gate around
+the *actions* it takes. The model and orchestration stay yours; the gate, the
 human-in-the-loop, and the tamper-evident audit trail come from Tulip.
 
 The [`tulip-frameworks`](https://github.com/tuliplabs-ai/tulip-frameworks) package

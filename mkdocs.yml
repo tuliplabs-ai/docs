@@ -1,5 +1,5 @@
 site_name: tulipagents
-site_description: The control runtime for agents that act — add policy gating, human approval, and a tamper-evident audit trail to the agent you already have, on any framework. Proven first in security (SOC, EDR, identity), mapped to MITRE ATLAS, OWASP LLM, and OWASP ASI.
+site_description: The safest way to build agentic AI — an open-source, full-stack agent framework (tools, memory, multi-agent, RAG, streaming) with control wired through the core. A cognitive router picks the right shape, GSAR grounds every claim or abstains, and an admission gate lets a consequential action run only after it clears a policy you write.
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/sdk-python
 repo_name: tuliplabs-ai/sdk-python
@@ -281,7 +281,7 @@ nav:
     - Environment variables: how-to/environment-variables.md
 - Integrations:
   - Overview: integrations/index.md
-  - Drop Tulip into your framework: integrations/frameworks.md
+  - Bring control to an existing agent: integrations/frameworks.md
   - Build an integration: integrations/build.md
   - Security:
     - Splunk (SIEM): integrations/splunk.md

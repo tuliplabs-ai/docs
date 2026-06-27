@@ -7,17 +7,13 @@ hide:
 <div class="tulip-hero" markdown>
 <div class="tulip-hero__copy" markdown>
 
-<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>agents you can let act</p>
+<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the safest way to build agentic AI</p>
 
-# Let your agent act. <span class="accent">You stay in control.</span>
+# Build great agents. <span class="accent">Safe by construction.</span>
 
-Tulip is an open-source framework for building agents — tools, memory, multi-agent, RAG — with one thing the others don't have: **a control layer in the core.** Every action your agent takes — refund a customer, ship a deploy, delete a row — runs only after it clears rules you write, stops for a human when the stakes are real, and lands on an audit trail you can't forge.
+Tulip is an open-source, full-stack agent framework — tools, memory, multi-agent, RAG, streaming — and the safest one to build on. Control isn't a guardrail you remember to add; it's wired through the core. The **cognitive router** picks the right shape for the task, **GSAR** grounds every claim or makes the agent abstain, and the **admission gate** lets a consequential action run only after it clears a policy you write.
 
 The check is real code, **outside the model.** Jailbreak it, poison its context, confuse its reasoning — the action still can't run if your policy says no. A wall, not a warning.
-
-Build your whole agent on Tulip, or bolt the control layer onto one you already have — LangChain, CrewAI, the OpenAI Agents SDK, your own loop. Hardened first in security, where a wrong move is a breach.
-
-<div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[LangChain](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[CrewAI](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[OpenAI&nbsp;Agents](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[LlamaIndex](integrations/frameworks.md)</span> · <span style="white-space:nowrap">[MCP](concepts/mcp.md)</span></div>
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
@@ -25,7 +21,7 @@ Build your whole agent on Tulip, or bolt the control layer onto one you already 
 </div>
 
 ```bash
-pip install "tulip-agents[openai]"   # OpenAI · Anthropic
+pip install "tulip-agents[anthropic]"   # OpenAI · Anthropic
 ```
 
 </div>
@@ -34,46 +30,34 @@ pip install "tulip-agents[openai]"   # OpenAI · Anthropic
 
 ```python
 from tulip import Agent, tool
-from tulip.control import (
-    Action, admit, ControlPolicy,
-    AuditTrail, AdmissionError)
-
-policy = ControlPolicy(
-    require_human_for={"production"})
-trail = AuditTrail()
 
 @tool
-async def refund(order_id: str, usd: float) -> str:
-    "Refund a customer order."
-    act = Action(
-        name="refund", asset=order_id,
-        kind="payment", environment="production")
-    try:  # the gate runs before money moves
-        return await admit(
-            act, lambda: pay.refund(order_id, usd),
-            policy=policy, trail=trail)
-    except AdmissionError:
-        return "Held for a human — not run."
+def search_flights(
+    origin: str, destination: str, date: str
+) -> list[dict]:
+    "Find flights between two cities on a date."
+    return flights.search(origin, destination, date)
 
-# Build the agent the usual way.
+# A model is a string; a tool is a function.
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[refund])
+    tools=[search_flights],
+    system_prompt="You are a travel assistant.",
+)
 
-# Jailbreak the model all you like — it still
-# can't move the money. The gate holds the
-# action for a human, on the audit trail.
 print(agent.run_sync(
-    "Refund order ord-4821 for $250.").text)
-# -> "...held for human review."
+    "Cheapest flight Lisbon to Berlin Friday?"
+).text)
 ```
 
 </div>
 </div>
 
-## Two ways to use Tulip
+## A complete agent framework
 
-**Build your agent on Tulip.** A complete agentic framework — tools, memory, multi-agent, RAG, streaming — with the control layer native to every action.
+Everything you'd expect, behind one `Agent` class — tools, durable memory, RAG, streaming,
+sync or async. Swap models with a string (`anthropic:…` or `openai:…`). Build your first
+agent in five lines, then compose eight multi-agent shapes from the same class.
 
 ```python
 from tulip import Agent, tool
@@ -93,44 +77,26 @@ print(agent.run_sync("What's the status of order ord-4821?").text)
 # -> "Order ord-4821 has shipped — arrives Tuesday."
 ```
 
-**Already on another framework? Add just the control layer.** Wrap one tool — a risky action is now policy-gated, human-approvable, and audited. The rest of your LangChain / CrewAI / OpenAI-Agents agent doesn't change.
+## What makes it the *safest* — control in the core
 
-```python
-from langchain_core.tools import tool
-from tulip.control import Action, AuditTrail
-from tulip_frameworks.langchain import gate_langchain_tool
-from tulip_frameworks.policy_presets import action_gate_policy
+A frontier model can be brilliant and still be talked into the catastrophic action; the one
+thing it *structurally* cannot do — no matter how smart — is **prove it won't**. That's not
+an intelligence problem. It's a control problem. Tulip wires control through three points so
+safety is a property of the runtime, not a reminder in a prompt:
 
-@tool
-def refund(order_id: str, amount_usd: float) -> str:
-    """Issue a customer refund."""
-    return payments.refund(order_id, amount_usd)   # in real life, this moves money
+- **The router controls *which shape* runs.** The cognitive router fills a typed `GoalFrame`
+  and a **deterministic** picker compiles the task to the right runtime shape. The model
+  classifies — it never authors the topology.
+- **GSAR controls *what gets asserted*.** Every claim is partitioned grounded / ungrounded /
+  contradicted / unknown against typed evidence; below threshold the agent regenerates,
+  replans, or **abstains**. An ungrounded claim never ships.
+- **The admission gate controls *what actions fire*.** A side-effecting call runs only after
+  it clears `admit()` — a policy check outside the model, held for a human when the stakes
+  warrant, recorded on a tamper-evident trail either way.
 
-safe_refund = gate_langchain_tool(
-    refund,
-    action=lambda name, a: Action(name=name, asset=a["order_id"],
-                                  blast_radius=1, kind="payment", environment="production"),
-    policy=action_gate_policy(),          # production → human
-    trail=AuditTrail(),
-)
-# Hand `safe_refund` to your agent in place of `refund`. A $250 production refund now returns:
-#   {"status": "held_for_approval", "reason": "labels ['production'] require human approval"}
-```
-
-`pip install "tulip-frameworks[langchain]"` — bridges for LangChain, LangGraph, CrewAI, the OpenAI Agents SDK, LlamaIndex, and Google ADK.
-
-## Most frameworks help the model *decide*. Tulip governs what it *does*.
-
-The moment an agent stops advising and starts **acting** — moving money, deleting a
-resource, disabling an account — the risk stops being a bad sentence and becomes a
-real consequence. A frontier model can be brilliant and still be talked into the
-catastrophic action; the one thing it *structurally* cannot do — no matter how smart
-— is **prove it won't**. That's not an intelligence problem. It's a control problem.
-
-A rule in the prompt is advisory by definition — a jailbreak, an injected document, or
-a confused chain talks the model past it. Tulip makes the rule **structural**: the
-side-effecting call runs only after it clears `admit()`, a gate the model has no way
-to reach around.
+A rule in the prompt is advisory by definition — a jailbreak, an injected document, or a
+confused chain talks the model past it. Tulip makes the rule **structural**: the action runs
+only after it clears the gate, which the model has no way to reach around.
 
 ### Three ways to "make agents safe"
 
@@ -138,15 +104,14 @@ to reach around.
 |---|---|---|---|
 | **Where safety lives** | in a prompt the model can be argued out of | input/output filters around the call | an admission gate **around the action** |
 | **Can a jailbreak bypass it?** | yes — talk the model out of the rule | often — filters score text, not blast radius | **no** — the action runs only if `admit()` allows |
-| **Human-in-the-loop** | ad-hoc, if you wire it | sometimes, per-framework | first-class: `require_human_for` by environment / kind / tag |
+| **Human-in-the-loop** | ad-hoc, if you wire it | sometimes | first-class: `require_human_for` by environment / kind / tag |
 | **Proof of what happened** | logs you can edit | app logs | **hash-chained `AuditTrail`** — `verify()` fails on any edit |
-| **Works with your stack** | — | you adopt the framework | **drop-in**: wrap a call your agent already makes, on any framework |
 
-Guardrails and grounding are good — Tulip ships both. The moat is the gate: a wrong
-action isn't filtered after the fact, it's **prevented before it runs**, and the
-decision is recorded whether it ran or not.
+Guardrails and grounding are good — Tulip ships both. The moat is the gate: a wrong action
+isn't filtered after the fact, it's **prevented before it runs**, and the decision is
+recorded whether it ran or not.
 
-[Why Tulip — the full argument →](why-tulip.md) · [Drop it into your framework →](integrations/frameworks.md)
+[Why Tulip — the full argument →](why-tulip.md)
 
 ## What you get
 
@@ -159,12 +124,34 @@ decision is recorded whether it ran or not.
     models with a string (`anthropic:…` or `openai:…`). Everything you'd
     build an agent with, with control built in rather than bolted on.
 
+- :material-routes:{ .lg .middle } **[Cognitive router](concepts/router.md)**
+
+    ---
+    Describe a task in plain language; the PRISM router fills a typed
+    `GoalFrame` and compiles it to the right shape — direct answer, pipeline,
+    fan-out, debate, or an approval-gated action. The model classifies; routing
+    is deterministic.
+
+- :material-graph:{ .lg .middle } **[Multi-agent coordination](concepts/multi-agent.md)**
+
+    ---
+    Seven shapes — pipeline, fan-out, loop, orchestrator, swarm, handoff,
+    and cross-process A2A — for tiered escalation, parallel work, and
+    debate-to-decision. One `Agent` class, one event stream.
+
+- :material-shield-search:{ .lg .middle } **[Grounded by construction](concepts/gsar.md)**
+
+    ---
+    `ground_finding()` emits a typed result only above the GSAR threshold —
+    else an auditable `Abstention`, never a guess. An ungrounded claim is a
+    false result by construction and never ships.
+
 - :material-shield-lock:{ .lg .middle } **[The admission gate](concepts/security-context.md)**
 
     ---
-    `admit()` runs an action **only if** your `ControlPolicy` allows —
-    else holds it for a human or denies it, and records the attempt either
-    way. The one thing a jailbroken model can't reach around.
+    `admit()` runs a consequential action **only if** your `ControlPolicy`
+    allows — else holds it for a human or denies it, and records the attempt
+    either way. The one thing a jailbroken model can't reach around.
 
 - :material-account-check:{ .lg .middle } **[Human-in-the-loop](notebooks/notebook_19_human_in_the_loop.md)**
 
@@ -180,67 +167,59 @@ decision is recorded whether it ran or not.
     hash-chained event — `verify()` fails on any edit. Replay a run in a
     postmortem, or ship the stream to your warehouse or SIEM.
 
-- :material-graph:{ .lg .middle } **[Multi-agent coordination](concepts/multi-agent.md)**
+- :material-database:{ .lg .middle } **[Vendor-neutral backends](concepts/rag.md)**
 
     ---
-    Seven shapes — pipeline, fan-out, loop, orchestrator, swarm, handoff,
-    and cross-process A2A — for tiered escalation, parallel work, and
-    debate-to-decision. One `Agent` class, one event stream.
-
-- :material-routes:{ .lg .middle } **[Risk-gated routing](concepts/router.md)**
-
-    ---
-    Describe a task in plain language; the cognitive router ranks it by risk
-    and compiles high-risk steps onto an approval gate that survives
-    restarts. The model classifies — it never authors the control.
-
-- :material-puzzle:{ .lg .middle } **[Drop into any framework](integrations/frameworks.md)**
-
-    ---
-    Already on LangChain, LangGraph, CrewAI, the OpenAI Agents SDK,
-    LlamaIndex, or Google ADK? Wrap one tool with `gate_*_tool` — the rest
-    of your agent is untouched.
-
-- :material-shield-search:{ .lg .middle } **[Grounded, when it has to be](concepts/security.md)**
-
-    ---
-    Hardened in security, where a hallucinated claim is a false alarm or a
-    missed breach: `ground_finding()` emits a typed `Evidence` only above
-    the GSAR threshold — else an auditable `Abstention`, never a guess.
+    RAG over five vector stores, durable memory across eight checkpoint
+    backends, pluggable embeddings and rerankers — all behind small contracts,
+    nothing wired to one vendor, most with a free local test path.
 
 </div>
 
 ## How the gate can't be bypassed
 
-Route an action through Tulip and "no action without an approved warrant" stops being
-a convention and becomes enforced code. The chain is short and every link is real:
+Route an action through Tulip and "no action without an approved warrant" stops being a
+convention and becomes enforced code. The chain is short and every link is real:
 
 **action → policy → approval → admission → audit**
 
 - **Policy + approval** — `approve()` weighs your `ControlPolicy` (blast radius,
-  `require_human_for`, and — when you have it — a verification score) and returns
-  allow, hold, or deny.
-- **Admission** — `admit()` runs the side-effecting action **only if** approval
-  allows, recording the decision to the `AuditTrail` you pass either way; otherwise it
-  raises `AdmissionError`. The model never touches this step.
-- **Audit** — the trail is hash-chained, so `verify()` catches any edit after the
-  fact.
+  `require_human_for`, and — when you have it — a verification score) and returns allow, hold,
+  or deny.
+- **Admission** — `admit()` runs the side-effecting action **only if** approval allows,
+  recording the decision to the `AuditTrail` you pass either way; otherwise it raises
+  `AdmissionError`. The model never touches this step.
+- **Audit** — the trail is hash-chained, so `verify()` catches any edit after the fact.
 
-That last gate is what makes Tulip a *runtime*, not a library: the rule isn't a
-docstring the model is asked to respect — it's a line of code the action has to pass.
-For security work, the chain extends upstream with **grounding** (a claim becomes a
-typed `Evidence` only above threshold) and **verification** (`verify()` independently
-re-scores a finding before it can drive an action).
+That last gate is what makes Tulip a *runtime*, not a library: the rule isn't a docstring the
+model is asked to respect — it's a line of code the action has to pass.
+
+```python
+from tulip.control import Action, AuditTrail, ControlPolicy, admit, AdmissionError
+
+policy = ControlPolicy(require_human_for={"production"})
+trail = AuditTrail()
+
+async def safe_refund(order_id: str, usd: float):
+    try:                                              # the gate runs before money moves
+        return await admit(
+            Action(name="refund", asset=order_id, kind="payment", environment="production"),
+            lambda: payments.refund(order_id, usd),
+            policy=policy, trail=trail,
+        )
+    except AdmissionError:
+        return "Held for a human — not run."
+```
 
 [The control layer →](concepts/security-context.md) · [Grounding & verification →](concepts/security.md)
 
 ## Proven where a wrong action is a breach
 
-Tulip earned the gate in the hardest place to act on a machine's say-so: security.
-There, a hallucinated claim isn't an embarrassment — it's a false positive that burns
-an analyst's night or a false negative that ships a breach. So `tulip.security` makes
-a finding *unshippable* unless it's grounded: there is no public constructor that
-builds an `Evidence` without a score.
+Tulip earned the gate in the hardest place to act on a machine's say-so: security. There, a
+hallucinated claim isn't an embarrassment — it's a false positive that burns an analyst's
+night or a false negative that ships a breach. So `tulip.security` makes a finding
+*unshippable* unless it's grounded: there is no public constructor that builds an `Evidence`
+without a score.
 
 ```python
 from tulip.security import ground_finding, Severity, is_finding
@@ -261,25 +240,25 @@ print(result.title if is_finding(result) else f"withheld: {result.reason}")
 # Grounded partition → a typed Evidence. Ungrounded → an Abstention.
 ```
 
-Findings carry **MITRE ATLAS**, **OWASP Top 10 for LLM**, and **OWASP Top 10 for
-Agentic Applications** tags, so they drop into a SIEM without translation. The same
-discipline — evidence before action — is what makes Tulip safe to let act *anywhere*:
-in payments, in infra, in support.
+Findings carry **MITRE ATLAS**, **OWASP Top 10 for LLM**, and **OWASP Top 10 for Agentic
+Applications** tags, so they drop into a SIEM without translation. The same discipline —
+evidence before action — is what makes Tulip safe to let act *anywhere*: in payments, in
+infra, in support.
 
 [The security layer →](concepts/security.md) · [GSAR grounding →](concepts/gsar.md)
 
 ## Build it across any domain
 
 Every example is a single self-contained file under [`examples/`][gh-examples] with a
-matching docs page — gated actions in payments, infrastructure, support, and data, plus
-the security track Tulip was hardened on.
+matching docs page — gated actions in payments, infrastructure, support, and data, plus the
+security track Tulip was hardened on.
 
 | You're building… | Start here |
 |---|---|
 | **A support / ops agent that acts** | [human-in-the-loop approvals](notebooks/notebook_19_human_in_the_loop.md) · [incident response](notebooks/notebook_63_incident_response.md) |
 | **An agent on your own data (RAG)** | [RAG basics](notebooks/notebook_38_rag_basics.md) · [RAG providers](notebooks/notebook_39_rag_providers.md) · [RAG agents](notebooks/notebook_40_rag_agents.md) |
 | **A multi-agent workflow** | [swarm / war-room](notebooks/notebook_24_swarm_multiagent.md) · [supervisor + critic](notebooks/notebook_31_supervisor_critic_loop.md) · [advanced patterns](notebooks/notebook_20_advanced_patterns.md) |
-| **An approval / review pipeline** | [procurement approval](notebooks/notebook_64_procurement_approval.md) · [contract review](notebooks/notebook_65_contract_review.md) · [forensic event trail](notebooks/notebook_59_observability_basics.md) |
+| **A task-routed agent** | [cognitive router](notebooks/notebook_58_cognitive_router.md) · [procurement approval](notebooks/notebook_64_procurement_approval.md) · [contract review](notebooks/notebook_65_contract_review.md) |
 | **A security / AI-safety agent** | [GSAR grounding](notebooks/notebook_37_gsar_typed_grounding.md) · [injection guardrails](notebooks/notebook_50_guardrails_security.md) · [verify findings](notebooks/notebook_78_verify_findings.md) |
 
 Full catalog → [Notebooks index](notebooks/index.md) · [Capabilities matrix](capabilities.md) · [API reference](api/agent.md)
@@ -288,10 +267,10 @@ Full catalog → [Notebooks index](notebooks/index.md) · [Capabilities matrix](
 
 ## When Tulip is overkill
 
-If your agent only reads and summarizes — no side effects, no money, no
-infrastructure, no irreversible writes — you may not need an admission gate yet.
-Tulip still gives you a clean agent framework and a typed event stream, but the
-control layer earns its keep the moment an action can **cost** something.
+If your agent only reads and summarizes — no side effects, no money, no infrastructure, no
+irreversible writes — you may not need an admission gate yet. Tulip still gives you a clean
+agent framework and a typed event stream, but the control layer earns its keep the moment an
+action can **cost** something.
 
 ## Start building
 
@@ -305,4 +284,4 @@ pip install "tulip-agents[openai]"
 
 ---
 
-**Open-source agent framework with control built in. Evidence-grounded. Apache-2.0.**
+**Open-source agentic framework, safe by construction. Evidence-grounded. Apache-2.0.**

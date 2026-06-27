@@ -1,13 +1,34 @@
 # Why Tulip
 
-Most agent frameworks help the model **decide**. Tulip governs what happens
-**after** it decides — the moment an agent stops advising and starts *acting*:
-moving money, deleting a resource, disabling an account, isolating a host.
+Tulip is a full-stack, open-source agent framework — tools, memory, multi-agent,
+RAG, streaming — and the safest one to build on. Everything you'd expect from an
+agent framework is here, behind one `Agent` class. What makes it the *safest* is
+that control isn't a guardrail you remember to add; it's wired through the core.
 
-Even the best model can be talked into a harmful action — by a clever prompt, a
-poisoned document, or its own confused reasoning. And no model, however capable,
-can *prove* it won't. That's not a problem you solve with more intelligence. You
-solve it with control. Tulip is that control layer.
+A frontier model can be brilliant and still be talked into a catastrophic action
+— by a clever prompt, a poisoned document, or its own confused reasoning. The one
+thing it *structurally* cannot do, no matter how smart, is **prove it won't**.
+That's not an intelligence problem; it's a control problem. Tulip solves it with
+three control points, so safety is a property of the runtime, not a reminder in a
+prompt.
+
+## Control in three places
+
+- **The router controls *which shape* runs.** Describe a task in plain language;
+  the cognitive router fills a typed `GoalFrame` and a **deterministic** picker
+  compiles it to the right runtime shape — direct answer, pipeline, fan-out,
+  debate, or an approval-gated action. The model classifies; it never authors the
+  topology.
+- **GSAR controls *what gets asserted*.** Every claim is partitioned grounded /
+  ungrounded / contradicted / complementary against typed evidence; below
+  threshold the agent regenerates, replans, or **abstains**. An ungrounded claim
+  never ships.
+- **The admission gate controls *what actions fire*.** A side-effecting call runs
+  only after it clears `admit()` — a policy check outside the model, held for a
+  human when the stakes warrant, recorded on a tamper-evident trail either way.
+
+The rest of this page goes deep on that last gate — the one a jailbroken model
+can't reach around.
 
 ## The one thing a bare model can't do
 
@@ -38,7 +59,6 @@ approval → admission → audit. That last gate is the whole difference.
 | **Human-in-the-loop** | Ad-hoc, if you wire it | Sometimes, per-framework | First-class: `require_human_for` by environment / kind / tag |
 | **Proof of what happened** | Logs you can edit | App logs | **Hash-chained `AuditTrail`** — `verify()` fails on any edit |
 | **Evidence behind a claim** | "Trust the model" | None | **GSAR grounding** — an `Evidence` exists only above threshold, else `Abstention` |
-| **Works with your stack** | — | You adopt the framework | Drop-in: wrap a call your agent already makes |
 
 Guardrails and grounding are good and Tulip ships both. But the moat is the
 **admission gate**: a wrong action isn't filtered after the fact, it's *prevented*
@@ -66,16 +86,27 @@ The refund was *decided* by the model and *held* by the runtime. The hold is on
 the audit trail. Nothing the model says in the next turn can release it — only a
 human on a side channel can.
 
+## Proven where a wrong action is a breach
+
+The same three control points apply to any agent you build with Tulip — in
+payments, in infrastructure, in support. They earned the gate in the hardest
+place to act on a machine's say-so: **security**, the flagship proof domain. There
+a hallucinated claim isn't an embarrassment but a false positive that burns an
+analyst's night, so `tulip.security` makes a finding *unshippable* unless it's
+grounded. Findings carry MITRE ATLAS and OWASP tags and drop into a SIEM without
+translation — the same evidence-before-action discipline that makes Tulip safe to
+let act anywhere.
+
 ## When Tulip is overkill
 
 If your agent only reads and summarizes — no side effects, no money, no
 infrastructure, no irreversible writes — you may not need an admission gate yet.
-Tulip still gives you grounded findings and a typed event stream, but the control
-runtime earns its keep the moment an action can *cost* something.
+Tulip still gives you a complete agent framework and a typed event stream, but the
+control layer earns its keep the moment an action can *cost* something.
 
 ## Where to start
 
 - [Quickstart](how-to/quickstart.md) — a working agent, then gate its action in step 3.5.
-- [The security layer](concepts/security.md) — the full policy + admission surface.
+- [The control layer](concepts/security-context.md) — the full policy + admission surface.
 - [GSAR grounding](concepts/gsar.md) — why an `Evidence` can't exist without evidence.
-- [Drop Tulip into your framework](integrations/frameworks.md) — keep LangChain / CrewAI / your stack; add the gate.
+- [Bring control to an existing agent](integrations/frameworks.md) — add Tulip's gate to an agent you built elsewhere.
