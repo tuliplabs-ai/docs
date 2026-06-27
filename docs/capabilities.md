@@ -50,10 +50,12 @@ does, and where to find it.
       `chat.completions` transport), plus any OpenAI-compatible endpoint,
       auto-routed by model id. One `get_model()` call, any provider.
 
-## Security — the trust runtime
+## Security — the flagship proof domain
 
-The reason the SDK exists: point an agent at an AI or at infrastructure, and
-every finding is grounded or abstained, verified, gated, and audited.
+Where control is most obviously worth paying for: point an agent at an AI or at
+infrastructure, and every finding is grounded or abstained, verified, gated, and
+audited. The same chain — grounding, gating, audit — is what makes any agent you
+build with Tulip safe to let act.
 
 ![A candidate finding plus typed, weighted evidence pass through ground_finding — only claims above the GSAR threshold become an Evidence; the rest abstain with a recorded reason](img/patterns/grounded-findings.svg){ .diagram }
 
