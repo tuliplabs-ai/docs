@@ -9,9 +9,9 @@ hide:
 
 <p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the safest way to build agentic AI</p>
 
-# Build great agents. <span class="accent">Safe by construction.</span>
+# Build agents you can trust. <span class="accent">Safe by construction.</span>
 
-Tulip is an open-source, full-stack agent framework — tools, memory, multi-agent, RAG, streaming — and the safest one to build on. Control isn't a guardrail you remember to add; it's wired through the core. The **cognitive router** picks the right shape for the task, **GSAR** grounds every claim or makes the agent abstain, and the **admission gate** lets a consequential action run only after it clears a policy you write.
+Tulip is an open-source, full-stack agent framework — tools, memory, multi-agent, RAG, streaming — and the safest one to build on. Control isn't a guardrail you remember to add; it's wired through the core. The **[cognitive router](concepts/router.md)** picks the right shape for the task, **[GSAR](concepts/gsar.md)** grounds every claim or makes the agent abstain, and the **admission gate** lets a consequential action run only after it clears a policy you write.
 
 The check is real code, **outside the model.** Jailbreak it, poison its context, confuse its reasoning — the action still can't run if your policy says no. A wall, not a warning.
 
@@ -84,10 +84,10 @@ thing it *structurally* cannot do — no matter how smart — is **prove it won'
 an intelligence problem. It's a control problem. Tulip wires control through three points so
 safety is a property of the runtime, not a reminder in a prompt:
 
-- **The router controls *which shape* runs.** The cognitive router fills a typed `GoalFrame`
+- **The router controls *which shape* runs.** The [cognitive router](concepts/router.md) fills a typed `GoalFrame`
   and a **deterministic** picker compiles the task to the right runtime shape. The model
   classifies — it never authors the topology.
-- **GSAR controls *what gets asserted*.** Every claim is partitioned grounded / ungrounded /
+- **[GSAR](concepts/gsar.md) controls *what gets asserted*.** Every claim is partitioned grounded / ungrounded /
   contradicted / unknown against typed evidence; below threshold the agent regenerates,
   replans, or **abstains**. An ungrounded claim never ships.
 - **The admission gate controls *what actions fire*.** A side-effecting call runs only after
