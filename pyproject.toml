@@ -26,3 +26,27 @@ dependencies = [
 sdk = "python -m pip install -e {env:TULIP_SDK_DIR:../tulip-agents}"
 serve = "mkdocs serve {args}"
 build = "mkdocs build --strict {args}"
+
+# The repo ships real Python tooling — the cache-bust mkdocs hook and the
+# notebook-page scaffolder — so it carries the org-wide ≥95% coverage gate
+# (see [[tulip-quality-bar]]), not just prose. `hatch run test:check` enforces it.
+[tool.hatch.envs.test]
+dependencies = ["pytest>=8", "pytest-cov>=6.0"]
+
+[tool.hatch.envs.test.scripts]
+run = "pytest {args:tests}"
+check = "pytest --cov --cov-report=term-missing {args:tests}"
+
+[tool.coverage.run]
+source = ["hooks", "scripts"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]
+fail_under = 95
+show_missing = true
