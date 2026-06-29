@@ -16,3 +16,7 @@ venv/
 # Local credentials — never commit (home: ~/Projects/tuliplabs/secrets.env)
 .env
 secrets.env
+
+.coverage
+.coverage.*
+htmlcov/
