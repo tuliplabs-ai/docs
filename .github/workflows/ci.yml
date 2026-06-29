@@ -82,6 +82,20 @@ jobs:
       - name: Ruff lint
         run: ruff check scripts/
 
+  test:
+    name: Tests (>=95% coverage gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install hatch
+        run: python -m pip install --upgrade pip hatch
+      # The cache-bust hook + notebook scaffolder carry the org-wide >=95% gate.
+      - name: Coverage-gated tests
+        run: hatch run test:check
+
   secret-scan:
     name: Secret Scan
     runs-on: ubuntu-latest
@@ -100,7 +114,7 @@ jobs:
 
   ci-success:
     name: CI Success
-    needs: [build, lint, secret-scan]
+    needs: [build, lint, test, secret-scan]
     runs-on: ubuntu-latest
     if: always()
     steps:
