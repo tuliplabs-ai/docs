@@ -14,21 +14,10 @@ prompt.
 
 ## Control in three places
 
-- **The router controls *which shape* runs.** Describe a task in plain language;
-  the cognitive router fills a typed `GoalFrame` and a **deterministic** picker
-  compiles it to the right runtime shape — direct answer, pipeline, fan-out,
-  debate, or an approval-gated action. The model classifies; it never authors the
-  topology.
-- **GSAR controls *what gets asserted*.** Every claim is partitioned grounded /
-  ungrounded / contradicted / complementary against typed evidence; below
-  threshold the agent regenerates, replans, or **abstains**. An ungrounded claim
-  never ships.
-- **The admission gate controls *what actions fire*.** A side-effecting call runs
-  only after it clears `admit()` — a policy check outside the model, held for a
-  human when the stakes warrant, recorded on a tamper-evident trail either way.
-
-The rest of this page goes deep on that last gate — the one a jailbroken model
-can't reach around.
+In short: the [cognitive router](concepts/router.md) decides *which shape* runs,
+[GSAR](concepts/gsar.md) decides *what gets asserted*, and the admission gate
+decides *what actions fire*. This page goes deep on the last one — the gate a
+jailbroken model can't reach around.
 
 ## The one thing a bare model can't do
 
@@ -60,7 +49,7 @@ approval → admission → audit. That last gate is the whole difference.
 | **Proof of what happened** | Logs you can edit | App logs | **Hash-chained `AuditTrail`** — `verify()` fails on any edit |
 | **Evidence behind a claim** | "Trust the model" | None | **GSAR grounding** — an `Evidence` exists only above threshold, else `Abstention` |
 
-Guardrails and grounding are good and Tulip ships both. But the moat is the
+Guardrails and grounding are good and Tulip ships both. But the difference is the
 **admission gate**: a wrong action isn't filtered after the fact, it's *prevented*
 before it runs, and the decision is recorded whether it ran or not.
 
@@ -89,20 +78,12 @@ human on a side channel can.
 ## Proven where a wrong action is a breach
 
 The same three control points apply to any agent you build with Tulip — in
-payments, in infrastructure, in support. They earned the gate in the hardest
-place to act on a machine's say-so: **security**, the flagship proof domain. There
-a hallucinated claim isn't an embarrassment but a false positive that burns an
-analyst's night, so `tulip.security` makes a finding *unshippable* unless it's
-grounded. Findings carry MITRE ATLAS and OWASP tags and drop into a SIEM without
-translation — the same evidence-before-action discipline that makes Tulip safe to
-let act anywhere.
-
-## When Tulip is overkill
-
-If your agent only reads and summarizes — no side effects, no money, no
-infrastructure, no irreversible writes — you may not need an admission gate yet.
-Tulip still gives you a complete agent framework and a typed event stream, but the
-control layer earns its keep the moment an action can *cost* something.
+payments, in infrastructure, in support. They were proven in the hardest place to
+act on a machine's say-so: **security**. There a hallucinated claim isn't an
+embarrassment but a false positive that burns an analyst's night, so
+`tulip.security` makes a finding *unshippable* unless it's grounded. Findings
+carry MITRE ATLAS and OWASP tags and drop into a SIEM without translation — the
+same evidence-before-action discipline that makes Tulip safe to let act anywhere.
 
 ## Where to start
 
