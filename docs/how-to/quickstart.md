@@ -30,8 +30,8 @@ export ANTHROPIC_API_KEY=sk-ant-...   # Anthropic
 For OpenAI-compatible gateways or local servers, point `OpenAIModel` at
 the model's `base_url` instead. See
 [Models](../concepts/models.md) for the per-provider matrix. A provider
-key for the model you choose is required — there is no offline mock model
-in the SDK.
+key is required for real model output; the example notebooks can also run
+offline against the `MockModel` bundled with the examples.
 
 ## 3. Your first agent
 
@@ -114,12 +114,10 @@ print(trail.verify())           # True — chain intact
 print(trail.export_jsonl())     # SIEM-ready, one event per line
 ```
 
-A production-environment action with no human approval is held, not run —
-and the decision is recorded whether it ran or not. That `admit()` call is
-the difference between a library that *suggests* and a runtime that
-*enforces*. See [Why Tulip](../why-tulip.md) for how this compares to a
-bare model or framework guardrails, and the [Admission gate
-concept](../concepts/security.md) for the full policy surface.
+That `admit()` call is the difference between a library that *suggests*
+and a runtime that *enforces*. See [Why Tulip](../why-tulip.md) for the
+comparison, and the [Admission gate concept](../concepts/security.md) for
+the full policy surface.
 
 ## 4. Stream the events
 
@@ -244,7 +242,7 @@ expects that bearer token. Deploys anywhere FastAPI runs — see
 
 - **Read deeper.** [Agent Loop](../concepts/agent-loop.md) is the
   architectural reference for how all of this fits together.
-- **Browse examples.** Forty progressive notebooks at
+- **Browse examples.** Progressive notebooks at
   [`examples/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples).
   Each is a single runnable file that adds one idea on top of the
   previous.
