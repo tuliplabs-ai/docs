@@ -567,7 +567,7 @@ html {
    Material hides it by default. */
 .md-header__button.md-logo {
   display: inline-flex;
-  margin: 0 0.4rem 0 0;
+  margin: 0 0.15rem 0 0;
   padding: 0;
 }
 .md-header__button.md-logo img,
@@ -608,10 +608,13 @@ html {
    `flex: 0 0 auto` keeps the title from taking the full available row;
    that leaves room for the palette toggle, search, and source slot to
    cluster together on the right (see `form.md-header__option { margin-left: auto }` below). */
-.md-header__title {
+.md-header .md-header__title {
   display: flex;
   align-items: center;
-  margin-left: 0.6rem;
+  /* tight lockup: the mark and the wordmark read as one logo.
+     Extra class in the selector: Material sets this margin via
+     [dir=ltr] rules that outrank a lone class. */
+  margin-left: 0.15rem;
   align-self: center;
   flex: 0 0 auto;
 }
@@ -640,17 +643,6 @@ form.md-header__option {
   letter-spacing: -0.015em;
   text-transform: lowercase;
   color: var(--tulip-ink);
-}
-/* "SDK" appended inline after "tulip agents" on the same line, washed
-   in the pink->orange brand gradient. */
-.md-header__ellipsis > .md-header__topic:first-of-type > .md-ellipsis::after {
-  content: " SDK";
-  text-transform: none;
-  background: var(--tulip-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
 }
 .md-header__ellipsis > .md-header__topic:first-of-type::after {
   content: none;
@@ -694,50 +686,17 @@ form.md-header__option {
   display: none !important;
 }
 
-/* Header right slot — keep the brand button and GitHub icon on one row.
-   Material wraps source.html in `<div class="md-header__source">`, and our two
+/* Header right slot — keep the PyPI badge and GitHub icon on one row.
+   Material wraps source.html in `<div class="md-header__source">`, and our
    anchors inside it are also `md-header__source` (block, width:100%). Force the
    parent slot to flex-row and let the children size to content. */
-.md-header__source:has(> .md-header__brand) {
+.md-header__source:has(> .md-header__pypi) {
   display: flex !important;
   align-items: center;
   flex-direction: row;
   gap: 0.25rem;
   width: auto;
   max-width: none;
-}
-
-/* Right side — rounded mark + wordmark. */
-.md-header__source.md-header__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.55rem;
-  margin-right: 0;
-  margin-left: 0.3rem;
-  border-radius: 7px;
-  transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s;
-}
-.md-header__source.md-header__brand:hover {
-  background-color: rgba(229, 72, 103, 0.08);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px -2px rgba(229, 72, 103, 0.25);
-}
-/* Header rounded mark — 32×32 square. */
-.md-header__brand-mark {
-  height: 34px;
-  width: auto;
-  display: block;
-  flex: 0 0 auto;
-}
-/* Header wordmark — 22px tall × auto width (preserves the
-   4.763:1 aspect ratio from the wordmark viewBox 109.36 × 22.96). */
-.md-header__brand-wordmark {
-  height: 24px;
-  width: auto;
-  aspect-ratio: auto;
-  display: block;
-  flex: 0 0 auto;
 }
 
 @media (max-width: 60em) {
@@ -752,10 +711,6 @@ form.md-header__option {
     height: 1.6rem;
     max-height: 28px;
   }
-  /* On mobile the left logo already shows the tulip mark — hide the
-     redundant right-side brand entirely so the title, the PyPI badge, and
-     the GitHub icon all fit without colliding. */
-  .md-header__source.md-header__brand { display: none !important; }
 }
 
 /* GitHub icon white when inside the mobile drawer (red primary background). */
@@ -816,8 +771,6 @@ form.md-header__option {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  /* Drop the decorative " SDK" suffix on mobile. */
-  .md-header__title .md-ellipsis::after { content: none !important; }
 }
 .md-nav--primary .md-header__source.md-header__github:hover {
   color: #FFFFFF;
@@ -902,12 +855,6 @@ form.md-header__option {
     margin-right: 0.25rem;
     flex: 0 0 auto;
   }
-}
-/* Icons in the dark drawer source strip — white for contrast. */
-.md-drawer .md-header__source .md-header__brand-mark,
-.md-drawer .md-header__source .md-header__brand-wordmark {
-  opacity: 0.85;
-  filter: brightness(0) invert(1);
 }
 
 /* Section headers (Multi-agent, Agents, Tools …) — teal accent, uppercase,
@@ -1189,9 +1136,6 @@ form.md-header__option {
    - tulip mark (dark stroke + red accents) → swap to mark-dark.svg variant
      which has the stroke recoloured to off-white.
    --------------------------------------------------------------------------- */
-[data-md-color-scheme="slate"] .md-header__brand-wordmark {
-  content: url("../img/tuliplabs-wordmark-dark.png");
-}
 [data-md-color-scheme="slate"] .md-header__button.md-logo img {
   content: url("../img/tulip-mark.png");
 }
@@ -1376,23 +1320,18 @@ form.md-header__option {
   .md-header__ellipsis > .md-header__topic:first-of-type > .md-ellipsis {
     font-size: 1.2rem;
   }
-  .md-header__ellipsis > .md-header__topic:first-of-type::after {
-    letter-spacing: 0.06em;
-  }
   /* Title takes only the space it needs; the right rail keeps its slot. */
   .md-header__title { flex: 0 0 auto; }
 }
 @media (max-width: 30em) {
-  /* Drop the tagline and the PyPI badge to free up room on small phones.
+  /* Drop the PyPI badge to free up room on small phones.
      !important: the <=60em rule above force-shows the badge with
      !important, so the narrow-phone hide must outrank it. */
-  .md-header__ellipsis > .md-header__topic:first-of-type::after { display: none; }
   .md-header__source.md-header__pypi { display: none !important; }
   .md-header__ellipsis > .md-header__topic:first-of-type > .md-ellipsis {
     font-size: 1.1rem;
   }
   /* Tighter spacing between right-rail icons. */
-  .md-header__source.md-header__brand { margin-left: 0.15rem; padding: 0.15rem 0.25rem; }
   .md-header__source.md-header__github { margin-left: 0.2rem; }
 }
 
