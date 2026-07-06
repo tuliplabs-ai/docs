@@ -677,8 +677,15 @@ form.md-header__option {
    topic #2 (page title), which strips the approved product-name line and
    replaces it with the current page's name. Pin topic #1 and hide #2 on every
    page so the brand banner (diamond mark + "tulip" + product name) stays put
-   as the user scrolls. */
+   as the user scrolls.
+   `position: static` matters: Material absolutely-positions the topic for
+   its swap animation, which collapses .md-header__title to 0 width — the
+   wordmark only rendered on desktop because it spilled out of that empty
+   box, and on mobile (where the title gets overflow:hidden) it vanished
+   entirely. With the swap disabled the absolute positioning serves nothing;
+   static lets the wordmark size its box and actually show on phones. */
 .md-header__ellipsis > .md-header__topic:first-of-type {
+  position: static !important;
   transform: translateY(0) !important;
   opacity: 1 !important;
   pointer-events: auto !important;
@@ -1376,9 +1383,11 @@ form.md-header__option {
   .md-header__title { flex: 0 0 auto; }
 }
 @media (max-width: 30em) {
-  /* Drop the tagline and the PyPI badge to free up room on small phones. */
+  /* Drop the tagline and the PyPI badge to free up room on small phones.
+     !important: the <=60em rule above force-shows the badge with
+     !important, so the narrow-phone hide must outrank it. */
   .md-header__ellipsis > .md-header__topic:first-of-type::after { display: none; }
-  .md-header__source.md-header__pypi { display: none; }
+  .md-header__source.md-header__pypi { display: none !important; }
   .md-header__ellipsis > .md-header__topic:first-of-type > .md-ellipsis {
     font-size: 1.1rem;
   }
