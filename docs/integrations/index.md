@@ -1,17 +1,13 @@
 # Integrations
 
 An integration lets a Tulip agent reach a real tool — and, where it can take
-action, do so **on your terms**. Tulip is a control runtime: it decides whether
-an agent's action runs. The integrations that ship today are the **security
-domain** (your SIEM, your EDR, your identity provider) — the ones we built and
-hardened first — but the same gate applies to any side effect: issue a refund,
-roll out a deploy, grant access. Some integrations only **read evidence** (search
-logs, look up a
-reputation, pull cloud posture); the higher-stakes ones let the agent **act** —
-network-contain a host, disable an account. Tulip treats those two very
-differently.
+action, do so **on your terms**. Today's integrations are the **security domain**
+(SIEM, EDR, identity), built and hardened first. Some only **read evidence**
+(search logs, look up a reputation, pull cloud posture); the higher-stakes ones
+let the agent **act** — contain a host, disable an account. Tulip treats those
+two very differently.
 
-Tulip follows a **core + community** split (the LangChain model):
+Tulip follows a **core + community** split:
 
 - **`tulip-agents` (core)** ships the agent engine, the admission gate
   ([`admit()`](../concepts/security-context.md) / `approve()` / the
@@ -49,16 +45,12 @@ await admit(contain, lambda: ctx.endpoint.isolate("prod-db-01"),
 # → AdmissionError: REQUIRE_HUMAN — a prompt injection can't make this run on its own.
 ```
 
-So even if an injected prompt talks the model into "isolate every host," the
-write still has to clear the policy and (in production) a human — and, with a
-trail wired in, every attempt is recorded. (`ctx.actions.execute(action,
-perform)` runs the same gate; pass it through `admit(..., trail=trail)` when you
-want the decision on a hash chain.) **An injected prompt can change what the model
-decides, but it can't make the action run — that's the policy's call, not the
-model's.** The integrations that actually take action (writes): **CrowdStrike**
-(contain a host), **Okta** / **Auth0** / **Entra ID** (disable an account),
-**Cortex XSOAR** (close an incident), and **Slack** (post to a channel). The rest
-are read-only evidence sources.
+**An injected prompt can change what the model decides, but it can't make the
+action run — that's the policy's call, not the model's.** (`ctx.actions.execute`
+runs the same gate.) The integrations that actually take action (writes):
+**CrowdStrike** (contain a host), **Okta** / **Auth0** / **Entra ID** (disable an
+account), **Cortex XSOAR** (close an incident), and **Slack** (post to a
+channel). The rest are read-only evidence sources.
 
 ## Two ways to use an integration
 
@@ -102,15 +94,12 @@ and return JSON.)
 
 Tulip ships an [MCP server](../notebooks/notebook_45_mcp_integration.md), so you
 can expose a tool to *another* agent — a Claude or GPT client, a separate
-orchestrator — over the Model Context Protocol. The thing that makes this safe:
-**the admission gate isn't part of the transport — it lives inside the action**,
-where `admit()` wraps the side-effecting call. Build the tool so its body routes
-the write through `admit()` / `ctx.actions.execute`, and the boundary holds no
-matter who calls it across the wire. A remote agent gets the *capability* (it can
-ask to isolate a host) without the *authority* to skip the policy: the write
-still clears your `ControlPolicy` (and, in production, a human) and, with a trail
-wired in, still lands in your audit trail. The gate is below the protocol, so the
-protocol can't route around it.
+orchestrator — over the Model Context Protocol. What makes this safe: **the
+admission gate lives inside the action, not the transport.** Build the tool so
+its body routes the write through `admit()` / `ctx.actions.execute`, and a remote
+agent gets the *capability* to ask without the *authority* to skip your
+`ControlPolicy` — the write still clears policy (and, in production, a human) and
+still lands in your audit trail.
 
 ## What each integration does
 

@@ -1,6 +1,6 @@
 # Multi-agent workflows
 
-Multi-agent workflows are what Tulip is for. Seven shapes you compose
+Multi-agent workflows are first-class in Tulip: seven shapes you compose
 in one process or scale across a mesh, every shape backed by the same
 `Agent` class, the same event stream, and the same primitives. Pick a
 shape directly, or let the **cognitive router** select and
@@ -21,14 +21,14 @@ upgrades to a live provider by setting one env var.
 
 | | Workflow | One line | Code |
 |---|---|---|---|
-| **41** | DeepAgent — research factory | `create_deepagent` with reflexion + grounding + subagent dispatch + `deepagent.*` SSE events. | [`notebook_29_deepagent.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_29_deepagent.py) |
-| **42** | Map-reduce code review | Scatter a diff to `N` reviewers via `Send`, reduce findings into one report. | [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_30_map_reduce_code_review.py) |
-| **43** | Supervisor + critic loop | Recon → Report author → Skeptical reviewer, loop back to the author until the reviewer approves (cap'd revisions). | [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_31_supervisor_critic_loop.py) |
-| **44** | Adversarial debate + judge | One agent argues the finding is a true positive, another argues benign, across N rounds; Judge emits a typed `Verdict` via `output_schema`. | [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_32_debate_with_judge.py) |
-| **45** | Multi-agent + human-in-the-loop | Three patterns in one file: approval gate, human-as-tool, long-pause snapshot/resume. | [`notebook_33_multiagent_human_in_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py) |
-| **46** | IR war-room | Triage → 3 parallel investigators (SIEM / EDR / threat intel) → severity gate → page-the-responder → contain → typed `Postmortem`. | [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py) |
-| **47** | Vendor security review | Questionnaire analyst → Posture analyst → risk-tier router (auto / security-manager / +GRC / +CISO) → typed `VendorDecision`. Stacked `interrupt()` gates on the top tiers. | [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py) |
-| **48** | DPA & security-addendum review | Parser → 3 parallel reviewers (privacy / security / compliance) → revision gate → human analyst → `Command(goto="sign_off")` short-circuits when resolved. Cycles enabled. | [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py) |
+| **29** | DeepAgent — research factory | `create_deepagent` with reflexion + grounding + subagent dispatch + `deepagent.*` SSE events. | [`notebook_29_deepagent.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_29_deepagent.py) |
+| **30** | Map-reduce code review | Scatter a diff to `N` reviewers via `Send`, reduce findings into one report. | [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_30_map_reduce_code_review.py) |
+| **31** | Supervisor + critic loop | Recon → Report author → Skeptical reviewer, loop back to the author until the reviewer approves (cap'd revisions). | [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_31_supervisor_critic_loop.py) |
+| **32** | Adversarial debate + judge | One agent argues the finding is a true positive, another argues benign, across N rounds; Judge emits a typed `Verdict` via `output_schema`. | [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_32_debate_with_judge.py) |
+| **33** | Multi-agent + human-in-the-loop | Three patterns in one file: approval gate, human-as-tool, long-pause snapshot/resume. | [`notebook_33_multiagent_human_in_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py) |
+| **63** | IR war-room | Triage → 3 parallel investigators (SIEM / EDR / threat intel) → severity gate → page-the-responder → contain → typed `Postmortem`. | [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py) |
+| **64** | Vendor security review | Questionnaire analyst → Posture analyst → risk-tier router (auto / security-manager / +GRC / +CISO) → typed `VendorDecision`. Stacked `interrupt()` gates on the top tiers. | [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py) |
+| **65** | DPA & security-addendum review | Parser → 3 parallel reviewers (privacy / security / compliance) → revision gate → human analyst → `Command(goto="sign_off")` short-circuits when resolved. Cycles enabled. | [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py) |
 
 ## Pick a shape
 
