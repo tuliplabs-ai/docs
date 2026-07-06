@@ -37,16 +37,16 @@ from tulip import Agent, tool
 
 @tool
 def search_flights(
-    origin: str, destination: str, date: str
+    origin: str, dest: str, date: str
 ) -> list[dict]:
-    "Find flights between two cities on a date."
-    return flights.search(origin, destination, date)
+    "Find flights between two cities."
+    return flights.search(origin, dest, date)
 
 # A model is a string; a tool is a function.
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
     tools=[search_flights],
-    system_prompt="You are a travel assistant.",
+    system_prompt="You are a travel agent.",
 )
 
 print(agent.run_sync(
