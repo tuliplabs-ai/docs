@@ -15,7 +15,9 @@ html {
 
    Brand (from docs/img/logo.svg):
      - Wordmark is always lowercase "tulip", never capitalized.
-     - Type is sans-serif throughout (no serif headings).
+     - Body type is sans (Inter); display type — headings, hero, header
+       wordmark, tabs, footer brand — is the Fraunces variable serif
+       (--tulip-display below, single source of truth).
      - Wordmark colour:  #1B1620   (warm near-black)
      - Mark accent:      #D6336C   (tulip red, also accent3)
      - Tagline:          uppercase, weight 500, letter-spacing 0.16em,
@@ -56,18 +58,25 @@ html {
                 Helvetica, system-ui, sans-serif;
   --tulip-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo,
                 Consolas, monospace;
-  /* rounded geometric display — matches the "tuliplabs.ai" logo wordmark */
-  --tulip-display: "Quicksand", var(--tulip-sans);
+  /* display face — Fraunces variable serif (loaded via extra_css in
+     mkdocs.yml); applied to headings/hero/header wordmark/tabs by the
+     dev-brand section near the end of this file */
+  --tulip-display: "Fraunces", Georgia, "Times New Roman", serif;
+
+  /* pink -> deep-rose brand gradient (hero accent word, footer wordmark,
+     header hairline) */
+  --tulip-grad: linear-gradient(135deg, #D6336C 0%, #AD2E5C 100%);
 }
 
 /* ---------------------------------------------------------------------------
    Light scheme (default).
    --------------------------------------------------------------------------- */
 [data-md-color-scheme="default"] {
-  --md-primary-fg-color:        var(--tl-red);
+  /* White header slab; ink text/icons on it (dev-brand look). */
+  --md-primary-fg-color:        #FFFFFF;
   --md-primary-fg-color--light:  var(--tl-red-light);
   --md-primary-fg-color--dark:   var(--tl-red-deep);
-  --md-primary-bg-color:        #FFFFFF;
+  --md-primary-bg-color:        #241F2B;
   --md-primary-bg-color--light: #FFFFFFcc;
 
   --md-accent-fg-color:         var(--tl-link);
@@ -129,14 +138,14 @@ html {
   --tl-sage-teal:     #F4A6C2;
   --tl-sage-green:    #16A34A;
 
-  /* Material overrides */
-  --md-primary-fg-color:        #EC5A77;
+  /* Material overrides — deep header slab, white text/icons on it. */
+  --md-primary-fg-color:        #17141C;
   --md-primary-fg-color--light: #F2849A;
   --md-primary-fg-color--dark:  #C2384F;
-  --md-primary-bg-color:        #1B1A18;
+  --md-primary-bg-color:        #FFFFFF;
   --md-primary-bg-color--light: #1B1A18cc;
 
-  --md-accent-fg-color:         #F4A6C2;
+  --md-accent-fg-color:         #F2849A;
   --md-accent-fg-color--transparent: rgba(244, 166, 194, 0.15);
   --md-accent-bg-color:         #25231F;
 
@@ -377,7 +386,9 @@ html {
   background: var(--tl-bg-soft);
   border: 0;
   border-radius: 6px;
-  padding: 0.45rem 0.9rem;
+  /* extra right padding clears the floating copy button so the closing
+     quote of `pip install "tulip-agents[anthropic]"` stays visible */
+  padding: 0.45rem 2.2rem 0.45rem 0.9rem;
   margin: 0.6rem 0;
   font-size: 0.78rem;
 }
@@ -1069,38 +1080,12 @@ form.md-header__option {
   margin: 0 0 0.25rem;
   text-transform: none;
 }
-.footer-brand__o {
-  display: inline-block;
-  width: 22px;
-  height: 22px;
-  background-image: url("../img/logo.svg");
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  flex: 0 0 auto;
-}
 .footer-copy {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
   flex-wrap: wrap;
   color: rgba(255, 255, 255, 0.72);
-}
-/* Footer tulip wordmark — aspect 4.763:1 (109.36 × 22.96).
-   Anchor the height; let width compute from aspect-ratio for pixel-perfect
-   proportions. */
-.brand-mark {
-  display: inline-block;
-  height: 14px;
-  aspect-ratio: 109.36 / 22.96;
-  width: auto;
-  min-width: 66.7px;
-  background-image: url("../img/logo.svg");
-  background-position: left center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  filter: brightness(0) invert(1) opacity(0.85);
-  vertical-align: middle;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1203,12 +1188,6 @@ form.md-header__option {
 [data-md-color-scheme="slate"] .md-header__button.md-logo img {
   content: url("../img/tulip-mark.png");
 }
-/* Footer tulip wordmark already inverts the red SVG to white via filter;
-   in dark mode swap to the white SVG and drop the filter. */
-[data-md-color-scheme="slate"] .brand-mark {
-  background-image: url("../img/logo-white.svg");
-  filter: none;
-}
 
 /* Header GitHub link — sits next to the brand source button. */
 .md-header__source.md-header__github {
@@ -1310,15 +1289,31 @@ form.md-header__option {
  *   needed — unlike `break-all` which splits in the middle of perfectly
  *   sized tokens like `openai.gpt-5.5-pro`).
  *
+ *   The scrollwrap stays `auto`, not `hidden`: a dense table whose
+ *   min-content width exceeds the viewport (code chips + 4-5 columns —
+ *   the homepage comparison table, /integrations/, the mkdocstrings
+ *   parameter tables) CANNOT shrink to 100%, and with `hidden` its last
+ *   column was clipped with no way to reach it. Fit-first still wins
+ *   wherever the table can compress; the overflow scrollbar only appears
+ *   on the tables that would otherwise lose content.
+ *
  *   Also: cap any in-content image (workbench gif, etc.) at the column
  *   width so it never blows past the viewport edge.
  * --------------------------------------------------------------------- */
 @media (max-width: 48em) {
-  /* Tables: make them fit the viewport rather than scroll horizontally. */
+  /* Tables: fit the viewport when possible, scroll in-place when not. */
   .md-typeset__scrollwrap {
     margin-left: -0.4rem;
     margin-right: -0.4rem;
-    overflow-x: hidden;
+    overflow-x: auto;
+  }
+  /* The global table rule sets `overflow: hidden` for rounded corners;
+     Material tables are their own scroll container, so on mobile that
+     clipped the rows of any table too dense to compress (min-content
+     wider than the phone). Restore in-table scrolling here — the tiny
+     unclipped 4px header corner is a fair trade for reachable content. */
+  .md-typeset table:not([class]) {
+    overflow-x: auto;
   }
   .md-typeset__table {
     display: block;
@@ -1426,25 +1421,13 @@ form.md-header__option {
 /* ===================================================================
    tuliplabs brand — polished, cohesive (light + dark).
    Light: clean WHITE header showcasing the precise tulip mark.
-   Dark:  deep header. Pink->orange gradient as a thin hairline + the
-   logo + accents; tulip-rose links/CTAs, warm-orange hover.
+   Dark:  deep header. Pink->rose gradient as a thin hairline + the
+   logo + accents; tulip-rose links/CTAs.
+   (Scheme variables + --tulip-grad live in the blocks at the top of
+   this file — single source of truth.)
    =================================================================== */
-:root { --tulip-grad: linear-gradient(135deg, #D6336C 0%, #AD2E5C 100%); }
 
-/* ---- Light scheme: white header, ink text/icons ---- */
-[data-md-color-scheme="default"] {
-  --md-primary-fg-color: #FFFFFF;     /* header / tabs background */
-  --md-primary-bg-color: #241F2B;     /* header text + icons (ink) */
-  --md-accent-fg-color:  #AD2E5C;     /* hover */
-}
-/* ---- Dark scheme: deep header, white text/icons ---- */
-[data-md-color-scheme="slate"] {
-  --md-primary-fg-color: #17141C;
-  --md-primary-bg-color: #FFFFFF;
-  --md-accent-fg-color:  #F2849A;
-}
-
-/* Header + tabs: soft elevation + a pink->orange hairline at the bottom. */
+/* Header + tabs: soft elevation + a pink->rose hairline at the bottom. */
 .md-header {
   box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 2px 12px rgba(0,0,0,0.05);
   border-bottom: 2px solid transparent;
@@ -1482,11 +1465,10 @@ form.md-header__option {
 
 /* ===================================================================
    tuliplabs — "modern dev-brand" redesign (distinct from the stock
-   stock Material template): Space Grotesk display type, a CENTERED hero
-   (mark + gradient headline + CTAs, code in a card below), and
-   bordered hover-lift feature cards.
+   Material template): Fraunces display type (--tulip-display, declared
+   in :root at the top of this file) and bordered hover-lift feature
+   cards.
    =================================================================== */
-:root { --tulip-display: "Fraunces", Georgia, "Times New Roman", serif; }
 
 /* Display font on headings, hero, header wordmark, tabs, footer brand. */
 .md-typeset h1, .md-typeset h2, .md-typeset h3,
@@ -1497,74 +1479,6 @@ form.md-header__option {
   font-family: var(--tulip-display);
   letter-spacing: -0.02em;
 }
-
-/* ---- Centered hero ---- */
-.md-typeset .tulip-hero--center {
-  display: block;
-  grid-template-columns: none;
-  text-align: center;
-  max-width: 900px;
-  margin: 0 auto 3rem;
-  padding: 2.2rem 0 0.5rem;
-  overflow: visible;
-}
-.tulip-hero--center .tulip-hero__mark {
-  display: block;
-  height: 96px; width: auto;
-  margin: 0 auto 1.2rem;
-  filter: drop-shadow(0 10px 24px rgba(237,47,126,0.22));
-}
-.md-typeset .tulip-hero--center p.tulip-product-name {
-  text-align: center;
-  margin: 0 0 0.9rem;
-  opacity: 0.6;
-}
-.md-typeset .tulip-hero--center h1:first-of-type {
-  font-size: 3.4rem;
-  line-height: 1.04;
-  letter-spacing: -0.04em;
-  font-weight: 700;
-  text-transform: none;
-  max-width: 18ch;
-  margin: 0 auto 0.9rem;
-}
-.md-typeset .tulip-hero--center > p {
-  font-size: 1.12rem;
-  line-height: 1.6;
-  color: var(--tulip-mute);
-  max-width: 62ch;
-  margin: 0 auto 1.1rem;
-}
-.tulip-hero--center .tulip-stat-strip { max-width: 760px; margin: 1.1rem auto 1.5rem; }
-.tulip-hero--center .tulip-hero__cta { margin: 1.2rem 0 0.4rem; }
-.md-typeset .tulip-hero--center .md-button { margin: 0.35rem 0.4rem; }
-/* pip pill centered */
-.md-typeset .tulip-hero--center > .highlight,
-.md-typeset .tulip-hero--center > .language-bash {
-  display: inline-block;
-  margin: 0.4rem auto 1.6rem;
-  text-align: left;
-}
-/* code sample in a centered, elevated card */
-.md-typeset .tulip-hero--center .tulip-hero__code {
-  max-width: 780px;
-  margin: 1.4rem auto 0;
-  text-align: left;
-}
-.md-typeset .tulip-hero--center .tulip-hero__code .highlight {
-  border-radius: 14px;
-  border-left: 0;
-  box-shadow: 0 24px 60px -20px rgba(20,16,24,0.30);
-  overflow: hidden;
-}
-/* one soft centered glow behind the hero; kill the old side glow */
-.md-typeset .tulip-hero--center::before {
-  top: -120px; left: 50%; transform: translateX(-50%);
-  width: 900px; height: 560px; border-radius: 50%;
-  background: radial-gradient(closest-side,
-              rgba(237,47,126,0.13) 0%, rgba(247,101,30,0.07) 45%, transparent 75%);
-}
-.md-typeset .tulip-hero--center::after { display: none; }
 
 /* ---- Feature cards: full border, rounded, hover-lift ---- */
 .md-typeset .grid.cards.tulip-feature-cards > ul > li,
@@ -1585,16 +1499,10 @@ form.md-header__option {
 .md-typeset .grid.cards.tulip-feature-cards strong { color: var(--tulip-ink); }
 .md-typeset .grid.cards.tulip-feature-cards .lg.middle { color: #D6336C; }
 
-@media (max-width: 60em) {
-  .md-typeset .tulip-hero--center h1:first-of-type { font-size: 2.4rem; }
-  .tulip-hero--center .tulip-hero__mark { height: 76px; }
-}
-
 /* ===================================================================
    Hero eyebrow ("TULIP AGENTS · MULTI-AGENT SDK") — tracked monospace
    label (dev-brand), brand half accented in tulip rose.
    =================================================================== */
-.md-typeset .tulip-hero--center p.tulip-product-name,
 .md-typeset p.tulip-product-name {
   font-family: var(--tulip-mono, "JetBrains Mono", ui-monospace, monospace);
   font-size: 0.7rem;
