@@ -259,6 +259,12 @@ nav:
     - IR with a tamper-evident audit trail: notebooks/notebook_81_ir_audit_trail.md
     - SOC playbooks: notebooks/notebook_74_security_playbooks.md
     - Model & hardware fingerprinting: notebooks/notebook_80_model_fingerprint.md
+  - Real-world gates:
+    - Payment refund gate: notebooks/notebook_83_payment_refund_gate.md
+    - Infra deploy gate: notebooks/notebook_84_infra_deploy_gate.md
+    - Support account gate: notebooks/notebook_85_support_account_gate.md
+    - Data deletion (GDPR) gate: notebooks/notebook_86_data_deletion_gate.md
+    - Cloud resource gate: notebooks/notebook_87_cloud_resource_gate.md
   - Real-world workflows:
     - On-call incident response: notebooks/notebook_63_incident_response.md
     - Tiered procurement approval: notebooks/notebook_64_procurement_approval.md
