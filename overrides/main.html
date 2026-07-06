@@ -18,17 +18,18 @@
 {#
   Inject Open Graph + Twitter Card meta tags so link unfurls
   (Slack, Twitter / X, LinkedIn, Discord, Teams) render the
-  branded social card we ship at docs/img/tuliplabs-logo.png.
+  branded 1280x640 social card at docs/img/og-card.png (rendered
+  from og-card.svg — re-render the PNG whenever the SVG changes).
 
   config.site_url + config.theme.logo would also work for a
-  text-only fallback, but the explicit logo is what
+  text-only fallback, but the explicit card is what
   matches the brand assets the team designed.
 #}
 {% block extrahead %}
   {% set page_title = page.title | striptags if page and page.title and not page.is_homepage else "The control runtime for agents that act" %}
   {% set page_desc = page.meta.description if page and page.meta and page.meta.description else config.site_description %}
   {% set page_url = page.canonical_url if page and page.canonical_url else config.site_url %}
-  {% set og_image = (config.site_url ~ "/img/tuliplabs-logo.png") | replace("//img/", "/img/") %}
+  {% set og_image = (config.site_url ~ "/img/og-card.png") | replace("//img/", "/img/") %}
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="tulip agents — the control runtime for agents that act">
