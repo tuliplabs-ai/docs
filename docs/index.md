@@ -9,13 +9,13 @@ hide:
 
 <p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the safest way to build agentic AI</p>
 
-# Build agents you can trust. <span class="accent">Safe by construction.</span>
+# Agents that act. <span class="accent">Safe by construction.</span>
 
-Tulip is an open-source, full-stack agent framework — tools, memory, multi-agent, RAG, streaming — and the safest one to build on. Control isn't a guardrail you remember to add; it's wired through the core. The **[cognitive router](concepts/router.md)** picks the right shape for the task, **[GSAR](concepts/gsar.md)** grounds every claim or makes the agent abstain, and the **admission gate** lets a consequential action run only after it clears a policy you write.
+Tulip is an open-source, full-stack agent framework — tools, memory, multi-agent, RAG, streaming — with control wired through the core. The **[cognitive router](concepts/router.md)** picks the right shape for the task, **[GSAR](concepts/gsar.md)** grounds every claim or abstains, and the **admission gate** runs a consequential action only after it clears a policy you write.
 
-These checks are real code, **outside the model** — so safety is built into the runtime, not a prompt the model can be talked out of: the right shape gets picked, ungrounded claims step aside, and a consequential action clears your policy first.
+These rules are code **outside the model**. A jailbreak can't talk the model past them.
 
-Need more than one agent? Build any multi-agent workflow — every orchestration shape is first-class, all from the one `Agent` class:
+Need more than one agent? Every orchestration shape is first-class, from the same `Agent` class:
 
 <div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[Sequential](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Parallel](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Loop](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Graph](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Orchestrator](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Swarm](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Handoff](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[A2A](concepts/multi-agent.md)</span></div>
 
@@ -59,10 +59,8 @@ print(agent.run_sync(
 
 ## A complete agent framework
 
-Everything you'd expect, behind one `Agent` class — tools, durable memory, RAG, streaming,
-sync or async. Swap models with a string (`anthropic:…` or `openai:…`). Build your first
-agent in five lines — then build any multi-agent workflow from the same class, with every
-orchestration shape built in.
+One `Agent` class — tools, durable memory, RAG, streaming, sync or async. Swap models with
+a string. Five lines to a working agent; the same class scales to any multi-agent shape.
 
 ```python
 from tulip import Agent, tool
@@ -84,10 +82,9 @@ print(agent.run_sync("What's the status of order ord-4821?").text)
 
 ## What makes it the *safest* — control in the core
 
-A frontier model can be brilliant and still be talked into the catastrophic action; the one
-thing it *structurally* cannot do — no matter how smart — is **prove it won't**. That's not
-an intelligence problem. It's a control problem. Tulip wires control through three points so
-safety is a property of the runtime, not a reminder in a prompt:
+A frontier model can be brilliant and still be talked into the wrong action. The one thing
+it *structurally* cannot do — no matter how smart — is **prove it won't**. That's a control
+problem, not an intelligence problem. Tulip wires control through three points:
 
 - **The router controls *which shape* runs.** The [cognitive router](concepts/router.md) fills a typed `GoalFrame`
   and a **deterministic** picker compiles the task to the right runtime shape. The model
@@ -112,9 +109,9 @@ only after it clears the gate, which the model has no way to reach around.
 | **Human-in-the-loop** | ad-hoc, if you wire it | sometimes | first-class: `require_human_for` by environment / kind / tag |
 | **Proof of what happened** | logs you can edit | app logs | **hash-chained `AuditTrail`** — `verify()` fails on any edit |
 
-Guardrails and grounding are good — Tulip ships both. The moat is the gate: a wrong action
-isn't filtered after the fact, it's **prevented before it runs**, and the decision is
-recorded whether it ran or not.
+Guardrails and grounding are good — Tulip ships both. The difference is the gate: a wrong
+action isn't filtered after the fact, it's **prevented before it runs** — and the decision
+is recorded either way.
 
 [Why Tulip — the full argument →](why-tulip.md)
 
@@ -126,8 +123,8 @@ recorded whether it ran or not.
 
     ---
     One `Agent` class — tools, memory, RAG, streaming, sync or async. Swap
-    models with a string (`anthropic:…` or `openai:…`). Everything you'd
-    build an agent with, with control built in rather than bolted on.
+    models with a string (`anthropic:…` or `openai:…`). Control is built
+    in, not bolted on.
 
 - :material-routes:{ .lg .middle } **[Cognitive router](concepts/router.md)**
 
@@ -220,10 +217,10 @@ async def safe_refund(order_id: str, usd: float):
 
 ## Agent security
 
-Security is Tulip's flagship proof domain — the place where control matters most, so it's
-where the SDK is hardened hardest. A finding ships only when it's grounded: `tulip.security`
-has no public constructor that builds an `Evidence` without a score, so an ungrounded claim
-becomes an auditable abstention instead of a false alarm.
+Security is where control matters most, so it's where Tulip is hardened first. A finding
+ships only when it's grounded: `tulip.security` has no public constructor that builds an
+`Evidence` without a score, so an ungrounded claim becomes an auditable abstention instead
+of a false alarm.
 
 ```python
 from tulip.security import ground_finding, Severity, is_finding
