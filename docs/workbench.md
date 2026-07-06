@@ -10,17 +10,12 @@ Run it from source or in Docker; both land at the same UI on
 [View on GitHub](https://github.com/tuliplabs-ai/sdk-python){ .md-button .md-button--primary }
 [Workbench README](https://github.com/tuliplabs-ai/sdk-python/tree/main/workbench){ .md-button }
 
-Once it's up: open *Provider settings*, paste an OpenAI / Anthropic
-key, choose a notebook in the
-sidebar, hit **Run**. A real agent streams events back into the
-browser.
-
 ![Workbench UI screenshot](img/workbench.png)
 
 ## What it is
 
 The workbench is the fastest way to *see* what the Tulip SDK does
-without installing anything locally. It's a single-page UI in front of
+without writing any code. It's a single-page UI in front of
 every canonical Tulip pattern — a basic agent, an agent with tools, a
 structured-output schema, an orchestrator with specialists, a
 sequential pipeline, a map-reduce fan-out, a critic loop with
@@ -38,9 +33,6 @@ stream render live.
 The notebook sidebar surfaces the full learning path: graphs &
 composition, multi-agent shapes, reasoning, RAG, skills/plugins,
 production patterns, and end-to-end workflows.
-
-It's also the canonical demo: visitors arrive at this app, pick a
-workflow, and learn the SDK by running real ones.
 
 ```
   Browser ─▶ http://localhost:5173
@@ -62,10 +54,6 @@ workflow, and learn the SDK by running real ones.
 │  FastAPI — one endpoint per Tulip pattern        │
 └──────────────────────────────────────────────────┘
 ```
-
-You paste your provider key once per tab — **the workbench never
-persists API keys to localStorage**, so closing the tab discards
-everything.
 
 ## Run it locally (from source)
 
@@ -191,7 +179,7 @@ The header's **Provider settings** modal accepts two shapes:
   (defaults to `claude-sonnet-4-6`).
 
 Settings live in the page's memory. Closing the tab discards them.
-Reopening the page = paste again. This is intentional: an API key
+Reopening the page means pasting again. This is intentional: an API key
 sitting in `localStorage` on a shared computer is a leak waiting to
 happen.
 
