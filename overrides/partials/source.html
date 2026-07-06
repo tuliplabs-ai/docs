@@ -1,17 +1,8 @@
 {#-
-  tulip header right-side: brand (-> docs home, never the main site)
-  + always-on PyPI badge + GitHub repo link.
+  tulip header right-side: always-on PyPI badge + GitHub repo link.
+  One brand lockup per header — the left-side mark + "tulip agents"
+  wordmark is the logo; this side is utilities only.
 -#}
-<a
-  href="{{ config.extra.homepage }}"
-  title="tuliplabs"
-  class="md-header__source md-header__brand"
-  aria-label="tuliplabs"
->
-  <img src="{{ 'img/tulip-mark.png' | url }}" alt="" class="md-header__brand-mark">
-  <img src="{{ 'img/tuliplabs-wordmark.png' | url }}" alt="tuliplabs" class="md-header__brand-wordmark">
-</a>
-
 <a
   href="https://pypi.org/project/tulip-agents/"
   title="tulip-agents on PyPI"
