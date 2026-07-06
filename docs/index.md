@@ -90,7 +90,7 @@ problem, not an intelligence problem. Tulip wires control through three points:
   and a **deterministic** picker compiles the task to the right runtime shape. The model
   classifies — it never authors the topology.
 - **[GSAR](concepts/gsar.md) controls *what gets asserted*.** Every claim is partitioned grounded / ungrounded /
-  contradicted / unknown against typed evidence; below threshold the agent regenerates,
+  contradicted / complementary against typed evidence; below threshold the agent regenerates,
   replans, or **abstains**. An ungrounded claim never ships.
 - **The admission gate controls *what actions fire*.** A side-effecting call runs only after
   it clears `admit()` — a policy check outside the model, held for a human when the stakes

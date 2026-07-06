@@ -6,27 +6,17 @@ does, and where to find it.
 ![The trust chain — grounding → verification → policy → approval → admission → audit, each step enforced in code, not convention](img/patterns/trust-chain.svg){ .diagram }
 
 !!! sdk-distinctive "Distinctive to the SDK"
-    These are architectural choices no other Python agent framework ships
-    together in one coherent stack:
-
-    - **The control runtime — let an agent act, on your terms** — a
-      side-effecting action — a refund, a production deploy, a host isolation,
-      a GDPR deletion — runs only after it clears a `ControlPolicy` you
-      write: `approve()` weighs it, `admit()` runs it *only if* the policy
-      allows, and every decision is recorded to a tamper-evident, hash-chained
-      audit trail. Policy → approval → admission → audit, enforced in code, not
-      convention. Proven first in security, where the same chain also grounds
-      evidence: an agent's claim becomes a typed `Evidence` only above the GSAR
-      threshold, else it **abstains**, and `verify()` challenges it before it
-      drives an action.
+    - **The control runtime — let an agent act, on your terms.** A
+      side-effecting action (a refund, a production deploy, a GDPR deletion)
+      runs only after it clears a `ControlPolicy` you write: `approve()`
+      weighs it, `admit()` runs it *only if* the policy allows, and every
+      decision lands on a hash-chained audit trail. Policy → approval →
+      admission → audit, enforced in code, not convention.
     - **Multi-agent SDK** — describe a task; a
       typed registry picks one of eight protocols and instantiates the
       matching SDK primitive. The LLM fills a typed `GoalFrame`; routing is
-      rule-based. Eight protocols: `direct_response` (single Agent),
-      `plan_execute_validate` (SequentialPipeline), `specialist_fanout`
-      (ParallelPipeline), `debate` (two debaters + judge),
-      `codegen_test_validate` (LoopAgent), `approval_gated_execution`
-      (Agent + interrupt), `a2a_delegate`, `handoff_chain`.
+      rule-based. Eight protocols, from `direct_response` to `handoff_chain`
+      — the [full catalogue](#cognitive-router-risk-gated-dispatch) is below.
     - **Seven native multi-agent shapes** — Composition
       (Sequential / Parallel / Loop), Orchestrator + Specialists, Swarm,
       Handoff, StateGraph, Functional API (`@task` / `@entrypoint`), and
@@ -42,7 +32,9 @@ does, and where to find it.
     - **GSAR** — typed-grounding safety layer from
       [arXiv:2604.23366 (2026)](https://arxiv.org/abs/2604.23366):
       four-way claim partition (grounded / ungrounded / contradicted /
-      complementary) + tiered replanning decisions.
+      complementary) + tiered replanning decisions. An agent's claim becomes
+      a typed `Evidence` only above the threshold, else it **abstains**, and
+      `verify()` challenges it before it drives an action.
     - **Termination algebra** — `MaxIterations(10) | TextMention("DONE") & ConfidenceMet(0.9)` is real Python (`__or__` / `__and__` overloads). Greppable, unit-testable, serialisable.
     - **Idempotent tools** — `@tool(idempotent=True)` dedupes on `(name, args)` inside the Execute node. No double-charge, double-book, double-page — even on model retry or checkpoint resume.
     - **OpenAI, Anthropic, and OpenAI-compatible providers** — OpenAI and
@@ -50,7 +42,7 @@ does, and where to find it.
       `chat.completions` transport), plus any OpenAI-compatible endpoint,
       auto-routed by model id. One `get_model()` call, any provider.
 
-## Security — the flagship proof domain
+## Security — the proof domain
 
 Where control is most obviously worth paying for: point an agent at an AI or at
 infrastructure, and every finding is grounded or abstained, verified, gated, and
@@ -292,7 +284,7 @@ result = await router.dispatch("Look into the duplicate charge on order 8842.")
 | Provider | Models | Surface |
 |---|---|---|
 | OpenAI | All commercial models (gpt-5.5, o-series, etc) | `tulip.models.native.openai` · [OpenAI](concepts/providers/openai.md) |
-| Anthropic | Claude 4 / 4.5 / 4.7 / 4.8 — direct API | `tulip.models.native.anthropic` · [Anthropic](concepts/providers/anthropic.md) |
+| Anthropic | Claude 4.x (e.g. `claude-sonnet-4-6`) — direct API | `tulip.models.native.anthropic` · [Anthropic](concepts/providers/anthropic.md) |
 | Auto-routing | `get_model("anthropic:claude-sonnet-4-6")` picks transport from id | `tulip.models.registry.get_model` |
 | Decorators | Failover · pooled · cached · rate-limited wrappers over any provider | `tulip.models.decorators` |
 
