@@ -664,6 +664,27 @@ form.md-header__option {
   }
 }
 
+/* Mobile/tablet (whenever the drawer hamburger is visible): Material's DOM
+   order is logo · hamburger · title, which splits the brand lockup in half —
+   the mark sits alone in the corner and "tulip agents" lands on the far side
+   of the menu button. Reorder so the hamburger comes first and the mark +
+   wordmark read as one logo, same as desktop. */
+@media (max-width: 76.1875em) {
+  .md-header__inner > label[for="__drawer"] {
+    order: -1;
+    margin-right: 0.2rem;
+  }
+}
+
+/* The wordmark anchors to the top of the title box (Material sizes
+   .md-header__ellipsis to the full row for its scroll-swap animation, which
+   we disable). Center it so the wordmark sits on the mark's midline. */
+.md-header__ellipsis {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
 /* Site-wide: never let Material swap the header topic on scroll. The default
    behaviour translates topic #1 (site name + our tagline) up and fades in
    topic #2 (page title), which strips the approved product-name line and
