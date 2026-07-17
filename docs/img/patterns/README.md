@@ -1,14 +1,21 @@
 # Multi-agent pattern diagrams
 
-The seven in-process multi-agent + A2A pattern diagrams are now authored in
-**[draw.io](https://app.diagrams.net/) (diagrams.net)** for editing,
-and exported to SVG for the docs site.
+The pattern diagrams are **hand-authored SVG** — edit the `.svg` files
+directly (they are small, structured, and text-labelled; a label swap
+is a one-line change). Keep examples general agentic work (research,
+support, data, content); security-themed labels belong only in the
+diagrams embedded by the security concept pages.
+
+The `tulip-patterns.drawio` file was an earlier authoring source and
+is **out of date** with the current SVGs. If you prefer editing in
+[draw.io](https://app.diagrams.net/), re-import first — don't export
+over the current SVGs from the stale source.
 
 ## Files
 
 | | |
 |---|---|
-| **`tulip-patterns.drawio`** | Single source-of-truth file. Open in diagrams.net to edit. Has seven tabs — Composition, Orchestrator, Swarm, Handoff, StateGraph, Functional, A2A — each rendered identically to one of the SVGs below. |
+| **`tulip-patterns.drawio`** | Legacy authoring source (stale — see note above). Seven tabs — Composition, Orchestrator, Swarm, Handoff, StateGraph, Functional, A2A. |
 | `composition.svg` | Rendered Composition diagram. Embedded in `docs/concepts/multi-agent/composition.md`. |
 | `orchestrator.svg` | Rendered Orchestrator diagram. |
 | `swarm.svg` | Rendered Swarm diagram. |
@@ -19,14 +26,13 @@ and exported to SVG for the docs site.
 
 ## Edit workflow
 
-1. Open <https://app.diagrams.net/> and pick **Open existing diagram** → upload
-   `tulip-patterns.drawio`.
-2. Click the tab for the pattern you want to edit (Composition, Swarm, etc.).
-3. Edit the shapes / labels / colours in the diagram.net GUI.
-4. **`File → Save`** — overwrites the `.drawio` source.
-5. **`File → Export as → SVG…`** — uncheck *"Include a copy of my diagram"*
-   if you want a smaller file. Save as `<pattern>.svg` in this directory.
-6. Commit both the `.drawio` source and the regenerated `.svg`.
+1. Open the `.svg` in your editor — labels are plain `<text>` elements;
+   geometry (rects, arrows) rarely needs to move for a wording change.
+2. Keep the palette below, keep `text-anchor="middle"` labels centred on
+   their boxes, and sanity-check long labels against their box width.
+3. Rebuild the site (`hatch run build`) and eyeball the page.
+4. Commit the `.svg`. (If you edited via draw.io instead, commit the
+   updated `.drawio` too so it stops being stale.)
 
 ## Colour palette (matches the tulip brand)
 
