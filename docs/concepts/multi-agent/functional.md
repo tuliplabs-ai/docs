@@ -22,7 +22,7 @@ or anything else you already use.
 ## When to use it
 
 - ✅ You think in **`async def` and `asyncio.gather`** already.
-- ✅ The flow is **map/reduce** over agents (enrich N IOCs in
+- ✅ The flow is **map/reduce** over agents (summarize N documents in
   parallel).
 - ✅ You want to **mix agents with non-agent code** — DB writes,
   HTTP calls, file I/O — in the same coroutine.

@@ -23,11 +23,12 @@ returning a `PipelineResult`, the same event stream.
 
 - ✅ The flow is **describable as a function** — "do A, then B, then C".
 - ✅ Fan-out is **symmetric** — all branches do similar work on the same
-  input (e.g., enrich one indicator across SIEM, EDR, and threat intel).
-- ✅ The flow is an **incident triage chain** — recon → enrich → validate →
-  report, each step feeding the next.
-- ✅ You need **revise-until-confidence** — wrap the finding writer in a
-  `LoopAgent` until the abstention clears.
+  input (e.g., answer one question across web search, a data query, and
+  docs retrieval).
+- ✅ The flow is a **report chain** — research → draft → review, each
+  step feeding the next.
+- ✅ You need **revise-until-confidence** — wrap the report writer in a
+  `LoopAgent` until the confidence bar clears.
 - ✅ You don't need cycles, conditional branches, or per-node retry policies.
 
 ## When NOT to use it

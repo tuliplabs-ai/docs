@@ -31,9 +31,9 @@
   <!-- ── Row 1: NL input ──────────────────────────────────── -->
   <g filter="url(#sh)">
     <rect x="40" y="30" width="150" height="50" rx="10" fill="#FBF9F8" stroke="#1B1620" stroke-width="1.2"/>
-    <text x="115" y="48" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1B1620">"Scan subnet 192.0.2.0/24</text>
-    <text x="115" y="61" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1B1620">for CVE-2024-99999</text>
-    <text x="115" y="74" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1B1620">exposure."</text>
+    <text x="115" y="48" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1B1620">"Why did checkout latency</text>
+    <text x="115" y="61" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1B1620">double after yesterday's</text>
+    <text x="115" y="74" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1B1620">deploy?"</text>
   </g>
 
   <!-- arrow NL → extractor -->
@@ -42,8 +42,8 @@
   <!-- ── GoalFrame Extractor ───────────────────────────────── -->
   <g filter="url(#sh)">
     <rect x="230" y="18" width="200" height="74" rx="12" fill="#1B1620"/>
-    <text x="330" y="44" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">ThreatIntent Extractor</text>
-    <text x="330" y="62" text-anchor="middle" font-size="11" font-weight="500" fill="#FFFFFF" opacity="0.85">Agent(output_schema=ThreatIntent)</text>
+    <text x="330" y="44" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">GoalFrame Extractor</text>
+    <text x="330" y="62" text-anchor="middle" font-size="11" font-weight="500" fill="#FFFFFF" opacity="0.85">Agent(output_schema=GoalFrame)</text>
     <text x="330" y="80" text-anchor="middle" font-size="10" font-weight="600" fill="#D6336C" letter-spacing="0.04em">← LLM · only this step</text>
   </g>
 
@@ -51,18 +51,18 @@
   <polyline points="430,55 490,55 490,55 528,55" fill="none" stroke="#1B1620" stroke-width="2" marker-end="url(#arr)"/>
 
   <!-- GoalFrame label on arrow -->
-  <text x="476" y="48" text-anchor="middle" font-size="9.5" font-style="italic" fill="#D6336C" font-weight="600">ThreatIntent</text>
+  <text x="476" y="48" text-anchor="middle" font-size="9.5" font-style="italic" fill="#D6336C" font-weight="600">GoalFrame</text>
 
   <!-- ── ProtocolRegistry ──────────────────────────────────── -->
   <g filter="url(#sh)">
     <rect x="530" y="25" width="190" height="60" rx="12" fill="#1B1620"/>
-    <text x="625" y="51" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">PlaybookRegistry</text>
+    <text x="625" y="51" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">ProtocolRegistry</text>
     <text x="625" y="68" text-anchor="middle" font-size="11" font-weight="500" fill="#FFFFFF" opacity="0.85">deterministic filter + rank</text>
   </g>
 
   <!-- arrow registry → policy (vertical down) -->
   <line x1="625" y1="85" x2="625" y2="143" stroke="#1B1620" stroke-width="2" marker-end="url(#arr)"/>
-  <text x="635" y="120" font-size="9.5" font-style="italic" fill="#1B1620" font-weight="600">Playbook</text>
+  <text x="635" y="120" font-size="9.5" font-style="italic" fill="#1B1620" font-weight="600">Protocol</text>
 
   <!-- ── PolicyGate ────────────────────────────────────────── -->
   <g filter="url(#sh)">
@@ -88,7 +88,7 @@
   <!-- ── CognitiveCompiler ─────────────────────────────────── -->
   <g filter="url(#sh)">
     <rect x="490" y="260" width="270" height="68" rx="12" fill="#1B1620"/>
-    <text x="625" y="288" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">PlaybookCompiler</text>
+    <text x="625" y="288" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">CognitiveCompiler</text>
     <text x="625" y="306" text-anchor="middle" font-size="11" font-weight="500" fill="#FFFFFF" opacity="0.85">compiles onto real tulip primitives</text>
   </g>
 
@@ -100,32 +100,32 @@
 
   <!-- ── Four compiled shapes ──────────────────────────────── -->
   <g filter="url(#sh)">
-    <!-- cve_lookup -->
+    <!-- direct_response -->
     <rect x="30"  y="370" width="138" height="52" rx="10" fill="#F4A6C2"/>
-    <text x="99"  y="393" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">cve_lookup</text>
+    <text x="99"  y="393" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">direct_response</text>
     <text x="99"  y="410" text-anchor="middle" font-size="10" fill="#1F2828" opacity="0.85">single Agent</text>
 
-    <!-- parallel_recon -->
+    <!-- specialist_fanout -->
     <rect x="180" y="370" width="138" height="52" rx="10" fill="#F4A6C2"/>
-    <text x="249" y="393" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">parallel_recon</text>
+    <text x="249" y="393" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">specialist_fanout</text>
     <text x="249" y="410" text-anchor="middle" font-size="10" fill="#1F2828" opacity="0.85">ParallelPipeline</text>
 
-    <!-- scan_triage_report -->
+    <!-- plan_execute_validate -->
     <rect x="330" y="370" width="138" height="52" rx="10" fill="#F4A6C2"/>
-    <text x="399" y="390" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">scan_triage</text>
-    <text x="399" y="406" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">_report</text>
+    <text x="399" y="390" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">plan_execute</text>
+    <text x="399" y="406" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">_validate</text>
     <text x="399" y="420" text-anchor="middle" font-size="10" fill="#1F2828" opacity="0.85">SequentialPipeline</text>
 
-    <!-- exploit_verify_loop -->
+    <!-- codegen_test_validate -->
     <rect x="480" y="370" width="138" height="52" rx="10" fill="#F4A6C2"/>
-    <text x="549" y="390" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">exploit_verify</text>
-    <text x="549" y="406" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">_loop</text>
+    <text x="549" y="390" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">codegen_test</text>
+    <text x="549" y="406" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2828">_validate</text>
     <text x="549" y="420" text-anchor="middle" font-size="10" fill="#1F2828" opacity="0.85">LoopAgent</text>
 
     <!-- +4 more -->
     <rect x="630" y="370" width="90"  height="52" rx="10" fill="none" stroke="#F4A6C2" stroke-width="2" stroke-dasharray="5,3"/>
     <text x="675" y="393" text-anchor="middle" font-size="11" font-weight="600" fill="#F4A6C2">+ 4 more</text>
-    <text x="675" y="410" text-anchor="middle" font-size="10" fill="#F4A6C2">playbooks</text>
+    <text x="675" y="410" text-anchor="middle" font-size="10" fill="#F4A6C2">protocols</text>
   </g>
 
   <!-- dashed result arrows → RunnableResult -->
@@ -137,9 +137,9 @@
   <!-- ── RunnableResult ─────────────────────────────────────── -->
   <g filter="url(#sh)">
     <rect x="185" y="464" width="430" height="24" rx="10" fill="#D6336C"/>
-    <text x="400" y="481" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">ScanResult · findings · playbook_id · scope</text>
+    <text x="400" y="481" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">RunnableResult · protocol_id · text · events</text>
   </g>
 
   <!-- footer note -->
-  <text x="40" y="498" font-size="10.5" font-style="italic" fill="#1B1620" opacity="0.7">LLM fills one typed schema · everything else is rule-based · output is always one of eight named security playbooks</text>
+  <text x="40" y="498" font-size="10.5" font-style="italic" fill="#1B1620" opacity="0.7">LLM fills one typed schema · everything else is rule-based · output is always one of eight named orchestration shapes</text>
 </svg>

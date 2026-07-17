@@ -26,8 +26,8 @@ Each `Specialist` is its own self-contained agent. Its fields:
 
 ## When to use it
 
-- ✅ The work splits cleanly into **expert domains** (Triage,
-  Containment, Forensics; or Recon, Exploit-check, Reporting).
+- ✅ The work splits cleanly into **expert domains** (Research, Data,
+  Writing; or Triage, Forensics, Containment).
 - ✅ You want **one place to attribute decisions to** — the coordinator.
 - ✅ Specialists need their **own playbooks, skills, or models** (a
   cheap model for triage, a strong one for compliance).
