@@ -5,7 +5,7 @@ edges decide what runs next, and state flows through. Cycles
 (retry-until-confidence), conditional branches, and subgraphs are
 all first-class.
 
-![StateGraph pattern — START → plan → research → write → review → END, with a conditional loop-back from review to research when confidence < 0.85](../../img/patterns/graph.svg){ .diagram }
+![StateGraph pattern — START → research → verify claims → assess → confidence gate → END, with a conditional loop-back to dig deeper when confidence < 0.85](../../img/patterns/graph.svg){ .diagram }
 
 ## What it is
 

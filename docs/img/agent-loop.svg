@@ -40,7 +40,7 @@
   <g transform="translate(20, 20)">
     <use href="#innov" x="0" y="0" width="14" height="14"/>
     <text x="20" y="11" font-size="10.5" font-weight="600" fill="#1B1620"
-          letter-spacing="0.06em">AUTONOMOUS SOC LOOP · UNIQUE TO TULIP</text>
+          letter-spacing="0.06em">AUTONOMOUS AGENT LOOP · UNIQUE TO TULIP</text>
   </g>
 
   <!-- ============ TWO-ROW LAYOUT (160 wide cards, 2x2 grid) ============ -->
@@ -51,9 +51,9 @@
     <text x="120" y="95" text-anchor="middle" font-size="20" font-weight="800"
           fill="#FFFFFF" letter-spacing="-0.01em">Think</text>
     <text x="120" y="121" text-anchor="middle" font-size="10.5" font-weight="600"
-          fill="#FFFFFF" opacity="0.86" letter-spacing="0.06em">TRIAGE THE ALERT</text>
+          fill="#FFFFFF" opacity="0.86" letter-spacing="0.06em">PICK THE NEXT ACTION</text>
     <text x="120" y="139" text-anchor="middle" font-size="10.5" font-weight="500"
-          fill="#FFFFFF" opacity="0.78">e.g. enrich the IOC</text>
+          fill="#FFFFFF" opacity="0.78">e.g. query the orders DB</text>
   </g>
 
   <!-- arrow Think → Execute -->
@@ -66,9 +66,9 @@
     <text x="330" y="95" text-anchor="middle" font-size="20" font-weight="800"
           fill="#FFFFFF" letter-spacing="-0.01em">Execute</text>
     <text x="330" y="121" text-anchor="middle" font-size="10.5" font-weight="600"
-          fill="#FFFFFF" opacity="0.86" letter-spacing="0.06em">IDEMPOTENT CONTAINMENT</text>
+          fill="#FFFFFF" opacity="0.86" letter-spacing="0.06em">IDEMPOTENT WRITES</text>
     <text x="330" y="139" text-anchor="middle" font-size="10.5" font-weight="500"
-          fill="#FFFFFF" opacity="0.78">e.g. isolate the host</text>
+          fill="#FFFFFF" opacity="0.78">e.g. issue the refund</text>
     <use href="#innov" x="395" y="55" width="18" height="18"/>
   </g>
 
@@ -78,9 +78,9 @@
     <text x="330" y="255" text-anchor="middle" font-size="20" font-weight="800"
           fill="#1F2828" letter-spacing="-0.01em">Reflect</text>
     <text x="330" y="281" text-anchor="middle" font-size="10.5" font-weight="600"
-          fill="#1F2828" opacity="0.85" letter-spacing="0.06em">SCORE THE THREAT</text>
+          fill="#1F2828" opacity="0.85" letter-spacing="0.06em">GROUND THE CLAIMS</text>
     <text x="330" y="299" text-anchor="middle" font-size="10.5" font-weight="500"
-          fill="#1F2828" opacity="0.78">e.g. check detection confidence</text>
+          fill="#1F2828" opacity="0.78">e.g. verify against tool results</text>
   </g>
 
   <!-- arrow Execute → Reflect (vertical, on the right side) -->
@@ -92,7 +92,7 @@
   <g filter="url(#card-shadow)">
     <rect x="40" y="220" width="160" height="105" rx="11" ry="11" fill="#64748B"/>
     <text x="120" y="252" text-anchor="middle" font-size="19" font-weight="800"
-          fill="#FFFFFF" letter-spacing="-0.01em">Contained?</text>
+          fill="#FFFFFF" letter-spacing="-0.01em">Done?</text>
     <text x="120" y="278" text-anchor="middle" font-size="10.5" font-weight="600"
           fill="#FFFFFF" opacity="0.92" letter-spacing="0.06em">ALGEBRA: AND · OR</text>
     <text x="120" y="296" text-anchor="middle" font-size="10.5" font-weight="500"
@@ -117,6 +117,6 @@
   <!-- "or done" exit arrow from Terminate? going down off-card -->
   <text x="240" y="357" text-anchor="middle" font-size="10.5" font-weight="600"
         fill="#1B1620" font-style="italic">
-    when the threat is neutralized · the loop ends with a typed IncidentClosedEvent
+    when the stop condition is met · the loop ends with a typed TerminateEvent
   </text>
 </svg>

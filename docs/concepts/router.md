@@ -1,11 +1,11 @@
 # Router — pick the orchestration shape from a natural-language task
 
-You hand the router a sentence like *"Scan subnet 192.0.2.0/24 for the
-new CVE-2024-99999 exposure."* It picks one of eight orchestration
-shapes — direct answer, plan-execute-validate pipeline, parallel
-specialist fan-out, debate, code-gen-with-tests loop, approval-gated
-execution, handoff chain, or remote A2A delegation — and runs that shape
-against your tools.
+You hand the router a sentence like *"Why did checkout latency double
+after yesterday's deploy — and what should we do about it?"* It picks
+one of eight orchestration shapes — direct answer,
+plan-execute-validate pipeline, parallel specialist fan-out, debate,
+code-gen-with-tests loop, approval-gated execution, handoff chain, or
+remote A2A delegation — and runs that shape against your tools.
 
 You describe *what* you want; the router decides *how* to coordinate
 the agents. The LLM only fills a typed schema (a `GoalFrame`) — it
@@ -21,18 +21,75 @@ toolkit. The contribution is the *layer*, not the primitives — every
 router execution is just a normal SDK orchestration you can already
 inspect, replay, and extend.
 
-## Why a routing layer
+## Dynamic cognition — a new topology per request
 
-Frameworks tend to pick one extreme:
+Cognitive routing is the SDK's implementation of **dynamic
+cognition**: the *reasoning topology* — how many agents run, in what
+shape, with what stop conditions — is decided per request, at dispatch
+time, instead of being fixed when you wrote the code.
 
-- **LangGraph** — you author the topology by hand. Predictable, but
-  every new shape is more code.
-- **CrewAI / free-form agent swarms** — the LLM picks the topology. As
-  flexible as the model, as fragile as the model.
+A hand-authored graph is *static cognition*: one topology serves every
+request, so a one-line factual question pays for the same
+plan-execute-validate machinery as a production remediation. Letting
+the model improvise the topology is *emergent cognition*: each request
+gets a bespoke shape, but two identical requests can take two
+different paths, and there is no artifact you can test, diff, or gate.
 
-`tulip.router` splits the difference: the LLM produces *only* a typed
-`GoalFrame`; the rest of the pipeline is rule-based. You get adaptive
-routing without giving the model the steering wheel.
+Dynamic cognition splits the decision in two:
+
+1. **The model classifies.** One LLM call reads the request into a
+   typed `GoalFrame` — goal type, domain, complexity, risk, required
+   capabilities. That is the *only* place the model participates.
+2. **Rules decide.** Pure Python maps the frame onto one of eight
+   named, pre-built orchestration shapes, applies the policy gate, and
+   compiles the shape onto standard SDK primitives.
+
+The adaptivity lives in typed data, not in free-form model choice: a
+LOW-complexity "explain X" frame compiles to a single `Agent`, a
+HIGH-complexity "diagnose Y" frame compiles to a parallel specialist
+fan-out — and the same request always produces the same frame fields,
+the same protocol, the same topology. You get per-request cognition
+with build-time predictability.
+
+## How other agentic frameworks pick the topology
+
+Every framework answers the same question — *who decides how the
+agents are wired for this request?* — somewhere on the spectrum from
+fully static to fully model-driven (mechanisms as of mid-2026; each
+row describes the framework's default dispatch path):
+
+| Framework | Who authors the topology | When the shape is picked | Same request → same shape? |
+|---|---|---|---|
+| **LangGraph** | Developer — explicit `StateGraph` nodes + edges in code | Build time (conditional edges branch at run time, inside the one authored graph) | Yes — but it's the single shape you wrote |
+| **LlamaIndex Workflows** | Developer — event-driven steps in code | Build time | Yes — single authored shape |
+| **Google ADK** | Developer composes `Sequential`/`Parallel`/`Loop` workflow agents; LLM-driven transfer between agents | Mixed — workflow agents at build time, transfers at run time | Workflow agents yes; LLM transfers no |
+| **OpenAI Agents SDK** | Developer wires handoffs as tools; the LLM decides when to invoke them | Run time, model-driven | No — the handoff path varies with the model |
+| **CrewAI (hierarchical)** | LLM manager delegates to role agents | Run time, model-driven | No |
+| **AutoGen / AG2 group chat** | LLM speaker selection every turn | Every turn, model-driven | No |
+| **`tulip.router`** | Rules pick among eight named shapes; the LLM only fills the `GoalFrame` | Run time, rule-driven over a typed frame | Yes — deterministic given the frame |
+
+The static end (LangGraph, LlamaIndex) is predictable, but every new
+shape is more code, and one shape has to fit every request. The
+model-driven end (CrewAI, AutoGen, Agents-SDK handoffs) adapts per
+request, but the topology is as reproducible as the model's sampling.
+
+`tulip.router` takes the third cell: run-time selection, rule-driven.
+Two properties fall out of that split which neither end of the
+spectrum gives you:
+
+- **A policy gate in the dispatch path.** Because the frame carries a
+  typed `Risk` before anything executes, `PolicyGate` can deny or
+  require approval *per request* — not as a wrapper you remember to
+  add around each hand-built graph.
+- **Compilation onto inspectable primitives.** The chosen shape is a
+  normal `Agent` / `SequentialPipeline` / `ParallelPipeline` /
+  `LoopAgent` you can replay, test, and extend — not a transcript of
+  what the model happened to delegate.
+
+If you *want* the model to break ties between protocols, that exists
+as an explicitly scoped opt-in — see
+[emergent picker](#emergent-picker-opt-in-second-mode) below; the
+filter, policy gate, and compiler stay rule-based around it.
 
 ## The five layers
 
@@ -52,10 +109,10 @@ from tulip.router import Complexity, GoalFrame, Risk, TaskType
 
 frame = GoalFrame(
     primary_goal=TaskType.DIAGNOSE,
-    domain="vuln_management",
+    domain="commerce_ops",
     complexity=Complexity.HIGH,
-    risk=Risk.HIGH,   # an active subnet scan touches production hosts
-    required_capabilities=["scan_subnet", "lookup_cve"],
+    risk=Risk.HIGH,   # the remediation step may touch the production deploy
+    required_capabilities=["query_metrics", "inspect_deploys"],
 )
 ```
 
@@ -71,7 +128,7 @@ from tulip.router import ProtocolRegistry, builtin_protocols
 protocols = ProtocolRegistry()
 protocols.register_many(builtin_protocols())
 
-chosen = protocols.select(frame, available_capabilities={"scan_subnet", "lookup_cve"})
+chosen = protocols.select(frame, available_capabilities={"query_metrics", "inspect_deploys"})
 # chosen.id == "specialist_fanout"
 ```
 
@@ -85,13 +142,13 @@ then ranks candidates by complexity-fit + cost. It never asks the LLM.
 from tulip.router import CapabilityIndex
 from tulip.tools.registry import create_registry
 
-tools = create_registry(lookup_cve, scan_subnet, query_siem)
+tools = create_registry(query_metrics, inspect_deploys, rollback_deploy)
 caps = CapabilityIndex(tools)
 caps.annotate(
-    "scan_subnet",
-    tool_name="scan_subnet",
-    description="Active port + service scan across a CIDR range.",
-    domain="vuln_management",
+    "query_metrics",
+    tool_name="query_metrics",
+    description="Query service latency and error-rate metrics over a time range.",
+    domain="commerce_ops",
 )
 ```
 
@@ -113,8 +170,8 @@ verdict = gate.check(frame, chosen)
 ```
 
 The gate produces one of three verdicts. With this config a HIGH-risk
-`scan_subnet` frame is allowed but flagged for approval, while a LOW-risk
-*"Summarise the latest advisory for CVE-2024-99999"* frame runs straight
+`rollback_deploy` frame is allowed but flagged for approval, while a
+LOW-risk *"Summarise yesterday's deploy notes"* frame runs straight
 through. Approval-flagged runnables are wrapped with a callback that the
 workbench's interrupt UI (or your own approval flow) can drive.
 
@@ -130,7 +187,7 @@ compiler = CognitiveCompiler(
     model=model,
 )
 router = Router(extractor=extractor, compiler=compiler)
-result = await router.dispatch("Scan subnet 192.0.2.0/24 for CVE-2024-99999.")
+result = await router.dispatch("Why did checkout latency double after yesterday's deploy?")
 print(result.protocol_id, result.text)
 ```
 
@@ -258,10 +315,10 @@ compiler = CognitiveCompiler(
 )
 ```
 
-When a user dispatches a request with `domain="vuln_management"`, every
+When a user dispatches a request with `domain="commerce_ops"`, every
 emitted Agent (planner / executor / validator for
 `plan_execute_validate`; each fan-out leg for `specialist_fanout`;
-etc.) sees the vuln-management-tagged skills catalog and can activate
+etc.) sees the commerce-ops-tagged skills catalog and can activate
 any one of them on demand.
 
 ## A2A delegation
@@ -308,9 +365,9 @@ protocols.register(
 )
 ```
 
-The same `Router` instance can serve multiple domains (vuln management,
-threat intel, SOC triage) by swapping `CapabilityIndex` content — protocols
-themselves are domain-agnostic.
+The same `Router` instance can serve multiple domains (support,
+payments, infra, security) by swapping `CapabilityIndex` content —
+protocols themselves are domain-agnostic.
 
 ## Error handling
 
@@ -350,7 +407,7 @@ from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
     sub = asyncio.create_task(_print_events(rid))
-    result = await router.dispatch("Scan subnet 192.0.2.0/24 for CVE-2024-99999.")
+    result = await router.dispatch("Why did checkout latency double after yesterday's deploy?")
     await sub
 
 async def _print_events(rid):

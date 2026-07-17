@@ -122,7 +122,7 @@ support, data, security. The shape *is* the discipline: who runs in
 parallel, who hands off, who must agree before a refund clears, a host is
 isolated, or a record is deleted.
 
-![Orchestrator dispatches triage → forensics → containment specialists in parallel; containment owns the write tools, gated until triage and forensics agree](img/patterns/orchestrator.svg){ .diagram }
+![Orchestrator pattern — a coordinator dispatches research, data, and writer specialists in parallel and merges their results into one answer](img/patterns/orchestrator.svg){ .diagram }
 
 | Shape | Maps to | Surface |
 |---|---|---|
