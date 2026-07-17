@@ -11,7 +11,7 @@ format used by Strands, ADK, and Google's reference SDKs — so an
 SDK-built agent can call a non-SDK A2A peer (or be called by one)
 without an adapter.
 
-![A2A pattern — two processes (Process A threat-intel team with A2AServer; Process B SOC-triage team with A2AClient), connected by an HTTP+SSE arc, agents inside each process](../../img/patterns/a2a.svg){ .diagram }
+![A2A pattern — two processes (Process A research team with A2AServer; Process B planning team with A2AClient), connected by an HTTP+SSE arc, agents inside each process](../../img/patterns/a2a.svg){ .diagram }
 
 ## Wire surface
 

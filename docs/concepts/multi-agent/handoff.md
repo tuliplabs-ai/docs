@@ -1,11 +1,11 @@
 # Handoff
 
-Handoff is what a SOC escalation desk does. One agent owns the
-investigation, decides it needs a different tier, and hands a
+Handoff is what an escalation desk does. One agent owns the
+case, decides it needs a different tier, and hands a
 **structured summary** — findings, progress, and key context — to the
 next agent, who picks up where it left off.
 
-![Handoff pattern — L1 triage agent classifies the alert, hands the full transcript to an L2 analyst who continues the investigation](../../img/patterns/handoff.svg){ .diagram }
+![Handoff pattern — L1 support agent classifies the ticket, hands the full transcript to an L2 billing specialist who resolves the case](../../img/patterns/handoff.svg){ .diagram }
 
 ## What it is
 
