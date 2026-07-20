@@ -2,13 +2,16 @@
 
 # Workbench
 
-A browser playground for every Tulip pattern — pick one, paste a
+A browser playground for every Tulip pattern — pick one, paste your own
 provider key, hit **Run**, and watch a real agent stream events back.
-Run it from source or in Docker; both land at the same UI on
-<http://localhost:5173>.
+Try it hosted, or run it from source or in Docker.
 
-[View on GitHub](https://github.com/tuliplabs-ai/sdk-python){ .md-button .md-button--primary }
-[Workbench README](https://github.com/tuliplabs-ai/sdk-python/tree/main/workbench){ .md-button }
+Bring your own model key — **OpenAI, Anthropic, or any OpenAI-compatible
+endpoint** (vLLM, Together, LiteLLM) via an optional base URL. We host the UI,
+not the inference: your key is sent per request and never stored server-side.
+
+[Open the hosted workbench](https://play.tulipagents.ai){ .md-button .md-button--primary }
+[Get the SDK](https://github.com/tuliplabs-ai/sdk-python){ .md-button }
 
 ![Workbench UI screenshot](img/workbench.png)
 
