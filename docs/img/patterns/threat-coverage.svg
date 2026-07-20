@@ -56,5 +56,5 @@
   <line x1="480" y1="120" x2="516" y2="112" stroke="#1B1620" stroke-width="2" marker-end="url(#a)"/>
   <line x1="480" y1="160" x2="516" y2="176" stroke="#9D174D" stroke-width="1.6" stroke-dasharray="5,3" marker-end="url(#am)"/>
 
-  <text x="20" y="285" font-size="11" font-style="italic" fill="#1B1620">run_all.py runs every gist and asserts all pass — coverage stays complete, the difference between an AI-security SDK and a security demo</text>
+  <text x="20" y="285" font-size="10" font-style="italic" fill="#1B1620">run_all.py runs every gist and asserts all pass — coverage stays complete: the difference between a control runtime and a security demo</text>
 </svg>

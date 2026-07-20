@@ -94,8 +94,8 @@
   <line x1="650" y1="250" x2="666" y2="250" stroke="#D6336C" stroke-width="1"   stroke-dasharray="3,2"/>
   <line x1="650" y1="296" x2="666" y2="296" stroke="#D6336C" stroke-width="1"   stroke-dasharray="3,2"/>
   <line x1="666" y1="250" x2="666" y2="296" stroke="#D6336C" stroke-width="1.2"/>
-  <text x="676" y="270" font-size="11" font-weight="700" fill="#D6336C" letter-spacing="0.10em">WORKFLOW</text>
-  <text x="676" y="284" font-size="11" font-weight="700" fill="#D6336C" letter-spacing="0.10em">AGENTS</text>
+  <text x="650" y="270" font-size="9.5" font-weight="700" fill="#D6336C" letter-spacing="0.08em">WORKFLOW</text>
+  <text x="650" y="284" font-size="9.5" font-weight="700" fill="#D6336C" letter-spacing="0.08em">AGENTS</text>
 
   <!-- =============== fan-in: workflow row → cross_synthesize =============== -->
   <!-- All three arrows leave the visual bottom-centre of each workflow box -->
