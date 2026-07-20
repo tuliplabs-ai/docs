@@ -1,4 +1,4 @@
-# Cognitive Router
+# Cognitive Router (PRISM)
 
 The cognitive router compiles natural-language tasks onto proven
 orchestration shapes. The LLM fills one typed `GoalFrame`; everything

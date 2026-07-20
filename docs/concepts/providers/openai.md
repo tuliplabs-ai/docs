@@ -160,9 +160,10 @@ out of the wrong places:
   strips PII or blocks topics in the model's output, so nothing
   attacker-supplied round-trips into a downstream ticket or chat.
 
-Every model call, tool invocation, and containment decision still lands
-on the SDK's forensic audit trail — the same typed SSE event stream you
-forward to a SIEM verbatim. Routing through a gateway (Azure / Portkey /
+Every model call and tool invocation still lands on the typed SSE event
+stream — the faithful trace you forward to a SIEM verbatim — and
+admission decisions land on the hash-chained
+[`AuditTrail`](../agentic-ai-security.md). Routing through a gateway (Azure / Portkey /
 LiteLLM) keeps your `OPENAI_API_KEY` off the egress path when policy
 requires it.
 

@@ -1,5 +1,5 @@
 site_name: tulip agents
-site_description: The safest way to build agentic AI — an open-source agent framework where a cognitive router picks the shape, GSAR grounds every claim, and an admission gate clears every consequential action.
+site_description: The safest way to build agentic AI — an open-source agentic harness, the control runtime for agents that act. The cognitive router (PRISM) picks the shape, GSAR grounds every claim, and an admission gate clears every consequential action — for agents you build here and agents you already run elsewhere.
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/sdk-python
 repo_name: tuliplabs-ai/sdk-python
