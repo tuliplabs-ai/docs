@@ -1,6 +1,8 @@
 # Models
 
-Direct API providers: **OpenAI**, **Anthropic**. A
+Direct API providers: **OpenAI**, **Anthropic** — plus any
+OpenAI-compatible endpoint (vLLM, Ollama, together.ai, LiteLLM, …) via
+`OpenAIModel`'s `base_url` override. A
 model is a string — the prefix before the colon selects the provider.
 
 ## Registry

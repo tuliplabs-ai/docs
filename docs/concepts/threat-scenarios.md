@@ -31,7 +31,7 @@ A scenario's defense is one of three kinds:
   points, where there is no single built-in;
 - **both**, where they stack.
 
-This is the difference between an AI-security SDK and an agent framework with a
+This is the difference between a control runtime and an agent framework with a
 security demo: the catalogue is *complete* and the runner *proves* it stays
 that way.
 

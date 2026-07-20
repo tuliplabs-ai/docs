@@ -155,6 +155,16 @@ A future SDK release may bundle a typed judge directly into
 | `expected_tools` reports failure even though the tool ran | Case-sensitive name match — `isolate_host` != `Isolate_Host`. |
 | Score is 0.5 every time | One of two checks is consistently failing. Read `result.checks` — it carries the full pass/fail map. |
 
+## Evals are audit evidence
+
+The runner drives the same agent through the same loop as production, so
+an eval run is made of the same typed events — and any admission
+decisions land on the same hash-chained `AuditTrail` the gate always
+writes. A passing eval is audit evidence, not a screenshot. For
+grounded-claim scoring — did each claim survive contact with its
+evidence? — pair the structural checks here with the
+[GSAR evaluation layer](gsar.md).
+
 ## Source and notebook
 
 - [`notebook_55_evaluation.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_55_evaluation.py) — runnable end-to-end suite.

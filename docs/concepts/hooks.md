@@ -220,7 +220,6 @@ any field; this is intentionally tight.
 | Hook fires in the wrong order | Set `priority` explicitly. The default priority is intentionally mid-range so security hooks always come before yours. |
 | `AttributeError: Cannot set 'foo' … read-only` | You tried to write a non-writable field. Only the documented steering fields are assignable (`arguments`/`cancel` on before-tool, `result`/`retry` on after-tool); everything else is observe-only. |
 | `on_after_tool_call` doesn't see the result | The tool raised. Check `event.error` instead of `event.result`. |
-| `on_after_tool_call` doesn't see the arguments / call id | Pre-`0.2.0b4` event payload. Upgrade — `event.arguments` and `event.tool_call_id` were added so hooks can build host-side action queues without a separate `before`-hook stash. |
 | Telemetry spans aren't exported | `TelemetryHook` needs an OTel exporter configured upstream — see [Observability](observability.md). |
 
 ## Source and examples

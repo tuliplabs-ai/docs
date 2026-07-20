@@ -1,6 +1,7 @@
 # Router — pick the orchestration shape from a natural-language task
 
-You hand the router a sentence like *"Why did checkout latency double
+You hand the cognitive router — **PRISM** — a sentence like *"Why did
+checkout latency double
 after yesterday's deploy — and what should we do about it?"* It picks
 one of eight orchestration shapes — direct answer,
 plan-execute-validate pipeline, parallel specialist fan-out, debate,

@@ -99,6 +99,6 @@ result = await end_to_end.run("Triage the attack surface on 192.0.2.10.")
 
 ## See also
 
-- [Multi-agent overview](../multi-agent.md) — all seven coordination patterns plus A2A.
+- [Multi-agent overview](../multi-agent.md) — all eight coordination shapes, A2A included.
 - [StateGraph](graph.md) — when you need cycles or conditional branches.
 - [Functional](functional.md) — when you'd rather use plain asyncio.gather.

@@ -1,12 +1,12 @@
 # Multi-agent workflows
 
-Multi-agent workflows are first-class in Tulip: seven shapes you compose
+Multi-agent workflows are first-class in Tulip: eight shapes you compose
 in one process or scale across a mesh, every shape backed by the same
 `Agent` class, the same event stream, and the same primitives. Pick a
 shape directly, or let the **cognitive router** select and
 compile the right one from a natural-language task description.
 
-![Seven multi-agent workflow shapes — Composition, Orchestrator + Specialists, Swarm, Handoff, StateGraph, Functional, A2A](../img/multi-agent-patterns.svg)
+![Multi-agent workflow shapes — Composition, Orchestrator + Specialists, Swarm, Handoff, StateGraph, Functional, A2A](../img/multi-agent-patterns.svg)
 
 !!! tip "Don't know which shape to use?"
     [PRISM — the cognitive router](router.md) extracts a typed
@@ -73,7 +73,12 @@ Writing your own glue (asyncio fan-out, retries, schedulers)? Use the
 **Functional API** (`@task`, `@entrypoint`) — a thin wrapper that brings
 agent runs into the ordinary asyncio universe.
 
-## The seven shapes
+## The eight shapes
+
+Eight shapes across seven pattern pages —
+[Composition](multi-agent/composition.md) covers three of them
+(Sequential, Parallel, Loop) in one page, and the Functional API rides
+alongside as the asyncio-native escape hatch.
 
 | Pattern | Best for | Key class | Source |
 |---|---|---|---|
@@ -163,8 +168,11 @@ Opt in with `allow_cycles=True` plus an iteration cap.
 ## Why these workflows ship to prod
 
 The boring stuff that turns a demo into a product. Every primitive
-below works in any of the seven shapes — you don't pick "shape" or
-"production-ready", you get both.
+below works in any of the eight shapes — you don't pick "shape" or
+"production-ready", you get both. And side-effecting tools inside any
+shape go through the admission gate —
+[`admit()`](security-context.md) — so every decision lands on the
+hash-chained `AuditTrail`.
 
 ### Reflexion — catch a bad turn before the next one
 
@@ -225,7 +233,7 @@ produced them. → [Streaming](streaming.md).
 
 ## One event stream across all of them
 
-All seven patterns plus A2A share the same typed event
+All eight shapes — A2A included — share the same typed event
 taxonomy. Consume directly from the generator, or use the opt-in
 `EventBus` to get per-component SSE events (`agent.think`,
 `agent.tool.started`, `multiagent.orchestrator.routing`, etc.)
