@@ -62,5 +62,5 @@
   <line x1="450" y1="130" x2="496" y2="100" stroke="#1B1620" stroke-width="2" marker-end="url(#a)"/>
   <line x1="450" y1="160" x2="496" y2="172" stroke="#9D174D" stroke-width="1.6" stroke-dasharray="5,3" marker-end="url(#am)"/>
 
-  <text x="20" y="285" font-size="11" font-style="italic" fill="#1B1620">a Finding has no constructor without a score — an ungrounded finding is a false positive by construction, and there is no path that builds one</text>
+  <text x="20" y="285" font-size="10" font-style="italic" fill="#1B1620">a Finding has no constructor without a score — an ungrounded finding is a false positive by construction, and no path builds one</text>
 </svg>
