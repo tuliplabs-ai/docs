@@ -11,7 +11,7 @@ hide:
 
 # Agents that act. <span class="accent">Safe by construction.</span>
 
-Tulip is an open-source, full-stack agent framework — tools, memory, multi-agent, RAG, streaming — with control wired through the core. The **[cognitive router](concepts/router.md)** picks the right shape for the task, **[GSAR](concepts/gsar.md)** grounds every claim or abstains, and the **admission gate** runs a consequential action only after it clears a policy you write.
+Tulip is an open-source **agentic harness** — the control runtime for agents that act. It does two things teams have had to solve separately: it lets you **build** agents — with the tools, skills, and playbooks they use — that are *safe by construction*, and it **governs** what any agent does, including [agents you already run in LangChain, CrewAI, or the OpenAI Agents SDK](integrations/frameworks.md). Control is wired through three points in the runtime: the **[cognitive router (PRISM)](concepts/router.md)** picks which shape runs, **[GSAR](concepts/gsar.md)** grounds every claim or abstains, and the **admission gate** runs a consequential action only after it clears a policy you write.
 
 These rules are code **outside the model**. A jailbreak can't talk the model past them.
 
@@ -176,6 +176,14 @@ is recorded either way.
     backends, pluggable embeddings and rerankers — all behind small contracts,
     nothing wired to one vendor, most with a free local test path.
 
+- :material-link-variant:{ .lg .middle } **[Govern agents you already run](integrations/frameworks.md)**
+
+    ---
+    `tulip-frameworks` wraps LangChain, LangGraph, CrewAI, OpenAI Agents,
+    LlamaIndex, and Google ADK tools with the same `admit()` gate and
+    `AuditTrail` — about three lines, no rebuild. Same harness, same
+    governance, any agent.
+
 </div>
 
 ## How the admission gate works
@@ -186,8 +194,8 @@ convention and becomes enforced code. The chain is short and every link is real:
 **action → policy → approval → admission → audit**
 
 - **Policy + approval** — `approve()` weighs your `ControlPolicy` (blast radius,
-  `require_human_for`, and — when you have it — a verification score) and returns allow, hold,
-  or deny.
+  `require_human_for`, and — when you have it — a verification score) and returns allow, hold
+  (`require_human`), or deny.
 - **Admission** — `admit()` runs the side-effecting action **only if** approval allows,
   recording the decision to the `AuditTrail` you pass either way; otherwise it raises
   `AdmissionError`. The model never touches this step.
@@ -285,4 +293,4 @@ pip install "tulip-agents[openai]"
 
 ---
 
-**Open-source agentic framework, safe by construction. Evidence-grounded. Apache-2.0.**
+**The open-source agentic harness — control the action, prove what it did. Safe by construction. Apache-2.0.**

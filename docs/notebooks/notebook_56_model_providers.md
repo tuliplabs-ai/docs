@@ -13,6 +13,7 @@ Provider matrix:
 | --- | --- | --- |
 | OpenAI | `OpenAIModel` | GPT-4o, o1, o3, gpt-5.x against the direct API |
 | Anthropic | `AnthropicModel` | Claude models (opus / sonnet / haiku) |
+| OpenAI-compatible | `OpenAIModel(base_url=…)` | Any OpenAI-compatible endpoint — vLLM, Ollama, together.ai, LiteLLM, … — see [LiteLLM gateway](notebook_71_litellm_gateway.md) |
 
 The registry helper `get_model("provider:model_name")` returns the right
 client for the prefix.

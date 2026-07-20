@@ -10,6 +10,10 @@ Tulip treats human approval as
 it surfaces a question to your app and resumes when the human
 responds.
 
+For consequential actions the same pause is enforced by the runtime,
+not offered to the model — a policy answering `require_human` holds the
+action at the [admission gate](security-context.md).
+
 ## The shape
 
 The SDK ships a built-in `ask_user` tool. The model calls it like any

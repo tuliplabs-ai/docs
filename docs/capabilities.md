@@ -17,10 +17,11 @@ does, and where to find it.
       matching SDK primitive. The LLM fills a typed `GoalFrame`; routing is
       rule-based. Eight protocols, from `direct_response` to `handoff_chain`
       — the [full catalogue](#cognitive-router-risk-gated-dispatch) is below.
-    - **Seven native multi-agent shapes** — Composition
+    - **Eight native multi-agent shapes** — Composition
       (Sequential / Parallel / Loop), Orchestrator + Specialists, Swarm,
-      Handoff, StateGraph, Functional API (`@task` / `@entrypoint`), and
-      cross-process A2A — plus DeepAgent (a research factory built on top).
+      Handoff, StateGraph, and cross-process A2A — plus the Functional API
+      (`@task` / `@entrypoint`) and DeepAgent (a research factory built on
+      top).
       Use them directly, or let the cognitive router dispatch to them. Every
       pattern shares the same `Agent` class and event stream.
     - **In-process observability** — opt-in `EventBus` with agent yield
@@ -65,7 +66,7 @@ build with Tulip safe to let act.
 | **Cloud posture (read-only)** | Spec-driven AWS auditing — `describe_aws` introspects botocore models; `use_aws` runs read-only calls, writes refused by construction | `tulip.security.aws` · [Cloud posture](concepts/cloud-posture.md) |
 | **Inference fingerprinting** | Timing side-channel model/hardware fingerprint → grounded `FingerprintFinding` or abstention | `fingerprint_to_finding` · [Grounded findings](concepts/security.md) |
 | **Governed agent** | An `Agent` with grounding + guardrails + audit trail on by default | `governed_agent(...)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
-| **Vendor integrations** | Inject real vendors per domain — Splunk, CrowdStrike, Okta, Auth0, VirusTotal, Wiz | `tulip-integrations` · [Integrations](integrations/index.md) |
+| **Vendor integrations** | Inject real vendors per domain — Splunk, CrowdStrike, Cortex XSOAR, Okta, Auth0, Entra, Slack, VirusTotal, Wiz | `tulip-integrations` · [Integrations](integrations/index.md) |
 
 ```python
 # A finding only exists above the GSAR bar — else it abstains. No public

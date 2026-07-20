@@ -196,10 +196,10 @@ route each query to the right store. Mirrors a common deep-research
 translate 1:1.
 
 The retriever's `store` can be any `BaseVectorStore` implementation —
-`QdrantVectorStore` (Autonomous DB), `OpenSearchVectorStore`,
-`InMemoryVectorStore`, `PgVectorStore`, etc. See
+the SDK ships five: `InMemoryVectorStore`, `PgVectorStore`,
+`OpenSearchVectorStore`, `QdrantVectorStore`, and `ChromaVectorStore`. See
 [`examples/projects/deep-research/`][dr] for working ports of seven
-upstream deep-research gists covering all four major backends.
+upstream deep-research gists across these backends.
 
 [dr]: https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/projects/deep-research
 

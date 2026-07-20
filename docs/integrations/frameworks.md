@@ -1,8 +1,8 @@
 # Bring Tulip's control layer to an existing agent
 
-Tulip is a full-stack agent framework and the safest way to build agentic AI — its
-admission gate, human-in-the-loop, and tamper-evident audit trail are the same
-control layer whether or not the agent runs on Tulip. So you don't have to rebuild
+Tulip is an agentic harness — a full-stack agent framework with a control runtime
+wired through it — and its admission gate, human-in-the-loop, and tamper-evident
+audit trail are the same control layer whether or not the agent runs on Tulip. So you don't have to rebuild
 to get it. If you already have an agent in **LangChain / LangGraph, CrewAI, the
 OpenAI Agents SDK, LlamaIndex, or Google ADK**, keep it — put Tulip's gate around
 the *actions* it takes. The model and orchestration stay yours; the gate, the
@@ -165,7 +165,8 @@ force them into one mould:
 |---|---|---|
 | an **agent framework** (LangChain, LangGraph, CrewAI, OpenAI Agents, LlamaIndex, ADK) | **Gate** its tools | `gate_*_tool` (above) |
 | a **model-call gateway** (LiteLLM, Portkey) | **Compose** — it routes the model call, Tulip gates the action | point your model at the gateway *and* wrap the action in `admit()`; they stack |
-| **another agent** you don't control (a chatbot, an endpoint, an OpenClaw-style runtime) | **Assure** — red-team it | the core SDK's `Target` + [`red_team()`](../concepts/security.md) |
+| an **agent outside Python** (a TypeScript agent, an OpenClaw-style runtime, Vercel AI) | **Gate over the wire** — the gate is a language-neutral network call | the [`tulip-gateway`](index.md) `/v1/admit` endpoint, with the [`tulip-frameworks-js`](https://github.com/tuliplabs-ai/tulip-frameworks-js) TypeScript client |
+| **another agent** you don't control (a chatbot, an endpoint) | **Assure** — red-team it | the core SDK's `Target` + [`red_team()`](../concepts/security.md) |
 
 A model-call gateway is **not** something you gate — it governs *which model, whose
 key, within what budget*; Tulip governs *whether the action runs*. They're different

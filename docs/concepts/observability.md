@@ -85,6 +85,12 @@ chronological order. For per-tool `span_id` correlation (pairing a start
 with its completion), consume the `EventBus` stream instead — its
 `agent.tool.*` events carry a `span_id` (see below).
 
+The JSONL event log is a faithful trace, not a tamper-evident record —
+for decisions an auditor must trust, route the action through `admit()`
+so it lands on the hash-chained
+[`AuditTrail`](agentic-ai-security.md), whose `verify()` fails on any
+edit.
+
 ### Traces and metrics over OTLP
 
 ```python

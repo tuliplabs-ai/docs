@@ -71,29 +71,29 @@ know they're MCP — they look like any other `@tool`.
 ### Side effects in the host process — use hooks, not wrappers
 
 A common shape for MCP integrators: the *real* effect of a containment
-call lives in the host process (an incident audit log, a ticketing
+call lives in the host process (an incident log, a ticketing
 batch, a SOC console command stream), not inside the tool body that
 returns a string to the model. The instinct is to wrap each MCP tool
-with a per-tool `@tool` that calls `_audit_log().append(...)` before
+with a per-tool `@tool` that calls `_incident_log().append(...)` before
 returning.
 
-Don't. Use a single `HookProvider` instead — one audit trail over every
+Don't. Use a single `HookProvider` instead — one log over every
 tool, so a post-incident review can replay exactly what the agent did:
 
 ```python
 from tulip.hooks.provider import HookPriority, HookProvider
 
-class MCPAuditTrailHook(HookProvider):
-    """Mirror every tool call into an incident audit log, keyed by call id."""
+class MCPCallLogHook(HookProvider):
+    """Mirror every tool call into an incident log, keyed by call id."""
 
     priority = HookPriority.BUSINESS_DEFAULT
 
-    def __init__(self, audit_log: list[dict]) -> None:
-        self._audit_log = audit_log
+    def __init__(self, call_log: list[dict]) -> None:
+        self._call_log = call_log
 
     async def on_after_tool_call(self, event):
         if event.error is None:
-            self._audit_log.append({
+            self._call_log.append({
                 "id": event.tool_call_id,
                 "tool": event.tool_name,
                 "args": event.arguments,
@@ -104,14 +104,17 @@ agent = Agent(
     model=...,
     # every MCP-sourced TI/EDR tool, untouched
     tools=[*mcp_client.to_tulip_tools(await mcp_client.list_tools())],
-    hooks=[MCPAuditTrailHook(audit_log)],
+    hooks=[MCPCallLogHook(call_log)],
 )
 ```
 
 One hook covers every MCP-sourced tool. The `tool_call_id` correlates
 with the model's `tool_calls[].id`, so parallel enrichments don't get
 mixed up. See [hooks](hooks.md#on_after_tool_call-what-the-event-carries)
-for the full event surface.
+for the full event surface. Note this list is a faithful trace for
+replay, not a tamper-evident record — for decisions an auditor must
+trust, route the action through the hash-chained
+[`AuditTrail`](agentic-ai-security.md).
 
 ## Getting started — expose your tools as MCP
 

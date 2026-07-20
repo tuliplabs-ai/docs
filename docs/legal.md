@@ -2,9 +2,9 @@
 
 ## About &amp; disclaimer
 
-**tulip is developed 100% by tuliplabs, an independent AI-security research group.** No third party contributed to its development. It is built for **independent, open-source AI-security research**.
+**tulip is developed 100% by tuliplabs, an independent research and software lab.** No third party contributed to its development. tulip is an open-source **agentic harness** — a control runtime for agents that take real actions — developed in the open, alongside tuliplabs' independent AI-security research.
 
-**Organizations and corporations are welcome to use tulip at production grade, at no cost**, under the Apache License, Version 2.0.
+**Organizations and corporations are welcome to use the open-source tulip SDK at production grade, at no cost**, under the Apache License, Version 2.0.
 
 ### Disclaimer of warranty and liability
 
