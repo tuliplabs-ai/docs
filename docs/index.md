@@ -11,7 +11,9 @@ hide:
 
 # Agents that act. <span class="accent">Safe by construction.</span>
 
-Tulip is an open-source **agentic harness** — the control runtime for agents that act. It does two things teams have had to solve separately: it lets you **build** agents — with the tools, skills, and playbooks they use — that are *safe by construction*, and it **governs** what any agent does, including [agents you already run in LangChain, CrewAI, or the OpenAI Agents SDK](integrations/frameworks.md). Control is wired through three points in the runtime: the **[cognitive router (PRISM)](concepts/router.md)** picks which shape runs, **[GSAR](concepts/gsar.md)** grounds every claim or abstains, and the **admission gate** runs a consequential action only after it clears a policy you write.
+Tulip is an open-source **agentic harness** — the control runtime for agents that act. It does two things teams have had to solve separately: **build** agents that are safe by construction, with the tools, skills, and playbooks they use — and **govern** what any agent does, including [agents you already run in LangChain, CrewAI, or the OpenAI Agents SDK](integrations/frameworks.md).
+
+Control is wired through three points in the runtime: the **[cognitive router (PRISM)](concepts/router.md)** picks which shape runs, **[GSAR](concepts/gsar.md)** grounds every claim or abstains, and the **admission gate** runs a consequential action only after it clears a policy you write.
 
 These rules are code **outside the model**. A jailbreak can't talk the model past them.
 
