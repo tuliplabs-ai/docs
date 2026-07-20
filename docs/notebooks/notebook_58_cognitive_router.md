@@ -1,4 +1,4 @@
-# Cognitive Router
+# Cognitive Router (PRISM)
 
 `tulip.router` compiles a natural-language infra/devops request onto
 existing Tulip primitives. The LLM never picks topology — it fills a

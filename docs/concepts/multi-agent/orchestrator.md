@@ -31,7 +31,10 @@ Each `Specialist` is its own self-contained agent. Its fields:
 - ✅ You want **one place to attribute decisions to** — the coordinator.
 - ✅ Specialists need their **own playbooks, skills, or models** (a
   cheap model for triage, a strong one for compliance).
-- ✅ **Auditability** matters — the dispatch log is your trail.
+- ✅ **Auditability** matters — the dispatch log tells you who ran and
+  why; for consequential actions, route the tool through
+  [`admit()`](../security-context.md) so every decision lands on the
+  hash-chained `AuditTrail`.
 
 ## When NOT to use it
 

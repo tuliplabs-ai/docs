@@ -1,7 +1,7 @@
 # Production-readiness
 
 The boring stuff that turns a multi-agent demo into something you'd
-deploy. Every primitive on this page works inside any of the seven
+deploy. Every primitive on this page works inside any of the eight
 [workflow shapes](../multi-agent.md) — you don't pick "shape" or
 "production-ready", you get both.
 
@@ -151,7 +151,10 @@ agent = Agent(config=AgentConfig(
 
 Input validation, PII redaction, topic policies, and tool restrictions
 ride on the same hook system, so nothing is bolted-on. Stack them
-freely.
+freely. One caveat: hooks attach per-agent, so in orchestrated shapes
+gate the side-effecting tool itself with
+[`admit()`](../security-context.md) — the gate travels with the tool,
+and no orchestration path bypasses it.
 
 → See [Safety & Guardrails](../safety.md).
 
@@ -191,7 +194,7 @@ graph = StateGraph(config=GraphConfig(
 # idempotent tools for paging, hooks for OTel spans.
 ```
 
-That's the moat. Pick a [shape](../multi-agent.md) directly, or let
+Pick a [shape](../multi-agent.md) directly, or let
 [PRISM — the cognitive router](../router.md) select and compile the
 right one from a typed intent. Then wire the primitives above through
 it and ship it.

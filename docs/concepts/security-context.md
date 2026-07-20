@@ -95,8 +95,8 @@ have to be true — the data is real, the claim is verified, and the action is
 gated. `SecurityContext` puts the trust spine right in the path:
 
 ```python
-from tulip.control import Action
-from tulip.security import Evidence, SecurityContext, Severity, verify
+from tulip.control import Action, verify
+from tulip.security import Evidence, SecurityContext, Severity
 from tulip_integrations.identity.auth0 import Auth0Identity
 
 # Real identity provider. ctx.actions defaults to ControlPolicy(), which sends
@@ -134,6 +134,9 @@ decision = ctx.actions.request_approval(
 if decision.allowed:
     await ctx.identity.disable("mallory@corp.com")
 ```
+
+`"require_human"` is the **held** outcome — every decision comes back allowed,
+held, or denied, and a held action waits for a person before anything fires.
 
 > **One investigation, six domains, zero vendor names** in the logic. Swap
 > `Auth0Identity` for `OktaIdentity`, or `VirusTotalIntel` for another feed, and

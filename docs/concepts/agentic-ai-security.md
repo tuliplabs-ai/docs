@@ -89,10 +89,13 @@ from tulip.security import assure
 posture = await assure(target)   # grounded guardrail-coverage posture
 ```
 
-This is a *grounded finding*, not a policy verdict. Tulip is deliberately
-**not** a governance / policy-enforcement product (that ground is well held by
-Cisco DefenseClaw and Microsoft's Agent Governance Toolkit) — it abstains
-rather than assert posture it cannot evidence.
+This is a *grounded finding*, not a compliance attestation. `assure` never
+asserts posture it cannot evidence — it abstains. (Checkbox-style posture
+attestation is ground well held by Cisco DefenseClaw and Microsoft's Agent
+Governance Toolkit.) Tulip's governance lives one layer down, where the
+consequence is: the [admission gate on the action
+itself](#enforce-it-before-it-acts) — enforced policy, a human on the actions
+that warrant one, and a tamper-evident record.
 
 ## Secure by default — the floor
 
@@ -122,8 +125,9 @@ write-once anchoring can harden it further.
 Grounding, verification, and the audit trail make an agent *trustworthy*; the
 **admission gate** makes that trust *binding*. Run a side-effecting action through
 `admit()` (or `ctx.actions.execute()`): it fires only if the action clears the
-policy chain (`approve()` → ALLOW), records the decision either way, and raises
-`AdmissionError` otherwise. That's the line between an agent that *could* be safe
+policy chain (`approve()` → ALLOW), holds it for a named person when policy
+answers `require_human`, and denies the rest — recording every decision, allowed,
+held, or denied, and raising `AdmissionError` whenever the action does not run. That's the line between an agent that *could* be safe
 and a runtime that *enforces* safety — no action reaches production without a
 verified, approved, audited warrant. See
 [SecurityContext](security-context.md#admission-control-the-enforcement-point).

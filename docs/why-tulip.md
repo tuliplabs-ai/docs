@@ -1,9 +1,11 @@
 # Why Tulip
 
-Tulip is a full-stack, open-source agent framework — tools, memory, multi-agent,
-RAG, streaming — and the safest one to build on. Everything you'd expect from an
-agent framework is here, behind one `Agent` class. What makes it the *safest* is
-that control isn't a guardrail you remember to add; it's wired through the core.
+Tulip is an open-source **agentic harness** — the control runtime for agents that
+act. Everything you'd expect from a full-stack agent framework — tools, memory,
+multi-agent, RAG, streaming — is here, behind one `Agent` class, and the same
+harness [governs agents you already run elsewhere](integrations/frameworks.md).
+What makes it the *safest* is that control isn't a guardrail you remember to add;
+it's wired through the core.
 
 A frontier model can be brilliant and still be talked into a catastrophic action
 — by a clever prompt, a poisoned document, or its own confused reasoning. The one
@@ -14,7 +16,7 @@ prompt.
 
 ## Control in three places
 
-In short: the [cognitive router](concepts/router.md) decides *which shape* runs,
+In short: the [cognitive router (PRISM)](concepts/router.md) decides *which shape* runs,
 [GSAR](concepts/gsar.md) decides *what gets asserted*, and the admission gate
 decides *what actions fire*. This page goes deep on the last one — the gate a
 jailbroken model can't reach around.
@@ -68,7 +70,7 @@ risky = Action(name="refund", asset="cust:4821",
 try:
     await admit(risky, lambda: refund("cust:4821"), policy=policy, trail=trail)
 except AdmissionError as e:
-    print(e.decision.outcome)   # -> "require_human"; refund NOT run
+    print(e.decision.outcome)   # -> "require_human" — held; refund NOT run
 ```
 
 The refund was *decided* by the model and *held* by the runtime. The hold is on

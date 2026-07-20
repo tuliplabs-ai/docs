@@ -107,7 +107,7 @@ async def isolate():
 try:
     await admit(risky, isolate, policy=policy, trail=trail)
 except AdmissionError as e:
-    print(e.decision.outcome)   # -> "require_human"; isolate did NOT run
+    print(e.decision.outcome)   # -> "require_human" — held; isolate did NOT run
 
 # Either way it's on the record:
 print(trail.verify())           # True — chain intact
