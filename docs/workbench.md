@@ -10,7 +10,7 @@ Bring your own model key — **OpenAI, Anthropic, or any OpenAI-compatible
 endpoint** (vLLM, Together, LiteLLM) via an optional base URL. We host the UI,
 not the inference: your key is sent per request and never stored server-side.
 
-[Open the hosted workbench](https://dev.tulipagents.ai){ .md-button .md-button--primary }
+[Open the hosted workbench](https://play.tulipagents.ai){ .md-button .md-button--primary }
 [Get the SDK](https://github.com/tuliplabs-ai/sdk-python){ .md-button }
 
 ![Workbench UI screenshot](img/workbench.png)
