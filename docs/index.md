@@ -21,6 +21,7 @@ Every orchestration shape, from one `Agent` class:
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
+[Why Tulip](why-tulip.md){ .md-button }
 [Try it live ↗](https://play.tulipagents.ai){ .md-button }
 [GitHub](https://github.com/tuliplabs-ai/sdk-python){ .md-button }
 </div>
