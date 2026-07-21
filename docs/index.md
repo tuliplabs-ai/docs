@@ -11,11 +11,11 @@ hide:
 
 # Agents that act. <span class="accent">Safe by construction.</span>
 
-Tulip is an open-source **agentic harness** — the control runtime for agents that act. **Build** agents that are safe by construction, or **govern** [the ones you already run](integrations/frameworks.md) in LangChain, CrewAI, or the OpenAI Agents SDK.
+Tulip is an open-source **agentic harness** — build agents that are safe by construction, or **govern** [the ones you already run](integrations/frameworks.md) in LangChain, CrewAI, or the OpenAI Agents SDK.
 
-Three control points sit in code the model can't reach: the **[cognitive router (PRISM)](concepts/router.md)** picks which shape runs, **[GSAR](concepts/gsar.md)** grounds every claim or abstains, and the **admission gate** clears every consequential action against your policy.
+Three control points in code the model can't reach: the **[router (PRISM)](concepts/router.md)** picks the shape, **[GSAR](concepts/gsar.md)** grounds every claim or abstains, and the **admission gate** clears consequential actions against your policy.
 
-Every orchestration shape is first-class, from the same `Agent` class:
+Every orchestration shape, from one `Agent` class:
 
 <div class="tulip-stat-strip" markdown><span style="white-space:nowrap">[Sequential](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Parallel](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Loop](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Graph](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Orchestrator](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Swarm](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[Handoff](concepts/multi-agent.md)</span> · <span style="white-space:nowrap">[A2A](concepts/multi-agent.md)</span></div>
 
