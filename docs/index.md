@@ -163,7 +163,7 @@ filtered after the fact — it's **prevented before it runs**.
 
     ---
     Every call, verdict, and approval is a typed, hash-chained event —
-    `verify()` fails on any edit. Replay a run, or ship it to your SIEM.
+    `verify()` fails on any edit. Replay a run, or export the stream.
 
 - :material-database:{ .lg .middle } **[Vendor-neutral backends](concepts/rag.md)**
 
@@ -212,36 +212,6 @@ async def safe_refund(order_id: str, usd: float):
 ```
 
 [The control layer →](concepts/security-context.md) · [Grounding & verification →](concepts/security.md)
-
-## Agent security
-
-Security is where Tulip is hardened first. `tulip.security` has no public constructor
-that builds an `Evidence` without a score — an ungrounded claim becomes an auditable
-abstention, not a false alarm.
-
-```python
-from tulip.security import ground_finding, Severity, is_finding
-from tulip.reasoning.gsar import Claim, EvidenceType, Partition
-
-result = ground_finding(
-    title="Expired TLS certificate on 192.0.2.10:443",
-    description="Serving endpoint presents an expired certificate.",
-    severity=Severity.HIGH,
-    asset="192.0.2.10:443",
-    remediation="Rotate the certificate; enforce automated renewal.",
-    partition=Partition(grounded=[
-        Claim(text="cert expired 2026-05-30", type=EvidenceType.TOOL_MATCH,
-              evidence_refs=["tool:tls_scan:not_after=2026-05-30"]),
-    ]),
-)
-print(result.title if is_finding(result) else f"withheld: {result.reason}")
-# Grounded partition → a typed Evidence. Ungrounded → an Abstention.
-```
-
-Findings carry **MITRE ATLAS**, **OWASP Top 10 for LLM**, and **OWASP Top 10 for Agentic
-Applications** tags, so they drop into a SIEM without translation.
-
-[The security layer →](concepts/security.md) · [GSAR grounding →](concepts/gsar.md)
 
 ## Build it across any domain
 
