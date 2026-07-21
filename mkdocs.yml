@@ -192,18 +192,6 @@ nav:
 - Notebooks:
   - Quickstart: how-to/quickstart.md
   - Overview: notebooks/index.md
-  - Agent teams:
-    - Swarm: notebooks/notebook_24_swarm_multiagent.md
-    - Agent handoff: notebooks/notebook_25_agent_handoff.md
-    - Orchestrator pattern: notebooks/notebook_26_orchestrator_pattern.md
-    - Specialist agents: notebooks/notebook_27_specialist_agents.md
-    - A2A protocol: notebooks/notebook_28_a2a_protocol.md
-    - DeepAgent: notebooks/notebook_29_deepagent.md
-    - Map-reduce code review: notebooks/notebook_30_map_reduce_code_review.md
-    - Supervisor + critic loop: notebooks/notebook_31_supervisor_critic_loop.md
-    - Adversarial debate + judge: notebooks/notebook_32_debate_with_judge.md
-    - Multi-agent + human-in-the-loop: notebooks/notebook_33_multiagent_human_in_loop.md
-    - Emergent routing: notebooks/notebook_34_emergent_routing.md
   - Foundations:
     - Basic agent: notebooks/notebook_06_basic_agent.md
     - Agent with tools: notebooks/notebook_07_agent_with_tools.md
@@ -222,6 +210,18 @@ nav:
     - Composition: notebooks/notebook_21_composition.md
     - Graph: notebooks/notebook_22_graph_advanced.md
     - Functional API: notebooks/notebook_23_functional_api.md
+  - Agent teams:
+    - Swarm: notebooks/notebook_24_swarm_multiagent.md
+    - Agent handoff: notebooks/notebook_25_agent_handoff.md
+    - Orchestrator pattern: notebooks/notebook_26_orchestrator_pattern.md
+    - Specialist agents: notebooks/notebook_27_specialist_agents.md
+    - A2A protocol: notebooks/notebook_28_a2a_protocol.md
+    - DeepAgent: notebooks/notebook_29_deepagent.md
+    - Map-reduce code review: notebooks/notebook_30_map_reduce_code_review.md
+    - Supervisor + critic loop: notebooks/notebook_31_supervisor_critic_loop.md
+    - Adversarial debate + judge: notebooks/notebook_32_debate_with_judge.md
+    - Multi-agent + human-in-the-loop: notebooks/notebook_33_multiagent_human_in_loop.md
+    - Emergent routing: notebooks/notebook_34_emergent_routing.md
   - Reasoning & grounding:
     - Structured output: notebooks/notebook_35_structured_output.md
     - Reasoning patterns: notebooks/notebook_36_reasoning_patterns.md
@@ -247,6 +247,19 @@ nav:
     - Agent yield bridge + token usage: notebooks/notebook_60_agent_yield_bridge.md
     - EventBus subscriber patterns: notebooks/notebook_61_eventbus_subscribers.md
     - Full event catalogue tour: notebooks/notebook_62_event_catalogue.md
+  - Real-world workflows:
+    - On-call incident response: notebooks/notebook_63_incident_response.md
+    - Tiered procurement approval: notebooks/notebook_64_procurement_approval.md
+    - Contract review + negotiation: notebooks/notebook_65_contract_review.md
+    - Voice output: notebooks/notebook_66_audio_response.md
+    - Voice in → voice out: notebooks/notebook_67_audio_chat.md
+  - Serving & gateways:
+    - Agent server: notebooks/notebook_68_agent_server.md
+    - Research workflow: notebooks/notebook_69_research_workflow.md
+    - Live vendor integrations: notebooks/notebook_70_vendor_integrations.md
+    - LiteLLM AI Gateway: notebooks/notebook_71_litellm_gateway.md
+    - LiteLLM AI Gateway — cost tracking: notebooks/notebook_72_litellm_gateway_cost.md
+    - Grounded cloud-posture agent: notebooks/notebook_73_cloud_posture_agent.md
   - Agent security:
     - Red-team an AI agent: notebooks/notebook_75_agent_red_team.md
     - Red-team a support bot: notebooks/notebook_76_redteam_support_bot.md
@@ -265,19 +278,6 @@ nav:
     - Support account gate: notebooks/notebook_85_support_account_gate.md
     - Data deletion (GDPR) gate: notebooks/notebook_86_data_deletion_gate.md
     - Cloud resource gate: notebooks/notebook_87_cloud_resource_gate.md
-  - Real-world workflows:
-    - On-call incident response: notebooks/notebook_63_incident_response.md
-    - Tiered procurement approval: notebooks/notebook_64_procurement_approval.md
-    - Contract review + negotiation: notebooks/notebook_65_contract_review.md
-    - Voice output: notebooks/notebook_66_audio_response.md
-    - Voice in → voice out: notebooks/notebook_67_audio_chat.md
-  - Serving & gateways:
-    - Agent server: notebooks/notebook_68_agent_server.md
-    - Research workflow: notebooks/notebook_69_research_workflow.md
-    - Live vendor integrations: notebooks/notebook_70_vendor_integrations.md
-    - LiteLLM AI Gateway: notebooks/notebook_71_litellm_gateway.md
-    - LiteLLM AI Gateway — cost tracking: notebooks/notebook_72_litellm_gateway_cost.md
-    - Grounded cloud-posture agent: notebooks/notebook_73_cloud_posture_agent.md
   - Guides:
     - Deploy: how-to/deploy.md
     - Persist conversations: how-to/persist-conversations.md

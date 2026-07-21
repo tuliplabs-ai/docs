@@ -21,8 +21,11 @@ Need more than one agent? Every orchestration shape is first-class, from the sam
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
+[Try it live ↗](https://play.tulipagents.ai){ .md-button }
 [GitHub](https://github.com/tuliplabs-ai/sdk-python){ .md-button }
 </div>
+
+<p style="margin-top:0.6rem;font-size:0.85rem;color:var(--md-default-fg-color--light)">No install — run governed agents in your browser at <a href="https://play.tulipagents.ai"><strong>play.tulipagents.ai</strong></a> with your own model key.</p>
 
 ```bash
 pip install "tulip-agents[anthropic]"   # OpenAI · Anthropic
@@ -283,11 +286,14 @@ action can **cost** something.
 
 ## Start building
 
+Prefer to try before you install? The **[live workbench ↗](https://play.tulipagents.ai)** runs every pattern in your browser — bring your own OpenAI, Anthropic, or OpenAI-compatible key.
+
 ```bash
 pip install "tulip-agents[openai]"
 ```
 
 [Get started →](how-to/quickstart.md){ .md-button .md-button--primary }
+[Try it live ↗](https://play.tulipagents.ai){ .md-button }
 [Why Tulip →](why-tulip.md){ .md-button }
 [GitHub →](https://github.com/tuliplabs-ai/sdk-python){ .md-button }
 
