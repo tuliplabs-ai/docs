@@ -1500,3 +1500,30 @@ form.md-header__option {
 
 /* Header title is clickable → home (see header-home.js). */
 .md-header__title { cursor: pointer; }
+
+/* ---- Company-site link in the header (→ tuliplabs.ai) ------------------- */
+.md-header__button.tulip-labs-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  width: auto;
+  height: auto;
+  padding: 0.25rem 0.55rem;
+  margin: 0 0.1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--md-primary-bg-color);
+  opacity: 0.82;
+  text-decoration: none;
+  transition: opacity 120ms ease;
+}
+.md-header__button.tulip-labs-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+/* Keep the header uncluttered on small screens. */
+@media screen and (max-width: 59.9em) {
+  .md-header__button.tulip-labs-link { display: none; }
+}
