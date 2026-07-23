@@ -2,9 +2,10 @@
 
 # Workbench
 
-A browser playground for every Tulip pattern — pick one, paste your own
-provider key, hit **Run**, and watch a real agent stream events back.
-Try it hosted, or run it from source or in Docker.
+A playground for every Tulip pattern — pick one, paste your own provider key,
+hit **Run**, and watch a real agent stream events back. Use it two ways:
+**on the web** (zero setup, runs in your browser) or **locally in Docker**
+(server-side execution against real backends).
 
 Bring your own model key — **OpenAI, Anthropic, or any OpenAI-compatible
 endpoint** (vLLM, Together, LiteLLM) via an optional base URL. We host the UI,
@@ -37,141 +38,168 @@ The notebook sidebar surfaces the full learning path: graphs &
 composition, multi-agent shapes, reasoning, RAG, skills/plugins,
 production patterns, and end-to-end workflows.
 
-```
-  Browser ─▶ http://localhost:5173
+**Two execution modes, same UI.** On the web, notebooks run **in your
+browser** via Pyodide (CPython compiled to WebAssembly) — nothing executes on
+our servers, and your key goes straight from the tab to your provider. Run it
+locally and notebooks execute **server-side** in the container, with the full
+Python runtime, threads, and real databases.
 
-┌──────────────────────────────────────────────────┐
-│  workbench/web      ·  :5173                     │
-│  vanilla TS + Vite — the notebook UI             │
-└────────────────────────┬─────────────────────────┘
-                         │ proxies /api/*
-                         ▼
-┌──────────────────────────────────────────────────┐
-│  workbench/bff      ·  :3101                     │
-│  Node/Express — same-origin proxy + cookies      │
-└────────────────────────┬─────────────────────────┘
-                         │ forwards /api/*
-                         ▼
-┌──────────────────────────────────────────────────┐
-│  workbench/backend  ·  :8100                     │
-│  FastAPI — one endpoint per Tulip pattern        │
-└──────────────────────────────────────────────────┘
-```
+|  | **On the web** | **Locally (Docker)** |
+|---|---|---|
+| Setup | none — open a URL | `docker run` / `docker compose` |
+| Where code runs | your browser (Pyodide/WASM) | the container (real CPython) |
+| Threads / `run_sync` | no (async only) | yes |
+| Storage | in-memory only | real Qdrant / pgvector / Redis |
+| Notebooks that run | ~70 of 74 | all of them |
+| Your API key | stays in the tab | stays on your machine |
+| Cost to you | $0 | $0 (your machine) |
+| Best for | a quick look, sharing a link | full runs, real backends, iterating |
 
-## Run it locally (from source)
+See [Use it on the web](#use-it-on-the-web) and
+[Run it locally](#run-it-locally).
 
-The dev-loop path. Best for iterating on the workbench code itself,
-debugging a pattern, or extending the runner.
+## Use it on the web
 
-### Prerequisites
+The zero-setup path — nothing to install.
 
-- **Python 3.11+** with `pip` (3.12 is what CI uses).
-- **Node 20+** with `npm`.
-- A model provider — one of: an `OPENAI_API_KEY`, an
-  `ANTHROPIC_API_KEY`.
+1. Go to **[play.tulipagents.ai](https://play.tulipagents.ai)**.
+2. Click **Provider settings** (top right), pick **OpenAI** or **Anthropic**
+   (or any OpenAI-compatible endpoint via a base URL), paste your own key, pick
+   a model, and **Save**.
+3. Pick a notebook from the sidebar and hit **Run**.
 
-### Step-by-step
+Everything runs **in your browser**: the SDK is installed into a Pyodide
+(WebAssembly) runtime in the tab, the notebook executes there, and the model
+call goes straight from your browser to your provider. We never see your key
+and never run your code on our servers.
 
-```bash
-git clone https://github.com/tuliplabs-ai/sdk-python.git
-cd sdk-python
-pip install -e ".[server,openai,anthropic]"  # core + provider extras
-```
+A browser tab has no threads, no local files, and only in-memory storage, so a
+few notebooks show a **run-locally** notice instead. Today that's four of the
+seventy-four: **A2A protocol** (starts a socket server), **Skills** and
+**Cognitive router** (load skill packages from disk), and **Multi-modal
+providers** (fetches generated-image bytes from a non-CORS host). Everything
+else — agents, tools, memory, graphs, multi-agent, reasoning, guardrails, the
+approval gates, SOC/security workflows, and RAG — runs in the browser.
 
-Three tiers, three terminals (or three tmux panes). They don't depend
-on each other at startup, but every tier expects the one downstream
-of it to come up within ~30 s:
+**RAG on the web** works with an in-memory vector store, but the embeddings
+step needs a provider that serves an embeddings model:
 
-```bash
-# Terminal 1 — FastAPI runner (the actual workbench backend)
-cd workbench/backend
-python -m uvicorn --app-dir . runner:app --port 8100
+| Key you bring | Chat notebooks | RAG (embeddings) |
+|---|---|---|
+| **OpenAI** | ✅ | ✅ `text-embedding-3-small` |
+| **Anthropic** | ✅ | ⚠️ skips with a clear "set an OpenAI key" note (no embeddings API) |
+| OpenAI-compatible (base URL) | ✅ | ⚠️ only if it serves `text-embedding-3-small` |
 
-# Terminal 2 — Express BFF (proxies /api/* from the web tier to the runner)
-cd workbench/bff
-npm install
-npm run dev                                       # binds :3101
+For real vector databases and the four run-locally notebooks, run it locally 👇.
 
-# Terminal 3 — Vite dev server (the UI)
-cd workbench/web
-npm install
-npm run dev                                       # binds :5173
-```
+## Run it locally
 
-Or use the convenience `Makefile`:
+Notebooks execute **server-side** in the container — real CPython, threads, and
+(with the full stack) real vector databases and Redis. No source checkout: it's
+a published, multi-arch image (Intel/AMD + Apple Silicon).
 
-```bash
-cd workbench
-make install                                      # npm install in bff + web
-make backend                                      # pane 1 — :8100
-make bff                                          # pane 2 — :3101
-make web                                          # pane 3 — :5173
-```
+!!! warning "Run it on your own machine"
+    Local mode executes your notebooks as **arbitrary server-side code** (like a
+    local Jupyter). The image runs **non-root**, and the commands below bind it
+    to **`127.0.0.1` only**, so it is not reachable from your network. Don't
+    expose it on a public host with execution enabled.
 
-`make install` also runs `npx playwright install chromium` for the
-end-to-end test suite in `workbench/e2e/`. The `make backend` target
-is the workbench runner — distinct from `make backend-research` and
-`make backend-finance`, which spin up the A2A mesh demo peers for
-[the A2A protocol notebook](notebooks/notebook_28_a2a_protocol.md), not the
-workbench.
+### Single container
 
-### Verify it's up
+Just the workbench (in-memory backends — same as the web, but server-side, so
+everything except the real-database notebooks runs):
 
 ```bash
-curl -s http://127.0.0.1:8100/api/health | jq        # runner
-curl -s http://127.0.0.1:3101/api/health | jq        # bff
-curl -sI http://127.0.0.1:5173/ | head -1            # web → HTTP/1.1 200 OK
+docker run --rm -p 127.0.0.1:3101:3101 ghcr.io/tuliplabs-ai/tulip-workbench:latest
+# open http://localhost:3101 → Provider settings → paste a key → Run
 ```
-
-Then open <http://localhost:5173>. Click **Provider settings** (top
-right), pick your provider, fill the credentials, hit Save. Pick a
-notebook from the sidebar, hit **Run**.
-
-## Run it in Docker
-
-The packaged path. Best for handing the workbench to a teammate, a
-new laptop, or a demo machine where you don't want to install the
-Python and Node toolchains directly.
-
-### Build
-
-```bash
-git clone https://github.com/tuliplabs-ai/sdk-python.git
-cd sdk-python
-docker build -t tulip-workbench -f workbench/Dockerfile .
-```
-
-Image is ~1.3 GB on first build (slim Python 3.12 base + Node 20 + the
-SDK + workbench source). Subsequent builds hit the BuildKit layer
-cache.
-
-### Run
-
-For **OpenAI / Anthropic** providers — paste the key into *Provider
-settings* once the UI is up. Nothing extra to pass to the container:
-
-```bash
-docker run --rm -p 5173:5173 -p 3101:3101 -p 8100:8100 tulip-workbench
-# open http://localhost:5173
-```
-
-### Port collisions
-
-If 5173 / 3101 / 8100 are taken on the host (you have the local
-workbench running, for instance), remap them:
-
-```bash
-docker run --rm \
-  -p 5273:5173 -p 3201:3101 -p 8200:8100 \
-  tulip-workbench
-# then http://localhost:5273
-```
-
-The container ports stay 5173/3101/8100 — only the host-side port
-changes. The Vite dev server inside the container always listens on
-5173; remapping doesn't break the BFF→backend or web→BFF wiring.
 
 Stop with `Ctrl-C`; `--rm` removes the container on exit.
+
+### Full stack — real vector DB + Redis
+
+To run RAG against a real vector store, Redis-backed memory/checkpoints, and the
+notebooks that need durable backends, use the compose stack: the workbench plus
+**Qdrant, Postgres/pgvector, and Redis**. Save this as `docker-compose.yml`:
+
+```yaml
+name: tulip-workbench
+
+services:
+  workbench:
+    image: ghcr.io/tuliplabs-ai/tulip-workbench:latest
+    pull_policy: always
+    # Server-side execution — bound to localhost, no privilege escalation.
+    ports: ["127.0.0.1:3101:3101"]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      WORKBENCH_ALLOW_NOTEBOOK_EXEC: "1"
+      QDRANT_URL: "http://qdrant:6333"
+      DATABASE_URL: "postgresql://tulip:tulip@postgres:5432/tulip"
+      REDIS_URL: "redis://redis:6379/0"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      qdrant: { condition: service_started }
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.18.3
+    volumes: ["qdrant-data:/qdrant/storage"]
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment: { POSTGRES_USER: tulip, POSTGRES_PASSWORD: tulip, POSTGRES_DB: tulip }
+    configs:
+      - { source: pgvector-init, target: /docker-entrypoint-initdb.d/01-pgvector.sql }
+    volumes: ["pg-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tulip -d tulip"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes: ["redis-data:/data"]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, retries: 20 }
+    restart: unless-stopped
+
+configs:
+  pgvector-init:
+    content: "CREATE EXTENSION IF NOT EXISTS vector;\n"
+
+volumes:
+  qdrant-data:
+  pg-data:
+  redis-data:
+```
+
+Then:
+
+```bash
+docker compose up          # open http://localhost:3101
+docker compose down -v     # tear down, remove data
+```
+
+The backends aren't exposed on the host (the workbench reaches them internally),
+and the `tulip/tulip` Postgres credentials are local-network only. Notebooks run
+server-side and reach the stores by service name — `QDRANT_URL`,
+`DATABASE_URL`, and `REDIS_URL` are pre-wired into the container. RAG notebooks
+default to the in-memory store; point one at Qdrant or pgvector by swapping the
+store line in the editor:
+
+```python
+import os
+from tulip.rag import QdrantVectorStore, OpenAIEmbeddings, RAGRetriever
+
+store = QdrantVectorStore(url=os.environ["QDRANT_URL"], dimension=1536)
+retriever = RAGRetriever(embedder=OpenAIEmbeddings("text-embedding-3-small"), store=store)
+```
+
+(RAG still needs an OpenAI key in *Provider settings* for the embeddings call —
+the store is local, the embeddings are not.)
 
 ## Provider settings
 
@@ -204,10 +232,9 @@ FastAPI pattern endpoints:
 | **Long-term memory** | Two-session demo — see below |
 | **Cognitive routing** | Rule-based vs LLM-picker selection — see below |
 
-The rest run as plain Python subprocesses against your provider —
-same behaviour as running the notebook from a terminal, just inside
-the workbench so you can watch streamed events instead of tailing
-stdout.
+The rest are the full example notebooks. On the web they run in the
+browser (Pyodide); locally they run as Python subprocesses against your
+provider — either way you watch streamed events instead of tailing stdout.
 
 The DeepAgent notebook ships a `part5_datastores` section that
 exercises `create_deepagent(datastores={"medical": …})` against an
@@ -298,17 +325,17 @@ for the architectural details.
 
 ## Cost
 
-**You pay $0 to run the workbench itself.** All three tiers run
-locally — your laptop or your Docker daemon. The only thing you pay
-for is the model calls your notebooks make, and those go directly
-to *your* provider key (OpenAI / Anthropic).
+**You pay $0 to run the workbench itself, either way.** On the web it runs in
+your browser; locally it runs on your own machine (or Docker daemon). The only
+thing you pay for is the model calls your notebooks make, and those go directly
+to *your* provider key (OpenAI / Anthropic). Nothing is billed on our side.
 
 ## Troubleshooting
 
-- **Sidebar is empty** — the BFF couldn't reach the backend. The
-  runner takes 10–20 s to start; reload the page once you see
-  `Uvicorn running on http://0.0.0.0:8100` in the backend logs
-  (or `docker logs <container>` for the Docker path).
+- **Sidebar is empty** — on the web, reload once the page finishes loading the
+  runtime. Locally, the container takes 10–20 s to start; reload once
+  `http://localhost:3101/api/health` returns `{"ok": true}` (or check
+  `docker logs <container>`).
 - **"Provider settings: setup required" never goes away** — you
   closed the modal without hitting Save. Reopen and click Save.
 - **OpenAI / Anthropic auth fails** — double-check the API key in
