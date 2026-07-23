@@ -59,14 +59,17 @@
         {% include "partials/search.html" %}
       {% endif %}
     {% endif %}
-    {#- Link to the company site (Tulip Labs). -#}
+    {#- Link to the company site (Tulip Labs) — a pill button, not a bare link. -#}
     <a
       href="https://tuliplabs.ai"
       class="md-header__button tulip-labs-link"
       title="Tulip Labs — the research company behind Tulip"
       rel="noopener"
     >
-      Tulip&nbsp;Labs
+      <span class="tulip-labs-link__text">Tulip&nbsp;Labs</span>
+      <svg class="tulip-labs-link__arrow" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </a>
     {% if config.repo_url %}
       <div class="md-header__source">
