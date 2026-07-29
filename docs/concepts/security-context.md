@@ -185,6 +185,47 @@ admission-controller pattern (think Kubernetes admission webhooks) applied to
 agent actions, and it's what makes Tulip a *runtime* rather than a library of
 trust functions.
 
+### A policy matches labels, not names
+
+Notice what the `Action` above carries: `environment="production"`. That is what
+`require_human_for={"production"}` matches. A policy never gates on the *name*
+of the action or the tool performing it — it reasons about what the action **is**:
+its `environment`, its `kind`, its `blast_radius`, and any `tags`.
+
+This has a consequence worth stating plainly: **an action that declares nothing
+cannot be gated by label.** Rather than guess a plausible-looking default, Tulip
+labels it `environment: "unknown"` — honest, but it matches no rule written for
+`production`. Writing `require_human_for={"production"}` and expecting it to
+catch an undeclared action is the one mistake this design invites.
+
+So declaring labels is not documentation. It is the input the policy reasons
+over, and the thing that lets a tool earn an unattended path:
+
+```python
+Action(
+    name="refund_customer",
+    environment="production",      # which rule set applies
+    blast_radius=1,                # how many subjects one call touches
+    tags=frozenset({"payment", "irreversible"}),
+)
+```
+
+When agents run on the gateway rather than in-process, the same labels come from
+the tool's registry definition, so a policy author and a tool author can be
+different people:
+
+```yaml
+# a tool definition in the registry
+name: refund_customer
+action:
+  environment: production
+  kind: payment
+  tags: [irreversible]
+```
+
+A tool that declares no `environment` inherits the deployment's
+(`TULIP_GATEWAY_ENVIRONMENT`); if that is unset too, the action is `unknown`.
+
 ## From facade to agent — `ctx.toolset()`
 
 The domain handles are the *programmatic* facade — what your own code calls. When
