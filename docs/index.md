@@ -7,7 +7,7 @@ hide:
 <div class="tulip-hero" markdown>
 <div class="tulip-hero__copy" markdown>
 
-<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span>the safest way to build agentic AI</p>
+<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span><span class="tpn-tag">the safest way to build agentic AI</span></p>
 
 # Agents that act. <span class="accent">Safe by construction.</span>
 
@@ -25,7 +25,7 @@ in LangChain, CrewAI, or the OpenAI Agents SDK.
 <p style="margin-top:0.6rem;font-size:0.85rem;color:var(--md-default-fg-color--light)">No install — the live workbench runs in your browser with your own model key.</p>
 
 ```bash
-pip install "tulip-agents[anthropic]"   # OpenAI · Anthropic
+pip install "tulip-agents[anthropic]"
 ```
 
 </div>
@@ -72,15 +72,18 @@ can't reach:
   hash-chained trail either way.
 
 ```python
-from tulip.control import Action, AuditTrail, ControlPolicy, admit, AdmissionError
+from tulip.control import (
+    Action, AuditTrail, ControlPolicy, admit, AdmissionError,
+)
 
 policy = ControlPolicy(require_human_for={"production"})
 trail = AuditTrail()
 
 async def safe_refund(order_id: str, usd: float):
-    try:                                              # the gate runs before money moves
+    try:  # the gate runs before money moves
         return await admit(
-            Action(name="refund", asset=order_id, kind="payment", environment="production"),
+            Action(name="refund", asset=order_id,
+                   kind="payment", environment="production"),
             lambda: payments.refund(order_id, usd),
             policy=policy, trail=trail,
         )
@@ -104,10 +107,12 @@ from tulip_frameworks.langchain import gate_langchain_tool
 from tulip_frameworks.policy_presets import action_gate_policy
 
 safe_refund = gate_langchain_tool(
-    refund,                                # your existing LangChain @tool, unchanged
-    action=lambda name, a: Action(name=name, asset=a["order_id"],
-                                  kind="payment", environment="production"),
-    policy=action_gate_policy(),           # production actions → held for a human
+    refund,  # your existing LangChain @tool, unchanged
+    action=lambda name, a: Action(
+        name=name, asset=a["order_id"],
+        kind="payment", environment="production",
+    ),
+    policy=action_gate_policy(),  # production → held for a human
     trail=AuditTrail(),
 )
 ```

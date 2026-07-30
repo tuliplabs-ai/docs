@@ -1802,4 +1802,57 @@ form.md-header__option {
     font-size: 0.66rem !important;
     letter-spacing: 0.04em;
   }
+  /* One tracked line doesn't fit 390px — stack it as a deliberate
+     two-line lockup (brand, then tagline) instead of a ragged wrap. */
+  .md-typeset p.tulip-product-name .tpn-sep {
+    display: none;
+  }
+  .md-typeset p.tulip-product-name .tpn-tag {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+  /* At 0.78rem the one-liner spills past the copy button; at 0.7rem the
+     whole command fits a 390px column with no scroll. */
+  .md-typeset .tulip-hero__copy pre {
+    font-size: 0.7rem;
+  }
+}
+
+/* ===================================================================
+   Mobile — code blocks. Material full-bleeds top-level blocks below
+   45em, which turns the rose left rule into a stray sliver at the
+   screen edge, and long lines clipped mid-token with no hint that
+   they scroll. Square the blocks off, and fade sliced glyphs into
+   the block background at the clipped edge: the <code> scrolls under
+   a thin veil pinned to the <pre>. The veil is narrower than the
+   code's own end padding, so at full scroll it covers only padding,
+   never characters.
+   =================================================================== */
+
+@media screen and (max-width: 44.9375em) {
+  .md-content__inner > .highlight {
+    border-left: 0;
+    border-radius: 0;
+  }
+  .md-typeset pre {
+    position: relative;
+  }
+  .md-typeset pre::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 0.9rem;
+    pointer-events: none;
+    border-top-right-radius: inherit;
+    border-bottom-right-radius: inherit;
+    background: linear-gradient(to left, var(--tl-bg-soft) 15%, transparent);
+  }
+  /* The copy button sits in the veil's corner — keep it above. */
+  .md-typeset .md-clipboard {
+    z-index: 1;
+  }
 }
