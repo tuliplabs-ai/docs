@@ -176,6 +176,13 @@ html {
   font-feature-settings: "ss01", "cv11";
   color: var(--tulip-ink);
 }
+/* The snackbar (.md-dialog, "Copied to clipboard") is inverted — a light
+   panel on the dark canvas. Its inner div also carries .md-typeset, so the
+   ink override above painted its text the same cream as the panel and the
+   toast showed as an empty box; restore the inversion. */
+.md-typeset.md-dialog__inner {
+  color: var(--md-default-bg-color);
+}
 .md-typeset code,
 .md-typeset pre {
   font-family: var(--tulip-mono);
@@ -1851,8 +1858,10 @@ form.md-header__option {
     border-bottom-right-radius: inherit;
     background: linear-gradient(to left, var(--tl-bg-soft) 15%, transparent);
   }
-  /* The copy button sits in the veil's corner — keep it above. */
-  .md-typeset .md-clipboard {
+  /* The copy button sits in the veil's corner — keep it above. Material
+     renamed .md-clipboard to .md-code__button; cover both. */
+  .md-typeset .md-clipboard,
+  .md-typeset .md-code__button {
     z-index: 1;
   }
 }
