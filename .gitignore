@@ -20,3 +20,7 @@ secrets.env
 .coverage
 .coverage.*
 htmlcov/
+
+# Local symlinks to sibling repos (CI checks these out itself)
+.sdk
+.integrations
