@@ -1,9 +1,7 @@
 {#-
-  Overrides material/partials/header.html to add a link to the company site
-  (Tulip Labs, tuliplabs.ai) in the top-right of the header, next to the repo
-  link. Everything else is a verbatim copy of the upstream partial — re-sync if
-  Material's header.html changes. The only addition is the `.tulip-labs-link`
-  anchor before the `md-header__source` block (styled in stylesheets/tulip.css).
+  Verbatim copy of material/partials/header.html — re-sync if Material's
+  header.html changes. (The company link used to be a header pill here; it
+  now lives in the sidebar card + footer strip instead.)
 -#}
 {% set class = "md-header" %}
 {% if "navigation.tabs.sticky" in features %}
@@ -59,18 +57,8 @@
         {% include "partials/search.html" %}
       {% endif %}
     {% endif %}
-    {#- Link to the company site (Tulip Labs) — a pill button, not a bare link. -#}
-    <a
-      href="https://tuliplabs.ai"
-      class="md-header__button tulip-labs-link"
-      title="Tulip Labs — the research company behind Tulip"
-      rel="noopener"
-    >
-      <span class="tulip-labs-link__text">Tulip&nbsp;Labs</span>
-      <svg class="tulip-labs-link__arrow" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </a>
+    {#- The company link lives in the sidebar card + footer strip, not the
+        header — a chip between search and the badges always read as clutter. -#}
     {% if config.repo_url %}
       <div class="md-header__source">
         {% include "partials/source.html" %}

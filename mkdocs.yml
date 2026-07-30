@@ -63,8 +63,9 @@ extra_javascript:
 - javascripts/header-home.js
 - javascripts/notebook-filter.js
 - javascripts/sidebar-filter.js
+- javascripts/sidebar-card.js
 
-copyright: <span class="footer-brand"><span class="footer-brand__text">tulipagents.ai</span></span><br><span class="footer-copy">Copyright &copy; 2026 tuliplabs &middot; <a href="/legal/">Legal &amp; disclaimer</a></span>
+copyright: <span class="md-footer-company-strip"><span class="md-footer-company-strip__text">Built by <b>tuliplabs</b> — a research company training Clusiana models for governed agents.</span><a class="md-footer-company-strip__link" href="https://tuliplabs.ai" rel="noopener">tuliplabs.ai&nbsp;&#8599;</a></span><span class="footer-brand"><span class="footer-brand__text">tulipagents.ai</span></span><br><span class="footer-copy">Copyright &copy; 2026 tuliplabs &middot; <a href="/legal/">Legal &amp; disclaimer</a></span>
 
 extra:
   homepage: https://tulipagents.ai/
