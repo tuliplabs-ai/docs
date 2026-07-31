@@ -32,7 +32,7 @@ of the time.
 
 | | Vanilla grounding | GSAR |
 |---|---|---|
-| Output | `is_grounded ∈ {true, false}` + scalar `s ∈ [0, 1]` | Four-way partition `G ⊔ U ⊔ X ⊔ K`, scalar `S`, abstain channel |
+| Output | `is_grounded ∈ {true, false}` + scalar `s ∈ [0, 1]` | Four-way partition `G ⊔ U ⊔ X ⊔ K` (grounded, ungrounded, contradicted, complementary), scalar `S`, abstain channel |
 | Evidence weighting | Uniform | Per-type weights `w: T → [0, 1]` (tool_match weighted higher than inference) |
 | Recovery | Binary `{stop, replan}` | Three-tier `{proceed, regenerate, replan}` — middle tier rewrites the synthesis without re-running expensive tools |
 | Adversarial robustness | Score inflates if a contradicted claim is silently dropped | Asymmetric contradiction penalty `ρ` keeps `X` in the denominator |

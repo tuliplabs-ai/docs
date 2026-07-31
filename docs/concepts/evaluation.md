@@ -1,18 +1,18 @@
 # Evaluation
 
-A triage agent that worked yesterday may not work today — the model
+An agent that worked yesterday may not work today — the model
 changed, a tool was renamed, the prompt got a one-line tweak. Tulip ships a small evaluation harness
-so regressions become **failing tests**, not missed detections in production.
+so regressions become **failing tests**, not silent failures in production.
 
 ```python
 from tulip.evaluation import EvalCase, EvalRunner
 
 cases = [
     EvalCase(
-        name="indicator_enrichment",
-        prompt="Enrich indicator 198.51.100.7.",
-        expected_tools=["enrich_indicator"],
-        expected_output_contains=["reputation", "198.51.100.7"],
+        name="order_lookup",
+        prompt="Look up order ord-4821.",
+        expected_tools=["lookup_order"],
+        expected_output_contains=["status", "ord-4821"],
         max_iterations=5,
     ),
 ]
@@ -41,19 +41,19 @@ print(report.summary())
 ```python
 from tulip.evaluation import EvalCase
 
-isolates_known = EvalCase(
-    name="isolates_known_host",
-    prompt="Isolate host web-01 — confirmed compromise.",
-    expected_tools=["isolate_host"],
-    expected_output_contains=["web-01", "isolated"],
+refunds_eligible = EvalCase(
+    name="refunds_eligible_order",
+    prompt="Refund order ord-4821 — return approved.",
+    expected_tools=["issue_refund"],
+    expected_output_contains=["ord-4821", "refunded"],
     max_iterations=4,
 )
 
 rejects_unknown = EvalCase(
-    name="rejects_unknown_host",
-    prompt="Isolate host zz-999.",
+    name="rejects_unknown_order",
+    prompt="Refund order zz-999.",
     expected_output_contains=["not found"],
-    expected_output_not_contains=["isolated", "contained"],
+    expected_output_not_contains=["refunded"],
 )
 ```
 
@@ -63,13 +63,13 @@ rejects_unknown = EvalCase(
 from tulip.evaluation import EvalRunner
 
 runner = EvalRunner(agent=agent)
-report = runner.run([isolates_known, rejects_unknown])
+report = runner.run([refunds_eligible, rejects_unknown])
 
 print(report.summary())
 # Eval Report: 2/2 passed (avg score: 1.00)
 # Total duration: 4321ms
-#   [PASS] isolates_known_host (score: 1.00, 1872ms)
-#   [PASS] rejects_unknown_host (score: 1.00, 2449ms)
+#   [PASS] refunds_eligible_order (score: 1.00, 1872ms)
+#   [PASS] rejects_unknown_order (score: 1.00, 2449ms)
 ```
 
 `run()` returns an `EvalReport` — a Pydantic model with per-case
@@ -152,15 +152,16 @@ A future SDK release may bundle a typed judge directly into
 |---|---|
 | Case passes locally, fails in CI | Model output varies between runs. Pin the model id, lower `temperature`, run with `n=5` and look at variance. |
 | `max_duration_ms` flakes | Cold-start network latency. Use a wall-clock budget at the suite level, not per-case, or bump the per-case budget by 2×. |
-| `expected_tools` reports failure even though the tool ran | Case-sensitive name match — `isolate_host` != `Isolate_Host`. |
+| `expected_tools` reports failure even though the tool ran | Case-sensitive name match — `issue_refund` != `Issue_Refund`. |
 | Score is 0.5 every time | One of two checks is consistently failing. Read `result.checks` — it carries the full pass/fail map. |
 
 ## Evals are audit evidence
 
 The runner drives the same agent through the same loop as production, so
 an eval run is made of the same typed events — and any admission
-decisions land on the same hash-chained `AuditTrail` the gate always
-writes. A passing eval is audit evidence, not a screenshot. For
+decisions land on the same hash-chained `AuditTrail` (each entry commits
+to the one before it, so editing any record breaks verification) the
+gate always writes. A passing eval is audit evidence, not a screenshot. For
 grounded-claim scoring — did each claim survive contact with its
 evidence? — pair the structural checks here with the
 [GSAR evaluation layer](gsar.md).

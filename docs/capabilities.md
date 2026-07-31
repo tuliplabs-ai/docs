@@ -10,8 +10,9 @@ does, and where to find it.
       side-effecting action (a refund, a production deploy, a GDPR deletion)
       runs only after it clears a `ControlPolicy` you write: `approve()`
       weighs it, `admit()` runs it *only if* the policy allows, and every
-      decision lands on a hash-chained audit trail. Policy → approval →
-      admission → audit, enforced in code, not convention.
+      decision lands on a tamper-evident audit trail (each entry is chained to
+      the one before it — editing any record breaks `verify()`). Policy →
+      approval → admission → audit, enforced in code, not convention.
     - **Multi-agent SDK** — describe a task; a
       typed registry picks one of eight protocols and instantiates the
       matching SDK primitive. The LLM fills a typed `GoalFrame`; routing is
@@ -43,12 +44,106 @@ does, and where to find it.
       `chat.completions` transport), plus any OpenAI-compatible endpoint,
       auto-routed by model id. One `get_model()` call, any provider.
 
-## Security — the proof domain
+## Agent core
 
-Where control is most obviously worth paying for: point an agent at an AI or at
-infrastructure, and every finding is grounded or abstained, verified, gated, and
-audited. The same chain — grounding, gating, audit — is what makes any agent you
-build with Tulip safe to let act.
+| Feature | What it does | Surface |
+|---|---|---|
+| **Agent** + `AgentConfig` + `AgentResult` | The Think → Execute → Reflect → Terminate loop | `tulip.agent` · [Agent loop](concepts/agent-loop.md) |
+| **Termination algebra** | Stop conditions for a write — `(ToolCalled("issue_refund") & ConfidenceMet(0.9)) \| TextMention(r"\bESCALATE\b") \| MaxIterations(10)` caps a refund run | `tulip.core.termination` · [Termination](concepts/termination.md) |
+| **Idempotent tools** | `@tool(idempotent=True)` dedupes repeat calls inside the loop — exactly-once side effects | `tulip.tools.decorator` · [Idempotency](concepts/idempotency.md) |
+| **Reflexion** | Self-evaluation node in the ReAct cycle; rewrites the next turn when the last one was wrong | `Agent(reflexion=True)` · [Reasoning](concepts/reasoning.md) |
+| **Grounding** | LLM-as-judge claim verification against tool results; below-threshold triggers replanning | `Agent(grounding=True)` · [Reasoning](concepts/reasoning.md) |
+| **Causal chains** | Cause-effect graph builder with cycle/contradiction detection | `tulip.reasoning.causal.CausalChain` · [Reasoning](concepts/reasoning.md) |
+| **GSAR** | Typed-grounding safety layer ([arXiv:2604.23366 (2026)](https://arxiv.org/abs/2604.23366)) — four-way claim partition + tiered replanning | `Agent(gsar=GSARConfig(...))` · [GSAR](concepts/gsar.md) |
+| **Cancel** | Thread-safe abort during a run; emits `TerminateEvent` with reason | `agent.cancel()` · [Agent loop](concepts/agent-loop.md) |
+| **Interrupts (HITL)** | Pause via `InterruptEvent`; resume with `agent.resume(...)` | `tulip.core.interrupt` · [Interrupts](concepts/interrupts.md) |
+| **Structured output** | Pass `output_schema=` (Pydantic), final answer is parsed into a typed instance | `tulip.agent.config`, `tulip.core.structured` · [Structured output](concepts/structured-output.md) |
+| **Hooks** | before/after × invocation × tool × model lifecycle observation + steering | `tulip.hooks.provider` · [Hooks](concepts/hooks.md) |
+| **Plugins** | Bundle hooks + tools as one drop-in unit | `tulip.hooks.plugin` · [Hooks](concepts/hooks.md) |
+
+## Multi-agent — operational shapes
+
+Every pattern maps to a real workflow across domains — payments, infra,
+support, data, security. The shape *is* the discipline: who runs in
+parallel, who hands off, who must agree before a refund clears, a host is
+isolated, or a record is deleted.
+
+![Orchestrator pattern — a coordinator dispatches research, data, and writer specialists in parallel and merges their results into one answer](img/patterns/orchestrator.svg){ .diagram }
+
+| Shape | Maps to | Surface |
+|---|---|---|
+| **Composition** | Payments: sequential fraud-check → risk-score → settle; parallel enrichment fan-out over a transaction's signals | `tulip.multiagent.composition` · [Composition](concepts/multi-agent/composition.md) |
+| **Orchestrator** | Security: one coordinator dispatches triage → forensics → containment specialists | `tulip.multiagent.orchestrator` · [Orchestrator](concepts/multi-agent/orchestrator.md) |
+| **Swarm** | Data & privacy: peers must agree a GDPR deletion is complete before it's signed off | `tulip.multiagent.swarm` · [Swarm](concepts/multi-agent/swarm.md) |
+| **Handoff** | Customer support: tier-1 hands the ticket + full history to tier-2, with context preserved | `tulip.multiagent.handoff` · [Handoff](concepts/multi-agent/handoff.md) |
+| **StateGraph** | Infra: re-run a DB migration until the schema is healthy, conditional rollback edges | `tulip.multiagent.graph` · [StateGraph](concepts/multi-agent/graph.md) |
+| **Functional API** | Cloud: map a config audit over N instances, reduce to one posture verdict | `tulip.multiagent.functional` · [Functional](concepts/multi-agent/functional.md) |
+| **A2A** | Cross-process handoff to a remote payouts, IR, or threat-intel service | `tulip.a2a` · [A2A](concepts/multi-agent/a2a.md) |
+
+```python
+# Orchestrator fraud-check → risk-score → settle. Settlement owns the
+# write tools; issue_refund stays gated until the other two agree.
+from tulip.multiagent import Orchestrator, Specialist
+
+settlement = Specialist(
+    name="settlement",
+    specialist_type="settlement",
+    description="Settles disputes. Only after fraud-check + risk agree.",
+    system_prompt="Settle a dispute only once fraud-check and risk concur.",
+    tools=[issue_refund, flag_transaction],  # idempotent writes
+    model="anthropic:claude-sonnet-4-6",
+)
+desk = Orchestrator(model="anthropic:claude-sonnet-4-6")
+desk.register_specialists([fraud_check, risk_score, settlement])
+result = await desk.execute("Resolve the duplicate charge on order 8842 if risk agrees.")
+```
+
+## Cognitive Router — risk-gated dispatch
+
+Every request carries risk. Reading an account balance is safe to
+auto-run; issuing a refund or rolling back a production deploy is not.
+The router reads the request into one typed `GoalFrame`, scores its
+`Risk`, then a `PolicyGate` **auto-runs low-risk reads and gates the
+costly writes for human approval** — the model never invents the plan or
+skips the gate.
+
+![NL request → GoalFrame extractor → ProtocolRegistry → PolicyGate → CognitiveCompiler → one of eight compiled SDK shapes](img/patterns/router.svg){ .diagram }
+
+```python
+from tulip.router import GoalFrame, PolicyGate, Risk, TaskType
+
+# Auto-run reads; require a human before any refund or payout.
+gate = PolicyGate(max_risk=Risk.HIGH, require_approval_above=Risk.MEDIUM)
+
+frame = GoalFrame(primary_goal=TaskType.DIAGNOSE, domain="payments",
+                  risk=Risk.LOW, required_capabilities=["read_transaction"])
+verdict = gate.check(frame, chosen)
+# LOW-risk balance read → verdict.allow; an issue_refund frame at HIGH
+# risk → verdict.require_approval, wrapped in the approval interrupt.
+
+result = await router.dispatch("Look into the duplicate charge on order 8842.")
+```
+
+| Feature | What it does | Surface |
+|---|---|---|
+| **`Router`** | `dispatch(NL)` → extract GoalFrame → select protocol → compile → execute the task | `tulip.router.Router` · [Router](concepts/router.md) |
+| **`GoalFrame`** | Typed schema the LLM extractor fills — 13 `TaskType`s, `Risk` (gates the risky writes), `Complexity`, domain, capabilities | `tulip.router.GoalFrame` |
+| **`ProtocolRegistry`** | Typed filter (`handles ∋ goal`, `risk_max ≥ frame.risk`) + four-tier ranking (distance · canonical · cost · specificity) | `tulip.router.ProtocolRegistry` |
+| **`PolicyGate`** | `max_risk` hard-denies above the ceiling; `require_approval_above` sends refunds / deploys / deletions to a human | `tulip.router.PolicyGate` |
+| **`CognitiveCompiler`** | Instantiates real SDK primitives from frame + protocol; emits a `Runnable` adapter | `tulip.router.CognitiveCompiler` |
+| **`builtin_protocols()`** | 8 v1 protocols: `direct_response` · `plan_execute_validate` · `specialist_fanout` · `debate` · `codegen_test_validate` · `approval_gated_execution` · `a2a_delegate` · `handoff_chain` | `tulip.router.builtin_protocols` |
+| **`CapabilityIndex`** | Domain + risk overlay on `ToolRegistry` — no parallel storage | `tulip.router.CapabilityIndex` |
+| **`SkillIndex`** | Domain-tagged view of installed `Skill` packs; scoped catalog attached to every emitted Agent | `tulip.router.SkillIndex` |
+| Custom protocols | `Protocol(id=…, handles=[…], builder=fn)` registered via `ProtocolRegistry.register()` | `tulip.router.Protocol` |
+| Error types | `FrameExtractionError` · `NoMatchingProtocolError` · `PolicyDeniedError` | `tulip.router.runtime/protocol/policy` |
+
+## Security — a worked example domain
+
+The most fully built domain package, and the proof the chain holds under
+pressure: point an agent at an AI or at infrastructure, and every finding is
+grounded or abstained, verified, gated, and audited. The same chain — grounding,
+gating, audit — is what makes any agent you build with Tulip safe to let act,
+whatever the domain.
 
 ![A candidate finding plus typed, weighted evidence pass through ground_finding — only claims above the GSAR threshold become an Evidence; the rest abstain with a recorded reason](img/patterns/grounded-findings.svg){ .diagram }
 
@@ -98,99 +193,6 @@ await ctx.actions.execute(
     finding=finding, verdict=verdict,
 )   # raises AdmissionError if policy denies; pass admit(trail=...) to record either way
 ```
-
-## Agent core
-
-| Feature | What it does | Surface |
-|---|---|---|
-| **Agent** + `AgentConfig` + `AgentResult` | The Think → Execute → Reflect → Terminate loop | `tulip.agent` · [Agent loop](concepts/agent-loop.md) |
-| **Termination algebra** | Stop conditions for a write — `(ToolCalled("issue_refund") & ConfidenceMet(0.9)) \| TextMention(r"\bESCALATE\b") \| MaxIterations(10)` caps a refund run | `tulip.core.termination` · [Termination](concepts/termination.md) |
-| **Idempotent tools** | `@tool(idempotent=True)` dedupes repeat calls inside the loop — exactly-once side effects | `tulip.tools.decorator` · [Idempotency](concepts/idempotency.md) |
-| **Reflexion** | Self-evaluation node in the ReAct cycle; rewrites the next turn when the last one was wrong | `Agent(reflexion=True)` · [Reasoning](concepts/reasoning.md) |
-| **Grounding** | LLM-as-judge claim verification against tool results; below-threshold triggers replanning | `Agent(grounding=True)` · [Reasoning](concepts/reasoning.md) |
-| **Causal chains** | Cause-effect graph builder with cycle/contradiction detection | `tulip.reasoning.causal.CausalChain` · [Reasoning](concepts/reasoning.md) |
-| **GSAR** | Typed-grounding safety layer ([arXiv:2604.23366 (2026)](https://arxiv.org/abs/2604.23366)) — four-way claim partition + tiered replanning | `Agent(gsar=GSARConfig(...))` · [GSAR](concepts/gsar.md) |
-| **Cancel** | Thread-safe abort during a run; emits `TerminateEvent` with reason | `agent.cancel()` · [Agent loop](concepts/agent-loop.md) |
-| **Interrupts (HITL)** | Pause via `InterruptEvent`; resume with `agent.resume(...)` | `tulip.core.interrupt` · [Interrupts](concepts/interrupts.md) |
-| **Structured output** | Pass `output_schema=` (Pydantic), final answer is parsed into a typed instance | `tulip.agent.config`, `tulip.core.structured` · [Structured output](concepts/structured-output.md) |
-| **Hooks** | before/after × invocation × tool × model lifecycle observation + steering | `tulip.hooks.provider` · [Hooks](concepts/hooks.md) |
-| **Plugins** | Bundle hooks + tools as one drop-in unit | `tulip.hooks.plugin` · [Hooks](concepts/hooks.md) |
-
-## Multi-agent — operational shapes
-
-Every pattern maps to a real workflow across domains — payments, infra,
-support, data, security. The shape *is* the discipline: who runs in
-parallel, who hands off, who must agree before a refund clears, a host is
-isolated, or a record is deleted.
-
-![Orchestrator pattern — a coordinator dispatches research, data, and writer specialists in parallel and merges their results into one answer](img/patterns/orchestrator.svg){ .diagram }
-
-| Shape | Maps to | Surface |
-|---|---|---|
-| **Composition** | Payments: sequential fraud-check → risk-score → settle; parallel enrichment fan-out over a transaction's signals | `tulip.multiagent.composition` · [Composition](concepts/multi-agent/composition.md) |
-| **Orchestrator** | Security: one coordinator dispatches triage → forensics → containment specialists | `tulip.multiagent.orchestrator` · [Orchestrator](concepts/multi-agent/orchestrator.md) |
-| **Swarm** | Data & privacy: peers must agree a GDPR deletion is complete before it's signed off | `tulip.multiagent.swarm` · [Swarm](concepts/multi-agent/swarm.md) |
-| **Handoff** | Customer support: tier-1 hands the ticket + full history to tier-2, with context preserved | `tulip.multiagent.handoff` · [Handoff](concepts/multi-agent/handoff.md) |
-| **StateGraph** | Infra: re-run a DB migration until the schema is healthy, conditional rollback edges | `tulip.multiagent.graph` · [StateGraph](concepts/multi-agent/graph.md) |
-| **Functional API** | Cloud: map a config audit over N instances, reduce to one posture verdict | `tulip.multiagent.functional` · [Functional](concepts/multi-agent/functional.md) |
-| **A2A** | Cross-process handoff to a remote payouts, IR, or threat-intel service | `tulip.a2a` · [A2A](concepts/multi-agent/a2a.md) |
-
-```python
-# Orchestrator triage → forensics → containment. Containment owns the
-# write tools; isolate_host stays gated until triage + forensics agree.
-from tulip.multiagent import Orchestrator, Specialist
-
-containment = Specialist(
-    name="containment",
-    specialist_type="containment",
-    description="Isolates hosts. Only after triage + forensics agree.",
-    system_prompt="Isolate a host only once triage and forensics concur.",
-    tools=[isolate_host, block_indicator],  # idempotent writes
-    model="anthropic:claude-sonnet-4-6",
-)
-soc = Orchestrator(model="anthropic:claude-sonnet-4-6")
-soc.register_specialists([triage, forensics, containment])
-result = await soc.execute("Triage and contain WS-0142 if forensics agree.")
-```
-
-## Cognitive Router — risk-gated dispatch
-
-Every request carries risk. Reading an account balance is safe to
-auto-run; issuing a refund or rolling back a production deploy is not.
-The router reads the request into one typed `GoalFrame`, scores its
-`Risk`, then a `PolicyGate` **auto-runs low-risk reads and gates the
-costly writes for human approval** — the model never invents the plan or
-skips the gate.
-
-![NL request → GoalFrame extractor → ProtocolRegistry → PolicyGate → CognitiveCompiler → one of eight compiled SDK shapes](img/patterns/router.svg){ .diagram }
-
-```python
-from tulip.router import GoalFrame, PolicyGate, Risk, TaskType
-
-# Auto-run reads; require a human before any refund or payout.
-gate = PolicyGate(max_risk=Risk.HIGH, require_approval_above=Risk.MEDIUM)
-
-frame = GoalFrame(primary_goal=TaskType.DIAGNOSE, domain="payments",
-                  risk=Risk.LOW, required_capabilities=["read_transaction"])
-verdict = gate.check(frame, chosen)
-# LOW-risk balance read → verdict.allow; an issue_refund frame at HIGH
-# risk → verdict.require_approval, wrapped in the approval interrupt.
-
-result = await router.dispatch("Look into the duplicate charge on order 8842.")
-```
-
-| Feature | What it does | Surface |
-|---|---|---|
-| **`Router`** | `dispatch(NL)` → extract GoalFrame → select protocol → compile → execute the task | `tulip.router.Router` · [Router](concepts/router.md) |
-| **`GoalFrame`** | Typed schema the LLM extractor fills — 13 `TaskType`s, `Risk` (gates the risky writes), `Complexity`, domain, capabilities | `tulip.router.GoalFrame` |
-| **`ProtocolRegistry`** | Typed filter (`handles ∋ goal`, `risk_max ≥ frame.risk`) + four-tier ranking (distance · canonical · cost · specificity) | `tulip.router.ProtocolRegistry` |
-| **`PolicyGate`** | `max_risk` hard-denies above the ceiling; `require_approval_above` sends refunds / deploys / deletions to a human | `tulip.router.PolicyGate` |
-| **`CognitiveCompiler`** | Instantiates real SDK primitives from frame + protocol; emits a `Runnable` adapter | `tulip.router.CognitiveCompiler` |
-| **`builtin_protocols()`** | 8 v1 protocols: `direct_response` · `plan_execute_validate` · `specialist_fanout` · `debate` · `codegen_test_validate` · `approval_gated_execution` · `a2a_delegate` · `handoff_chain` | `tulip.router.builtin_protocols` |
-| **`CapabilityIndex`** | Domain + risk overlay on `ToolRegistry` — no parallel storage | `tulip.router.CapabilityIndex` |
-| **`SkillIndex`** | Domain-tagged view of installed `Skill` packs; scoped catalog attached to every emitted Agent | `tulip.router.SkillIndex` |
-| Custom protocols | `Protocol(id=…, handles=[…], builder=fn)` registered via `ProtocolRegistry.register()` | `tulip.router.Protocol` |
-| Error types | `FrameExtractionError` · `NoMatchingProtocolError` · `PolicyDeniedError` | `tulip.router.runtime/protocol/policy` |
 
 ## Observability
 

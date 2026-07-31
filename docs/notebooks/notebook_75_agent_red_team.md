@@ -1,12 +1,12 @@
 # Agentic AI red-teaming
 
-The flagship of Tulip's security layer: point a ``Target`` at an AI system
+The centerpiece of ``tulip.security``: point a ``Target`` at an AI system
 and run the OWASP-ASI / MITRE-ATLAS red-team suite. Every result is a grounded
 ``Evidence`` (the attack landed, with tool-backed evidence) or an ``Abstention``
 (no evidence — so nothing is asserted).
 
-That abstain-by-construction property is the line no other red-team tool draws:
-AI scorers hallucinate vulnerabilities; Tulip refuses to ship one it cannot
+That abstain-by-construction property matters because AI scorers can
+hallucinate vulnerabilities; Tulip does not ship a finding it cannot
 evidence. The notebook points the same suite at two targets — a *vulnerable* bot
 that obeys injected instructions (→ grounded ``Evidence``) and a *hardened* one that
 refuses them (→ Abstentions).

@@ -1,6 +1,6 @@
 # Prompts
 
-The model in an Tulip agent
+The model in a Tulip agent
 sees three sources of prompt content, in this order, every iteration:
 
 1. The **system prompt** — `Agent(system_prompt=...)`. Stable across
@@ -19,11 +19,11 @@ You don't usually configure 2 and 3 directly. You configure 1.
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[enrich_indicator, isolate_host],
+    tools=[lookup_order, issue_refund],
     system_prompt=(
-        "You are an incident responder. "
-        "Enrich an indicator before acting on it. "
-        "Confirm the host id with the analyst before calling isolate_host."
+        "You are a support agent. "
+        "Look up the order before acting on it. "
+        "Confirm the order id with the customer before calling issue_refund."
     ),
 )
 ```
@@ -40,7 +40,7 @@ prompts are usually a sign that *more constraints* belong in
 - **Goal.** *"Your job is to Y."* One sentence.
 - **Constraints.** *"Never Z."* / *"Always W before V."* — short
   bullets.
-- **Tone, when it matters.** Analyst-facing agents → say so.
+- **Tone, when it matters.** Customer-facing agents → say so.
 
 What does **not** belong in the system prompt:
 
@@ -55,8 +55,8 @@ What does **not** belong in the system prompt:
 
 ```python
 agent.run_sync(
-    "Triage alert A-42: beacon from host WIN-7731 to 198.51.100.23 on 2026-05-04.",
-    thread_id="th-a42",
+    "Customer 4821 reports a duplicate charge on ord-4821, placed 2026-05-04.",
+    thread_id="th-4821",
 )
 ```
 
@@ -79,9 +79,9 @@ f-strings are usually enough; for richer templating use Jinja:
 from jinja2 import Template
 
 template = Template("""
-You are the SOC triage analyst for {{ tenant.name }}.
-Your auto-containment authority covers {{ tenant.severity_cap }} severity and below.
-Always escalate to a human before isolating a production host.
+You are the support agent for {{ tenant.name }}.
+Your refund authority covers {{ tenant.refund_cap }} and below.
+Always escalate to a human before refunding above it.
 """)
 
 agent = Agent(

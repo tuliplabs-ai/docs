@@ -83,7 +83,7 @@ The agent loop also uses `interrupt()` for human-in-the-loop pauses.
 ::: tulip.core.command.is_command
 ::: tulip.core.command.normalize_node_output
 
-### Interrupt (HITL)
+### Interrupt (human-in-the-loop)
 
 ::: tulip.core.interrupt.interrupt
 ::: tulip.core.interrupt.InterruptException

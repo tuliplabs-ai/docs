@@ -8,9 +8,11 @@ replan.
 
 - The four-way partition (grounded / ungrounded / contradicted /
   complementary) as a Pydantic type.
-- Equation (2): the evidence-typed weighted grounding score `S`.
+- Equation (2): the evidence-typed weighted grounding score `S` — a
+  single score for how well the answer is backed by evidence.
 - Equation (3): the three-tier `{proceed, regenerate, replan}`
-  decision with the Appendix-B reference thresholds
+  decision — whether to ship the answer, retry it, or rework the
+  plan — with the Appendix-B reference thresholds
   (`τ_proceed=0.80`, `τ_regenerate=0.65`).
 - Algorithm 1: a bounded outer loop with a `K_max` replan budget,
   driven by an LLM-as-judge and two side-effect callables.

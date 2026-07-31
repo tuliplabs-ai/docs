@@ -73,8 +73,8 @@ of MITRE ATLAS.)
 
 ## Inference fingerprinting
 
-`ground_fingerprint()` is the same admit/abstain contract for the
-flagship AI-security surface: identifying the model, inference engine,
+`ground_fingerprint()` is an advanced application of the same
+admit/abstain contract: identifying the model, inference engine,
 and hardware behind an endpoint from **timing side-channels**, with the
 timing feature vector as the evidence. A `FingerprintClassifier` protocol
 lets a real service plug in behind a deterministic mock; low feature
@@ -93,11 +93,12 @@ finding = ground_fingerprint(
 
 ## GPU-level analysis
 
-Tulip operates at the **infrastructure level of AI systems**, not just the
-prompt level. Inference fingerprinting is a measurement problem: the
-model, engine, and accelerator serving an endpoint leave a signature in
-*timing* — time-to-first-token, inter-token cadence, throughput under
-contention.
+Why does an agent SDK dispatch GPU probes? Because some teams need to
+verify what actually serves an endpoint — which model, which engine,
+which accelerator. For fingerprinting, grounding extends below the
+prompt level: it is a measurement problem. The model, engine, and
+accelerator serving an endpoint leave a signature in *timing* —
+time-to-first-token, inter-token cadence, throughput under contention.
 
 The measurement runs where the hardware is. Tulip dispatches probes to
 **dedicated GPU clusters** — RunPod and Lambda backends ship today, and

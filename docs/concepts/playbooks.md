@@ -5,35 +5,35 @@ steps, each with a description, expected tools, hints, and validation
 criteria. The `PlaybookEnforcer` checks that the agent runs the right
 tools in the right order and reports any deviation.
 
-If your agent isolates a host, files a case, or touches anything an
-auditor will review, you want a playbook. The model still picks the
-wording; the *side effects* follow the plan.
+If your agent issues refunds, rolls out changes, or isolates a host —
+anything an auditor will review — you want a playbook. The model still
+picks the wording; the *side effects* follow the plan.
 
 ```python
 from tulip.playbooks import Playbook, PlaybookStep
 from tulip.playbooks.hook import PlaybookEnforcerHook
 
-# NIST SP 800-61 detection & analysis phase, encoded as a runbook.
-incident_triage = Playbook(
-    id="incident-triage",
-    name="Incident detection & analysis",
+# A refund-escalation runbook: verify, check eligibility, then pay out.
+refund_escalation = Playbook(
+    id="refund-escalation",
+    name="Refund escalation",
     steps=[
         PlaybookStep(
-            id="gather_alerts",
-            description="Pull the alert and correlated events from the SIEM.",
-            expected_tools=["query_siem", "enrich_indicator"],
-            hints=["Start with the most recent", "Prioritise HIGH severity first"],
+            id="verify_order",
+            description="Pull the order record and its payment history.",
+            expected_tools=["lookup_order", "lookup_customer"],
+            hints=["Start with the most recent charge", "Check for duplicates first"],
             max_tool_calls=5,
         ),
         PlaybookStep(
-            id="analyze_indicators",
-            description="Group indicators by type, note first/last seen.",
-            expected_tools=["lookup_hash", "enrich_indicator"],
+            id="check_eligibility",
+            description="Check the refund against policy — window, amount cap, prior refunds.",
+            expected_tools=["check_refund_policy"],
         ),
         PlaybookStep(
-            id="summarize_findings",
-            description="Write a one-paragraph root-cause summary.",
-            expected_tools=[],
+            id="issue_refund",
+            description="Issue the refund and write a one-paragraph resolution note.",
+            expected_tools=["issue_refund"],
         ),
     ],
     strict_sequence=True,
@@ -41,8 +41,8 @@ incident_triage = Playbook(
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, enrich_indicator, lookup_hash],
-    hooks=[PlaybookEnforcerHook(playbook=incident_triage)],
+    tools=[lookup_order, lookup_customer, check_refund_policy, issue_refund],
+    hooks=[PlaybookEnforcerHook(playbook=refund_escalation)],
 )
 ```
 
@@ -50,10 +50,10 @@ agent = Agent(
 
 | Situation | Playbook? |
 |---|---|
-| Regulated workflow (NIST 800-61 IR phases, evidence handling, host isolation) | **yes** |
+| Regulated workflow (refund approval chains, change management, incident response) | **yes** |
 | Multi-step process where order matters | **yes** |
 | Repeatable runbook the team executes manually today | **yes — encode it** |
-| Audit-trail requirement: "every containment follows the same sequence" | **yes — the enforcer's in-memory execution log captures the sequence** (persist it, or pair it with [`AuditTrail`](agentic-ai-security.md), for a durable record) |
+| Audit-trail requirement: "every refund follows the same sequence" | **yes — the enforcer's in-memory execution log captures the sequence** (persist it, or pair it with [`AuditTrail`](agentic-ai-security.md), for a durable record) |
 | One-shot exploration, freeform Q&A | no — overhead's not worth it |
 | You want the model to choose tools freely | no — that's what `Agent(tools=[...])` already gives you |
 
@@ -61,9 +61,13 @@ agent = Agent(
 
 ### 1. Build a `Playbook` in Python
 
-A runnable NIST SP 800-61 IR flow — **detection → analysis →
-containment** — wired to the real security toolset. Containment never
-fires before the IOCs are enriched:
+The same shape carries a security-flavored example: a runnable
+NIST SP 800-61 flow (the standard incident-response process) —
+**detection → analysis → containment** — wired to a security toolset.
+Detection pulls from the SIEM (a security team's log platform),
+analysis enriches each IOC (indicator of compromise — a suspicious
+hash, IP, or domain), and containment never fires before the IOCs
+are enriched:
 
 ```python
 from tulip.playbooks import Playbook, PlaybookStep

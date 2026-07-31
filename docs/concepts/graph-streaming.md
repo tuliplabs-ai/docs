@@ -1,18 +1,18 @@
 # Graph streaming
 
 `StateGraph.stream(...)` yields events as nodes complete — not buffered
-until the graph finishes. For an incident graph that means a live
-forensic replay: you watch *which specialist decided what, when* —
-triage scoring the alert, forensics pulling the timeline, containment
-isolating the host — instead of seeing only the verdict at the end.
+until the graph finishes. For an order-fulfillment graph that means a
+live replay: you watch *which specialist decided what, when* —
+validation checking the order, pricing computing the totals, fulfilment
+dispatching the shipment — instead of seeing only the result at the end.
 
 ## Modes
 
 ```python
 from tulip.multiagent import StateGraph, StreamMode
 
-# graph: triage -> forensics -> containment
-async for event in graph.stream(incident, mode=StreamMode.UPDATES):
+# graph: validate -> price -> fulfill
+async for event in graph.stream(order, mode=StreamMode.UPDATES):
     print(event.node_id, event.data)   # who decided, what they wrote to state
 ```
 
@@ -26,26 +26,26 @@ async for event in graph.stream(incident, mode=StreamMode.UPDATES):
 
 ## Custom events from inside a node
 
-A forensics node sweeping many hosts can push intermediate progress with
-`emit_custom` so the replay shows each host as it clears. Outside a
-`stream()` context the call is a silent no-op, so the same node code runs
-unchanged under `execute()` too.
+A pricing node sweeping a batch of invoices can push intermediate
+progress with `emit_custom` so the replay shows each invoice as it
+clears. Outside a `stream()` context the call is a silent no-op, so the
+same node code runs unchanged under `execute()` too.
 
 ```python
 from tulip.multiagent import emit_custom
 
-async def forensics_node(state: dict) -> dict:
-    hosts = state["scope"]
-    for i, host in enumerate(hosts):
-        await emit_custom({"progress": i / len(hosts), "phase": f"timeline:{host}"})
-        await scan_host(host)
-    return {"compromised": ["web-07"]}
+async def pricing_node(state: dict) -> dict:
+    invoices = state["batch"]
+    for i, invoice in enumerate(invoices):
+        await emit_custom({"progress": i / len(invoices), "phase": f"pricing:{invoice}"})
+        await price_invoice(invoice)
+    return {"priced": ["inv-2041"]}
 
-graph.add_node("forensics", forensics_node)
+graph.add_node("pricing", pricing_node)
 
-async for event in graph.stream(incident, mode=StreamMode.UPDATES):
+async for event in graph.stream(order, mode=StreamMode.UPDATES):
     if event.mode == StreamMode.CUSTOM:
-        ui.set_progress(event.data["progress"])     # sweep advancing, live
+        ui.set_progress(event.data["progress"])     # batch advancing, live
     elif event.mode == StreamMode.UPDATES:
         ui.mark_node_complete(event.node_id)         # specialist done deciding
 ```
@@ -57,25 +57,25 @@ emitting specialist's identity.
 ## Real-time delivery
 
 Decisions arrive as each specialist finishes, not at the end. A
-fast-triage / slow-forensics graph proves it:
+fast-validate / slow-fulfill graph proves it:
 
 ```python
-async def triage(state):
-    return {"severity": "high"}             # ~ms
+async def validate(state):
+    return {"status": "valid"}              # ~ms
 
-async def forensics(state):
-    await asyncio.sleep(2)                  # 2 seconds: deep timeline pull
-    return {"compromised": ["web-07"]}
+async def fulfill(state):
+    await asyncio.sleep(2)                  # 2 seconds: warehouse dispatch
+    return {"shipped": ["ord-4821"]}
 
-graph.add_node("triage", triage)
-graph.add_node("forensics", forensics)
-graph.add_edge(START, "triage"); graph.add_edge("triage", "forensics"); graph.add_edge("forensics", END)
+graph.add_node("validate", validate)
+graph.add_node("fulfill", fulfill)
+graph.add_edge(START, "validate"); graph.add_edge("validate", "fulfill"); graph.add_edge("fulfill", END)
 
 start = time.perf_counter()
-async for ev in graph.stream(incident, mode=StreamMode.UPDATES):
+async for ev in graph.stream(order, mode=StreamMode.UPDATES):
     print(f"{time.perf_counter() - start:.2f}s  {ev.node_id}")
-# 0.05s  triage
-# 2.05s  forensics
+# 0.05s  validate
+# 2.05s  fulfill
 ```
 
 If `stream()` were buffering, both events would arrive at 2.05s. The
@@ -89,8 +89,8 @@ guards this property — fails the build if the first event lands at
 A specialist that raises has its `NodeResult.success` set to `False`
 with the error message; the stream still yields an event for it (no
 consumer deadlock), so the replay records the failed step instead of
-hanging. Breaking out of the iterator early — say the analyst already
-saw the containment decision and closed the panel — cancels the
+hanging. Breaking out of the iterator early — say the operator already
+saw the fulfilment decision and closed the panel — cancels the
 background driver task so no work continues in the background.
 
 ## Source

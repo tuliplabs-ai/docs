@@ -41,9 +41,9 @@ trace to the DLP scan rows and the data-lineage graph; the lone
 unproven claim — that the records were actually accessed by an
 unauthorized third party — has no backing evidence, so the grounding
 gate keeps it out of the shipped finding. The drafted finding is tagged
-with `OwaspLLM.SENSITIVE_INFORMATION_DISCLOSURE` and
-`AtlasTechnique.EXFILTRATION_VIA_AGENT_TOOL` so the artifact is portable
-into a privacy register or DPIA.
+with standard risk-taxonomy ids (the `OwaspLLM` and `AtlasTechnique`
+enums in the code) so the artifact files straight into a privacy
+register or DPIA.
 
 ## Prerequisites
 

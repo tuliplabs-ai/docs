@@ -47,31 +47,31 @@ from tulip.multiagent import create_swarm, create_swarm_agent
 
 model = "anthropic:claude-sonnet-4-6"
 
-hunter = create_swarm_agent(
-    name="Hunter",
-    capabilities=["hunt", "enrich", "investigate"],
-    system_prompt="You are a threat hunter. Pull alerts, enrich indicators, scope leads.",
+scout = create_swarm_agent(
+    name="Scout",
+    capabilities=["search", "collect", "investigate"],
+    system_prompt="You are a research scout. Find sources, pull data, scope leads.",
 )
-forensics = create_swarm_agent(
-    name="Forensics",
-    capabilities=["forensics", "analyze", "examine"],
-    system_prompt="You are a forensics analyst. Confirm compromise, scope the blast radius.",
+analyst = create_swarm_agent(
+    name="Analyst",
+    capabilities=["analyze", "verify", "compare"],
+    system_prompt="You are an analyst. Verify claims, cross-check sources, quantify findings.",
 )
-reporter = create_swarm_agent(
-    name="Reporter",
+writer = create_swarm_agent(
+    name="Writer",
     capabilities=["write", "summarize", "document"],
-    system_prompt="You are an incident reporter. Take confirmed findings, draft the IR write-up.",
+    system_prompt="You are a writer. Take confirmed findings, draft the report.",
 )
 
 swarm = create_swarm(
-    name="IR research swarm",
-    agents=[hunter, forensics, reporter],
+    name="Research swarm",
+    agents=[scout, analyst, writer],
     model=model,
 )
 swarm.max_iterations = 12
 
 result = await swarm.execute(
-    initial_task="Investigate INC-0042 on ws-0042: hunt, confirm compromise, draft a write-up.",
+    initial_task="Research why checkout conversion dropped last week: collect data, verify causes, draft a report.",
 )
 print(result.summary)
 for task in result.completed_tasks:
@@ -81,7 +81,9 @@ for task in result.completed_tasks:
 A `SwarmAgent` carries free-form `capabilities` tags (not a tool list);
 tasks are matched to agents by those tags. `execute()` is async and
 returns a `SwarmResult` with `completed_tasks`, `failed_tasks`, a shared
-`context`, and a `summary`.
+`context`, and a `summary`. The same shape runs an incident-response
+(IR) war room — a hunter, a forensics analyst, and a reporter pulling
+from one queue.
 
 ## How tasks enter the queue
 
@@ -90,9 +92,9 @@ runs first), and `execute(decompose_tasks=True)` will also break the
 initial task into capability-matched sub-tasks:
 
 ```python
-swarm = create_swarm(name="IR War Room", agents=[hunter, forensics, reporter], model=model)
+swarm = create_swarm(name="Research swarm", agents=[scout, analyst, writer], model=model)
 
-swarm.add_task("Collect a memory image from WS-0142", priority=10)
+swarm.add_task("Pull last week's conversion-funnel metrics", priority=10)
 swarm.add_task("Draft the stakeholder status update", priority=3)
 
 result = await swarm.execute()

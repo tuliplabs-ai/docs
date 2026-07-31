@@ -1,4 +1,4 @@
-# Verify findings — the SDK that prevents security hallucinations
+# Verify findings before you act on them
 
 A Tulip ``Evidence`` is a *claim*. Before you act on it, ``verify()`` puts it through an
 independent skeptic that challenges the evidence and scores confidence. A

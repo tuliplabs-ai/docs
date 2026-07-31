@@ -2,11 +2,12 @@
 
 The source for **[tulipagents.ai](https://tulipagents.ai/)** — the
 documentation site for [Tulip](https://github.com/tuliplabs-ai/sdk-python),
-the open-source agentic harness and the safest way to build agentic AI.
+the open-source agentic harness — the control runtime for agents that act.
 Everything you'd expect — tools, memory, multi-agent, RAG, streaming —
-behind one `Agent` class, with control wired through the core: the router
-(PRISM) picks the shape, GSAR grounds every claim or abstains, and the
-admission gate clears consequential actions against a policy you write.
+behind one `Agent` class, with control wired through the core: the cognitive
+router (PRISM) picks which shape runs, GSAR (typed evidence-grounding)
+checks every claim or the agent abstains, and the admission gate clears
+consequential actions against a policy you write.
 
 Built with [MkDocs](https://www.mkdocs.org/) +
 [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/). The API

@@ -7,26 +7,27 @@ instance for you.
 ```python
 from pydantic import BaseModel, Field
 from tulip.agent import Agent
-class Indicator(BaseModel):
-    value: str = Field(description="The IOC value (IP, domain, or hash)")
+class TicketTriage(BaseModel):
+    ticket_id: str = Field(description="The ticket id (e.g. t-8804)")
     confidence: float = Field(ge=0.0, le=1.0)
-    verdict: str
+    severity: str
+    needs_human: bool
 
-class IndicatorList(BaseModel):
-    indicators: list[Indicator]
+class TriageList(BaseModel):
+    tickets: list[TicketTriage]
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[enrich_indicator],
-    output_schema=IndicatorList,
-    system_prompt="Triage the top three indicators from this alert.",
+    tools=[lookup_ticket],
+    output_schema=TriageList,
+    system_prompt="Triage the top three tickets from this queue.",
 )
 
-result = agent.run_sync("Score the three indicators in alert A-42.")
+result = agent.run_sync("Score the three open tickets for customer 4821.")
 
-picks: IndicatorList = result.parsed   # type: ignore[assignment]
-for i in picks.indicators:
-    print(i.value, i.confidence, i.verdict)
+picks: TriageList = result.parsed   # type: ignore[assignment]
+for t in picks.tickets:
+    print(t.ticket_id, t.confidence, t.severity, t.needs_human)
 ```
 
 `output_schema` must be a `pydantic.BaseModel` subclass — including
@@ -51,9 +52,9 @@ call `result.parsed_as(YourSchema)` — runtime-checked and raises
 `ValueError` (no parsed output) or `TypeError` (wrong concrete type):
 
 ```python
-picks = result.parsed_as(IndicatorList)   # IndicatorList, narrowed by mypy
-for i in picks.indicators:
-    print(i.value)
+picks = result.parsed_as(TriageList)   # TriageList, narrowed by mypy
+for t in picks.tickets:
+    print(t.ticket_id)
 ```
 
 ## Repair on validation failure
@@ -68,7 +69,7 @@ constrained decoding.
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    output_schema=IndicatorList,
+    output_schema=TriageList,
     output_schema_retries=3,        # default 2; set 0 to disable
     output_schema_strict=True,      # default; set False if your provider
                                     # rejects strict json_schema mode
@@ -108,13 +109,13 @@ from tulip.streaming import StructuredStream
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    output_schema=IndicatorList,
+    output_schema=TriageList,
 )
 
-stream = StructuredStream(agent.run("Score the 3 indicators."), schema=IndicatorList)
+stream = StructuredStream(agent.run("Score the 3 open tickets."), schema=TriageList)
 async for partial in stream:
-    ui.render(partial)               # may have 0, 1, 2, then 3 indicators
-final: IndicatorList | None = stream.final
+    ui.render(partial)               # may have 0, 1, 2, then 3 tickets
+final: TriageList | None = stream.final
 ```
 
 Each `ModelChunkEvent` is appended to a buffer; the SDK auto-closes any
@@ -136,11 +137,11 @@ emits a non-tool response, the SDK parses that response into the schema:
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[enrich_indicator, lookup_hash, query_siem],
-    output_schema=IndicatorList,
+    tools=[lookup_ticket, lookup_order, lookup_customer],
+    output_schema=TriageList,
     system_prompt=(
-        "Investigate the indicators with the available tools, then return "
-        "your scored findings as a JSON object."
+        "Investigate the tickets with the available tools, then return "
+        "your scored triage as a JSON object."
     ),
 )
 ```

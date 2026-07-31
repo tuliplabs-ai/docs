@@ -29,8 +29,8 @@ schema. The workflow's terminal node returns a typed object — `Verdict`,
 `Postmortem`, `PurchaseOrder`, `ContractDecision` — that the rest of
 your system can consume without a brittle JSON re-parse.
 
-Used by notebooks [44 (debate)][t44], [46 (incident)][t46],
-[47 (vendor review)][t47], [48 (DPA review)][t48].
+Used by notebooks [32 (debate)][t44], [63 (incident)][t46],
+[64 (vendor review)][t47], [65 (DPA review)][t48].
 
 → See [Structured output](../structured-output.md).
 
@@ -177,7 +177,7 @@ specific node and event that diverged.
 
 ## Putting it together
 
-A notebook-46-style incident-response graph in production looks like:
+A notebook-63-style incident-response graph in production looks like:
 
 ```python
 from tulip.agent import Agent, AgentConfig

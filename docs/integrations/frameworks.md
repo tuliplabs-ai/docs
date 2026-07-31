@@ -1,9 +1,9 @@
 # Bring Tulip's control layer to an existing agent
 
-Tulip is an agentic harness — a full-stack agent framework with a control runtime
-wired through it — and its admission gate, human-in-the-loop, and tamper-evident
-audit trail are the same control layer whether or not the agent runs on Tulip. So you don't have to rebuild
-to get it. If you already have an agent in **LangChain / LangGraph, CrewAI, the
+Tulip is an agentic harness: a full agent framework with a control runtime wired
+through it. That control layer — the admission gate, the human-in-the-loop, the
+tamper-evident audit trail — works whether or not the agent runs on Tulip, so
+you don't have to rebuild to get it. If you already have an agent in **LangChain / LangGraph, CrewAI, the
 OpenAI Agents SDK, LlamaIndex, or Google ADK**, keep it — put Tulip's gate around
 the *actions* it takes. The model and orchestration stay yours; the gate, the
 human-in-the-loop, and the tamper-evident audit trail come from Tulip.
@@ -51,9 +51,10 @@ safe_refund = gate_langchain_tool(
 
 Your agent is otherwise unchanged — but the moment it decides to refund a production
 order, the action is **held for a human**, the function never executes, and the
-decision (run or held) is on a trail you can `verify()` and `export_jsonl()` into a
-SIEM. A prompt injection that talks the model into a thousand refunds produces a
-thousand *held* actions and zero executed ones.
+decision (run or held) is on a trail you can `verify()` and `export_jsonl()` into
+your log pipeline (a SIEM, a warehouse — wherever decisions get reviewed). Whether
+the model is wrong, confused, or manipulated — a run that decides on a thousand
+refunds produces a thousand *held* actions and zero executed ones.
 
 !!! note "This is tested against a real model, not a mock"
     The package's integration suite runs a real LangChain agent (Claude) and a real
@@ -172,4 +173,4 @@ A model-call gateway is **not** something you gate — it governs *which model, 
 key, within what budget*; Tulip governs *whether the action runs*. They're different
 layers and they stack cleanly. Trying to "gate LiteLLM" confuses the two.
 
-→ [Why Tulip](../why-tulip.md) · [The security layer](../concepts/security.md) · [Build a vendor integration](build.md)
+→ [Why Tulip](../why-tulip.md) · [The control layer](../concepts/security-context.md) · [Build a vendor integration](build.md)

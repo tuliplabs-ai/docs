@@ -6,7 +6,10 @@ logs, check the user, enrich the indicator, look at the host. `SecurityContext` 
 that mental model in code: **one handle over the security domains**. Your agent
 reasons in *domains* — logs, identity, endpoint, threat-intel, cloud, actions —
 and never hard-codes a vendor SDK. Point it at your real stack by injecting a
-provider; the investigation code doesn't change.
+provider; the investigation code doesn't change. The admission-control
+machinery on this page — `admit()`, the policy, the labels — is the product's
+general control layer, the same one every domain uses; security is the worked
+example.
 
 ![SecurityContext exposes six domain ports — logs, endpoint, identity, cloud, threat_intel, actions — each resolving to an offline reference or an injected live vendor](../img/patterns/security-context.svg){ .diagram }
 
@@ -140,7 +143,8 @@ held, or denied, and a held action waits for a person before anything fires.
 
 > **One investigation, six domains, zero vendor names** in the logic. Swap
 > `Auth0Identity` for `OktaIdentity`, or `VirusTotalIntel` for another feed, and
-> steps 1–4 are untouched. That is the platform bet: program against domains, and
+> steps 1–4 are untouched. That is the platform bet: program against domains —
+> security is one of them — and
 > the trust spine — [grounding](gsar.md), verification, policy, and a hash-chained
 > audit trail — applies no matter whose API is behind the port.
 

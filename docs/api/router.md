@@ -1,7 +1,7 @@
 # Cognitive Router (PRISM)
 
-The cognitive router compiles natural-language tasks onto proven
-orchestration shapes. The LLM fills one typed `GoalFrame`; everything
+The cognitive router — [PRISM](../concepts/router.md) — compiles
+natural-language tasks onto proven orchestration shapes. The LLM fills one typed `GoalFrame`; everything
 after that — protocol selection, policy gating, compilation — is
 rule-based.
 
@@ -57,7 +57,7 @@ to proceed or rejects with a structured reason.
 ## Compiler
 
 Turns a `PickedProtocol` + `GoalFrame` into an executable `Runnable`.
-Approval callbacks (HITL gates) plug in here.
+Approval callbacks (human-in-the-loop gates) plug in here.
 
 ::: tulip.router.compiler.CognitiveCompiler
 ::: tulip.router.compiler.ApprovalCallback

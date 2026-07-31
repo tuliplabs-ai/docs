@@ -94,22 +94,24 @@ from tulip.reasoning.causal import build_causal_chain
 # Events the agent extracted from the investigation, each optionally
 # naming its cause(s) by label.
 chain = build_causal_chain([
-    {"label": "Phished credential for svc-backup"},
-    {"label": "SMB session to DC01",
-     "causes": ["Phished credential for svc-backup"]},
-    {"label": "Domain admin token minted",
-     "causes": ["SMB session to DC01"]},
+    {"label": "Deploy 412 shipped a config change"},
+    {"label": "Cache hit-rate dropped",
+     "causes": ["Deploy 412 shipped a config change"]},
+    {"label": "Checkout latency doubled",
+     "causes": ["Cache hit-rate dropped"]},
 ])
 
 summary = chain.get_chain_summary()
-print(summary["root_causes"])   # ['Phished credential for svc-backup']
-print(summary["symptoms"])      # ['Domain admin token minted']
+print(summary["root_causes"])   # ['Deploy 412 shipped a config change']
+print(summary["symptoms"])      # ['Checkout latency doubled']
 print(summary["conflicts"])     # count of contradictory edges detected
 ```
 
 The chain is a cause-effect graph — *X happened because Y; Y because
 Z* — that auto-classifies each node as root cause, intermediate, or
 symptom, and surfaces cycles and contradictions as the graph grows.
+The same builder reconstructs an attack chain just as well — phished
+credential → lateral movement → domain admin token.
 Particularly useful for incident triage where the linear chat log
 doesn't show that turn 3's "fix" contradicts turn 1's "root cause".
 `build_causal_chain()` is plain Python with no model call — feed it
@@ -128,7 +130,7 @@ agent = Agent(
     grounding=True,
 )
 
-result = agent.run_sync("How did the attacker reach the domain controller?")
+result = agent.run_sync("Why did checkout latency double after deploy 412?")
 
 # Build the cause-effect graph from the events the agent extracted.
 from tulip.reasoning.causal import build_causal_chain

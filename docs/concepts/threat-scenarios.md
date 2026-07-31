@@ -5,7 +5,11 @@ Tulip encodes three published threat catalogues as typed enums in
 for LLM Applications (2025)**, the **OWASP Top 10 for Agentic Applications
 (2026)**, and **MITRE ATLAS**. For each item there is a small, standalone
 **scenario gist** — it states one threat, shows an agent hitting it, and shows
-the Tulip defense stopping it.
+the Tulip defense stopping it. This page is the security-domain application of
+the same general policy/audit machinery every Tulip agent uses — the catalogues
+just name the threats. (For developers outside security: OWASP publishes
+community-standard top-10 risk lists for web and AI applications; MITRE ATLAS
+catalogues real-world attack techniques against AI systems.)
 
 ![Each OWASP LLM, OWASP ASI and MITRE ATLAS ID maps to a runnable scenario gist — threat, agent, defense — that produces a grounded Finding or an Abstention](../img/patterns/threat-coverage.svg){ .diagram }
 

@@ -1,8 +1,9 @@
 # Slack (notify — human handoff)
 
-**The end of the loop.** A finding is only useful once it reaches a human or a
-ticket. After an agent grounds → verifies → admits a finding, this posts it to a
-Slack channel — closing the SOC loop on `require_human` or right after `admit()`.
+**The end of the loop.** This is the leg that turns a held action into a human
+decision: when an agent's action is held (`require_human`), or a result needs a
+person's eyes, this posts it to a Slack channel — a refund waiting for approval,
+a deploy waiting for sign-off, a security finding that just cleared `verify()`.
 **Live-only:** with no `SLACK_WEBHOOK_URL` it raises rather than pretending to
 notify anyone.
 
@@ -49,8 +50,9 @@ workspace's webhook for production. It is **live-only** — no `SLACK_WEBHOOK_UR
 raises `RuntimeError`. It either reaches a human or it tells you it can't.
 
 !!! note "Why this matters"
-    This is the leg that turns a closed agent loop into an actioned one: grounded
-    → verified → policy-gated → admitted → audited → **and someone is told**. Use
-    it on `require_human`, or to escalate a finding that survives `verify()`.
+    This is the leg that turns a closed agent loop into an actioned one: decided
+    → gated → audited → **and someone is told**. Use it when an action is held
+    (`require_human`) — a refund awaiting approval, a deploy waiting on a
+    sign-off — or to escalate a finding that survives `verify()`.
 
 → [Integrations overview](index.md) · [Security &amp; grounding](../concepts/security.md)

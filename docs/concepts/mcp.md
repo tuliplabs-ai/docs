@@ -1,26 +1,27 @@
 # MCP — Model Context Protocol
 
 Build a tool once — issue a refund, roll out a deploy, enrich an
-IOC — and let any agent call it. [MCP](https://modelcontextprotocol.io)
-is the wire for that: wrap a function like `lookup_ioc` or `isolate_host`
+IOC (indicator of compromise — an IP, domain, or file hash) — and let
+any agent call it. [MCP](https://modelcontextprotocol.io)
+is the wire for that: wrap a function like `lookup_order` or `issue_refund`
 in an MCP server, and any MCP client (Claude Desktop, Cline, a Tulip
 agent, your own tooling) invokes it without bespoke glue. The same SDK
-also *consumes* existing MCP servers — a threat-intel feed, a billing
-service, a case-management server — so your agent can reach tools it
-didn't ship.
+also *consumes* existing MCP servers — a billing service, a
+case-management server, a threat-intel feed — so your agent can reach
+tools it didn't ship.
 
 **The SDK speaks MCP both ways**. Most agent frameworks consume MCP
 servers but don't expose their own. Round-trip means a Tulip-built
-triage agent can be either side: pull enrichment from a TI server *and*
-serve its own containment tools back to the analyst's desktop.
+agent can be either side: pull data from a billing server *and*
+serve its own refund tools back to the operator's desktop.
 
 ## When to use MCP
 
 | You want… | Use MCP |
 |---|---|
-| Your SDK agent to use an external threat-intel / case-management MCP server | ✓ — `MCPClient` |
-| Your `lookup_ioc` / `isolate_host` library callable by Claude Desktop / Cline / other agents | ✓ — `TulipMCPServer` |
-| Two SDK agents to share containment tools across processes / machines | ✓ — works, but [A2A](multi-agent/a2a.md) is the better protocol |
+| Your SDK agent to use an external billing / case-management / threat-intel MCP server | ✓ — `MCPClient` |
+| Your `lookup_order` / `issue_refund` library callable by Claude Desktop / Cline / other agents | ✓ — `TulipMCPServer` |
+| Two SDK agents to share side-effecting tools across processes / machines | ✓ — works, but [A2A](multi-agent/a2a.md) is the better protocol |
 | In-process multi-agent — share tools by importing | use the [tools](tools.md) directly, not MCP |
 | Reproducible tests | use a mock model + plain `@tool` — MCP adds I/O |
 
@@ -60,7 +61,7 @@ agent = Agent(
     tools=[*mcp_tools],           # MCP tools become SDK tools
     system_prompt="Triage the alert. Enrich every indicator before you act.",
 )
-result = agent.run_sync("Is 198.51.100.23 a known C2 endpoint?")
+result = agent.run_sync("Is 198.51.100.23 a known malicious endpoint?")
 ```
 
 `await ti.list_tools()` returns the server's tool descriptors; passing
@@ -70,21 +71,21 @@ know they're MCP — they look like any other `@tool`.
 
 ### Side effects in the host process — use hooks, not wrappers
 
-A common shape for MCP integrators: the *real* effect of a containment
-call lives in the host process (an incident log, a ticketing
-batch, a SOC console command stream), not inside the tool body that
+A common shape for MCP integrators: the *real* effect of a
+side-effecting call lives in the host process (a case log, a ticketing
+batch, a console command stream), not inside the tool body that
 returns a string to the model. The instinct is to wrap each MCP tool
-with a per-tool `@tool` that calls `_incident_log().append(...)` before
+with a per-tool `@tool` that calls `_case_log().append(...)` before
 returning.
 
 Don't. Use a single `HookProvider` instead — one log over every
-tool, so a post-incident review can replay exactly what the agent did:
+tool, so a post-hoc review can replay exactly what the agent did:
 
 ```python
 from tulip.hooks.provider import HookPriority, HookProvider
 
 class MCPCallLogHook(HookProvider):
-    """Mirror every tool call into an incident log, keyed by call id."""
+    """Mirror every tool call into a case log, keyed by call id."""
 
     priority = HookPriority.BUSINESS_DEFAULT
 
@@ -102,7 +103,7 @@ class MCPCallLogHook(HookProvider):
 
 agent = Agent(
     model=...,
-    # every MCP-sourced TI/EDR tool, untouched
+    # every MCP-sourced tool, untouched
     tools=[*mcp_client.to_tulip_tools(await mcp_client.list_tools())],
     hooks=[MCPCallLogHook(call_log)],
 )
@@ -114,7 +115,8 @@ mixed up. See [hooks](hooks.md#on_after_tool_call-what-the-event-carries)
 for the full event surface. Note this list is a faithful trace for
 replay, not a tamper-evident record — for decisions an auditor must
 trust, route the action through the hash-chained
-[`AuditTrail`](agentic-ai-security.md).
+[`AuditTrail`](agentic-ai-security.md) (each entry commits to the one
+before it, so editing any record breaks verification).
 
 ## Getting started — expose your tools as MCP
 
@@ -127,8 +129,8 @@ it) over MCP. Build the agent with the tools you want to publish:
 from tulip.agent import Agent
 from tulip.integrations.fastmcp import TulipMCPServer
 
-agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[lookup_ioc, isolate_host])
-server = TulipMCPServer(agent=agent, name="soc-tools")
+agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[lookup_order, issue_refund])
+server = TulipMCPServer(agent=agent, name="billing-tools")
 ```
 
 ### 2. Pick a transport
@@ -150,15 +152,15 @@ For Claude Desktop, edit `~/Library/Application Support/Claude/claude_desktop_co
 ```json
 {
   "mcpServers": {
-    "soc-tools": {
+    "billing-tools": {
       "command": "python",
-      "args": ["-m", "soc_tools.mcp_server"]
+      "args": ["-m", "billing_tools.mcp_server"]
     }
   }
 }
 ```
 
-Restart Claude Desktop. Your `lookup_ioc` and `isolate_host` tools
+Restart Claude Desktop. Your `lookup_order` and `issue_refund` tools
 appear in the model's tool list.
 
 ## What you get out of the box
@@ -175,7 +177,7 @@ would.
 | Transport | Use case |
 |---|---|
 | **stdio** — process pipes | Desktop clients (Claude Desktop, Cline). The MCP server is spawned as a subprocess. |
-| **HTTP** — JSON-RPC over POST | Networked clients. Good for a shared containment-tool server the whole SOC reaches. |
+| **HTTP** — JSON-RPC over POST | Networked clients. Good for a shared tool server the whole team reaches. |
 
 ### Idempotency is per-run, not cross-client
 
@@ -190,24 +192,24 @@ If you need exactly-once across clients, enforce it in the tool body
 
 ## Round-trip example
 
-A common SOC shape: a triage agent A consumes an external threat-intel
-MCP server, *and* exposes its own containment tools as MCP for an
-incident-response agent B to consume:
+A common shape: a support agent A consumes an external billing
+MCP server, *and* exposes its own refund tools as MCP for a
+case-management agent B to consume:
 
 ```python
-# Agent A — consumes threat intel, exposes its own containment tools
-ti = MCPClient(server_command=[...])     # consumer side
-await ti.connect()
+# Agent A — consumes billing data, exposes its own refund tools
+billing = MCPClient(server_command=[...])     # consumer side
+await billing.connect()
 
 agent_a = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[*ti.to_tulip_tools(await ti.list_tools()), lookup_ioc, isolate_host],
+    tools=[*billing.to_tulip_tools(await billing.list_tools()), lookup_order, issue_refund],
 )
 
 # Producer side — publish agent_a's own tools back over MCP.
 # server.run(transport="http") blocks, so run it on its own thread/process.
-containment = TulipMCPServer(agent=agent_a, name="containment")
-containment.run(transport="http")
+refunds = TulipMCPServer(agent=agent_a, name="refunds")
+refunds.run(transport="http")
 ```
 
 Same `MCPClient` API on the consumer side, same `TulipMCPServer` on

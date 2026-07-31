@@ -6,7 +6,8 @@ Two complementary primitives for long-horizon research:
   termination, and optional filesystem / todo / subagent layers. Best for
   single-agent loops.
 - **`create_research_workflow`** — a `StateGraph` with a post-execution quality
-  loop: execute (ReAct) → summarize → grounding eval → replan if needed. Best
+  loop: execute (ReAct, reason + act) → summarize → grounding eval → replan
+  if needed. Best
   for production research where you need verifiable, grounded summaries.
 
 ## Factory — single agent

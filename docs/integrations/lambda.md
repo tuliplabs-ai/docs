@@ -10,7 +10,8 @@
 [RunPod probe](runpod.md): rent a GPU next to a target endpoint, time how it
 streams tokens, and infer the **model class, inference engine, and hardware** —
 the first move of model extraction
-(**MITRE ATLAS [AML.T0040](https://atlas.mitre.org/techniques/AML.T0040) — Inference
+(**MITRE ATLAS** — a public catalog of attack techniques against AI systems —
+**[AML.T0040](https://atlas.mitre.org/techniques/AML.T0040) — Inference
 API Access** → **[AML.T0024](https://atlas.mitre.org/techniques/AML.T0024) —
 Exfiltration via ML Inference API**). Point it at endpoints *you operate* to
 measure your own exposure; the verdict is **grounded**, so a thin measurement

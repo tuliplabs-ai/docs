@@ -56,5 +56,3 @@ python examples/notebook_72_litellm_gateway_cost.py
 - [LiteLLM AI Gateway how-to](../how-to/litellm-gateway.md) — when to
   use the gateway, auth boundary, scope, and the enterprise patterns
   the cost surface unlocks.
-</content>
-</invoke>

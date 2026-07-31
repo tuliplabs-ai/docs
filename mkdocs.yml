@@ -1,5 +1,5 @@
 site_name: tulip agents
-site_description: The safest way to build agentic AI — an open-source agentic harness, the control runtime for agents that act. Build governed agents, or govern the ones you already run.
+site_description: An open-source agentic harness — the control runtime for agents that act. Every consequential action clears your policy, waits for a person when it matters, and lands on a record you can prove. Build agents on it, or govern the ones you already run.
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/sdk-python
 repo_name: tuliplabs-ai/sdk-python
@@ -171,6 +171,7 @@ nav:
     - Production-readiness: concepts/multi-agent/production.md
   - Cognitive Router: concepts/router.md
   - GSAR grounding: concepts/gsar.md
+  - The control layer: concepts/security-context.md
   - Skills & Playbooks:
     - Skills: concepts/skills.md
     - Playbooks: concepts/playbooks.md
@@ -183,10 +184,9 @@ nav:
     - Observability: concepts/observability.md
     - SSE event catalogue: concepts/sse-events.md
     - Evaluation: concepts/evaluation.md
-  - Agent security:
+  - Security domain:
     - Agentic AI-security: concepts/agentic-ai-security.md
     - Grounded findings: concepts/security.md
-    - SecurityContext: concepts/security-context.md
     - Guardrails: concepts/safety.md
     - Threat scenarios: concepts/threat-scenarios.md
     - Cloud-posture agent: concepts/cloud-posture.md
@@ -261,7 +261,13 @@ nav:
     - LiteLLM AI Gateway: notebooks/notebook_71_litellm_gateway.md
     - LiteLLM AI Gateway — cost tracking: notebooks/notebook_72_litellm_gateway_cost.md
     - Grounded cloud-posture agent: notebooks/notebook_73_cloud_posture_agent.md
-  - Agent security:
+  - Real-world gates:
+    - Payment refund gate: notebooks/notebook_83_payment_refund_gate.md
+    - Infra deploy gate: notebooks/notebook_84_infra_deploy_gate.md
+    - Support account gate: notebooks/notebook_85_support_account_gate.md
+    - Data deletion (GDPR) gate: notebooks/notebook_86_data_deletion_gate.md
+    - Cloud resource gate: notebooks/notebook_87_cloud_resource_gate.md
+  - Security domain:
     - Red-team an AI agent: notebooks/notebook_75_agent_red_team.md
     - Red-team a support bot: notebooks/notebook_76_redteam_support_bot.md
     - CI security gate: notebooks/notebook_77_ci_security_gate.md
@@ -273,12 +279,6 @@ nav:
     - IR with a tamper-evident audit trail: notebooks/notebook_81_ir_audit_trail.md
     - SOC playbooks: notebooks/notebook_74_security_playbooks.md
     - Model & hardware fingerprinting: notebooks/notebook_80_model_fingerprint.md
-  - Real-world gates:
-    - Payment refund gate: notebooks/notebook_83_payment_refund_gate.md
-    - Infra deploy gate: notebooks/notebook_84_infra_deploy_gate.md
-    - Support account gate: notebooks/notebook_85_support_account_gate.md
-    - Data deletion (GDPR) gate: notebooks/notebook_86_data_deletion_gate.md
-    - Cloud resource gate: notebooks/notebook_87_cloud_resource_gate.md
   - Guides:
     - Deploy: how-to/deploy.md
     - Persist conversations: how-to/persist-conversations.md
@@ -290,20 +290,21 @@ nav:
   - Overview: integrations/index.md
   - Bring control to an existing agent: integrations/frameworks.md
   - Build an integration: integrations/build.md
+  - Notify:
+    - Slack (human handoff): integrations/slack.md
+  - Identity:
+    - Okta: integrations/okta.md
+    - Auth0: integrations/auth0.md
+    - Microsoft Entra ID: integrations/entra.md
   - Security:
-    - Splunk (SIEM): integrations/splunk.md
-    - CrowdStrike (EDR): integrations/crowdstrike.md
-    - Okta (identity): integrations/okta.md
-    - Auth0 (identity): integrations/auth0.md
-    - Microsoft Entra ID (identity): integrations/entra.md
+    - Splunk (log search): integrations/splunk.md
+    - CrowdStrike (endpoint control): integrations/crowdstrike.md
     - VirusTotal (threat intel): integrations/virustotal.md
-    - Wiz (AI-SPM): integrations/wiz.md
-    - Cortex XSOAR (SOAR): integrations/cortex-xsoar.md
+    - Wiz (AI posture): integrations/wiz.md
+    - Cortex XSOAR (workflow): integrations/cortex-xsoar.md
   - Compute:
     - RunPod (GPU probe): integrations/runpod.md
     - Lambda Cloud (GPU probe): integrations/lambda.md
-  - Notify:
-    - Slack (human handoff): integrations/slack.md
 - Workbench: workbench.md
 - Reference:
   - Agent: api/agent.md
@@ -319,7 +320,7 @@ nav:
   - Memory: api/memory.md
   - Checkpointers: api/checkpointers.md
   - Models: api/models.md
-  - Multi-modal providers: api/providers.md
+  - Capability providers: api/providers.md
   - Streaming: api/streaming.md
   - Events: api/events.md
   - Observability: api/observability.md

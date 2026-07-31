@@ -1,5 +1,9 @@
 # Multi-agent
 
+Ways to combine agents into one system — pipelines, an orchestrator
+with specialists, swarms, handoffs, and the `StateGraph` workflow
+primitive.
+
 ## Composition
 
 The agent-level pipelines. Each exposes an async `run(task)` that

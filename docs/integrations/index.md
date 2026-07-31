@@ -1,11 +1,12 @@
 # Integrations
 
-An integration lets a Tulip agent reach a real tool — and, where it can take
-action, do so **on your terms**. Today's integrations are the **security domain**
-(SIEM, EDR, identity), built and hardened first. Some only **read evidence**
-(search logs, look up a reputation, pull cloud posture); the higher-stakes ones
-let the agent **act** — contain a host, disable an account. Tulip treats those
-two very differently.
+An integration connects a Tulip agent to a system it acts on — messaging
+(Slack), identity (Okta, Auth0, Entra), compute, and security operations
+(Splunk log search, CrowdStrike endpoint control, and more). The security
+catalog was built and hardened first; the pattern is general. Some
+integrations only **read evidence** (search logs, look up a reputation, pull
+cloud posture); the higher-stakes ones let the agent **act** — contain a host,
+disable an account. Tulip treats those two very differently.
 
 Tulip follows a **core + community** split:
 
@@ -23,7 +24,8 @@ Tulip follows a **core + community** split:
 
 This is the point of integrating *through* Tulip rather than handing an agent a
 raw vendor SDK. A read returns evidence, and a finding only ships if it clears
-GSAR grounding. A **write is a real action**, so it doesn't run on the model's
+GSAR grounding — Tulip's evidence check: a claim must be backed by tool output,
+otherwise the agent abstains. A **write is a real action**, so it doesn't run on the model's
 say-so — it runs through the admission chain **policy → approval → admission →
 audit**. You wrap the side effect in an `Action`; the gate runs it only if a
 [`ControlPolicy`](../concepts/security-context.md) (blast radius, verification
@@ -103,21 +105,24 @@ still lands in your audit trail.
 
 ## What each integration does
 
-Action integrations first (they write), then read-only evidence sources:
+General-purpose systems first — messaging, identity, compute — then the
+security-operations block. Domain shorthand: SIEM — log search platforms like
+Splunk; EDR — endpoint control tools like CrowdStrike; AI-SPM — AI Security
+Posture Management.
 
 | Integration | Domain | What it does | Provider | Install |
 |---|---|---|---|---|
-| **CrowdStrike Falcon** | EDR | Host device record + open detections (offline sample is a fuller forensic timeline), **network-contain a host** (write) | `CrowdStrikeEndpoint` | `edr-crowdstrike` |
+| **Slack** | notify | Post a finding / message to a channel (write — human handoff; live-only) | _(tools)_ | `notify-slack` |
 | **Okta** | identity | Look up a user (live), sign-ins (live), risk (offline sample), **disable an account** (write — simulated offline stub) | `OktaIdentity` | `identity-okta` |
 | **Auth0** | identity | Look up a user (live), sign-ins (live), risk (offline sample), **disable an account** (write — simulated offline stub) | `Auth0Identity` | `identity-auth0` |
 | **Microsoft Entra ID** | identity | User + sign-ins (live), risk + impossible-travel → grounded finding (offline sample), **disable an account** (write — simulated offline stub) | `EntraIdentity` | `identity-entra` |
-| **Cortex XSOAR** | SOAR | Read incidents, search, **close an incident** (write) + ground incidents to findings | `CortexXSOAR` | `soar-cortex-xsoar` |
+| **RunPod / Lambda** | compute _(advanced)_ | Specialized: deploy a GPU endpoint to fingerprint-probe a model you operate | _(probe)_ | `compute-runpod` / `compute-lambda` |
+| **AWS** | cloud | Read-only cloud-posture evidence (in core) | _(core)_ | `tulip-agents[aws]` |
 | **Splunk** | SIEM | Search logs/events with an SPL query | `SplunkLogs` | `siem-splunk` |
+| **CrowdStrike Falcon** | EDR | Host device record + open detections (offline sample is a fuller forensic timeline), **network-contain a host** (write) | `CrowdStrikeEndpoint` | `edr-crowdstrike` |
+| **Cortex XSOAR** | SOAR | Read incidents, search, **close an incident** (write) + ground incidents to findings | `CortexXSOAR` | `soar-cortex-xsoar` |
 | **VirusTotal** | threat-intel | Reputation for an IP, domain, or file hash | `VirusTotalIntel` | `threat-intel-virustotal` |
 | **Wiz** | AI-SPM | AI-BOM inventory + posture issues → grounded findings | _(tools)_ | `vuln-wiz` |
-| **Slack** | notify | Post a finding / message to a channel (write — human handoff; live-only) | _(tools)_ | `notify-slack` |
-| **AWS** | cloud | Read-only cloud-posture evidence (in core) | _(core)_ | `tulip-agents[aws]` |
 | **OSV** | supply-chain | Dependency vulnerability lookup (in core) | _(core)_ | built-in |
-| **RunPod / Lambda** | compute _(advanced)_ | Specialized: deploy a GPU endpoint to fingerprint-probe a model you operate | _(probe)_ | `compute-runpod` / `compute-lambda` |
 
 → [Build your own integration](build.md) · [SecurityContext](../concepts/security-context.md)

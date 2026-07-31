@@ -1,7 +1,7 @@
 # RAG
 
-Tulip's RAG stack is built around pluggable embedders and vector
-stores behind one interface. The `BaseVectorStore` / `BaseEmbedding`
+Retrieval-augmented generation (RAG): Tulip's RAG stack is built
+around pluggable embedders and vector stores behind one interface. The `BaseVectorStore` / `BaseEmbedding`
 contracts are identical across backends so you can swap stores with a
 one-line import change.
 

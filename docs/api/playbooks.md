@@ -1,12 +1,8 @@
 # Playbooks
 
 Structured execution plans for agents — declared step sequences with
-expected tools, validation criteria, and guidance hints. When attached
-via `AgentConfig.playbook`, the `PlaybookEnforcerHook` (the
-`HookProvider` the agent installs automatically) drives a
-`PlaybookEnforcer` engine that gates each tool call against the
-current step and auto-advances when the step's `expected_tools` are
-exhausted.
+expected tools, validation criteria, and guidance hints. Attach one
+via `AgentConfig.playbook`; enforcement details below.
 
 ## Models
 

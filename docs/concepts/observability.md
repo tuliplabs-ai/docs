@@ -2,7 +2,8 @@
 
 What the agent did, how long each step took, and what it cost — two
 built-in hooks plus the standard OpenTelemetry stack cover every piece
-you need. No vendor lock-in: Tulip emits OTLP, you point it at whatever backend you run.
+you need. No vendor lock-in: Tulip emits OTLP (the OpenTelemetry wire
+protocol), you point it at whatever backend you run.
 
 ## When to wire what
 
@@ -24,20 +25,21 @@ from tulip.hooks.builtin import StructuredLoggingHook
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, enrich_indicator, isolate_host],
+    tools=[lookup_order, check_refund_policy, issue_refund],
     hooks=[StructuredLoggingHook(level=logging.INFO)],
 )
 ```
 
 Each lifecycle point is emitted as a structured JSON record you can
-forward to a log aggregator or SIEM. The after-tool-call record looks
+forward to a log aggregator (Loki, Splunk) or a SIEM — a security
+team's log platform. The after-tool-call record looks
 like this out of the box:
 
 ```json
 {
   "message": "Tool call completed",
   "event": "tool_call_completed",
-  "tool_name": "isolate_host",
+  "tool_name": "issue_refund",
   "success": true,
   "timestamp": "2026-05-02T01:31:02.481923+00:00"
 }
@@ -57,30 +59,32 @@ you choose between stdlib `logging`, `structlog`, or
 
 ### Replaying an incident for auditors
 
-After containment, an auditor asks: *what did the agent do, in what
-order?* Stamp the hook with a stable `thread_id` so every record carries
-it — `StructuredLoggingHook(extra={"thread_id": "inc-4821"})` — then
+After a disputed action — a refund the customer says never arrived, a
+rollback that fired at 2 a.m. — an auditor asks: *what did the agent
+do, in what order?* Stamp the hook with a stable `thread_id` so every
+record carries it —
+`StructuredLoggingHook(extra={"thread_id": "ord-4821"})` — then
 filter by `thread_id`, sort by `timestamp`, and pick out the
 `tool_call_completed` records to reconstruct the tool timeline:
 
 ```python
 import json
 
-events = [json.loads(line) for line in open("soc-triage.jsonl")]
-incident = sorted(
-    (e for e in events if e.get("thread_id") == "inc-4821"),
+events = [json.loads(line) for line in open("support-agent.jsonl")]
+case = sorted(
+    (e for e in events if e.get("thread_id") == "ord-4821"),
     key=lambda e: e["timestamp"],
 )
-for e in incident:
+for e in case:
     if e["event"] == "tool_call_completed":
-        print(f'{e["timestamp"]}  {e["tool_name"]:<16} success={e["success"]}')
-# 2026-05-02T01:30:58.1Z  query_siem        success=True
-# 2026-05-02T01:31:01.4Z  enrich_indicator  success=True
-# 2026-05-02T01:31:02.4Z  isolate_host      success=True
+        print(f'{e["timestamp"]}  {e["tool_name"]:<20} success={e["success"]}')
+# 2026-05-02T01:30:58.1Z  lookup_order         success=True
+# 2026-05-02T01:31:01.4Z  check_refund_policy  success=True
+# 2026-05-02T01:31:02.4Z  issue_refund         success=True
 ```
 
 Because the stamped `thread_id` is stable across a multi-turn
-investigation, the same filter replays the *whole* incident in
+case, the same filter replays the *whole* thread in
 chronological order. For per-tool `span_id` correlation (pairing a start
 with its completion), consume the `EventBus` stream instead — its
 `agent.tool.*` events carry a `span_id` (see below).
@@ -88,8 +92,8 @@ with its completion), consume the `EventBus` stream instead — its
 The JSONL event log is a faithful trace, not a tamper-evident record —
 for decisions an auditor must trust, route the action through `admit()`
 so it lands on the hash-chained
-[`AuditTrail`](agentic-ai-security.md), whose `verify()` fails on any
-edit.
+[`AuditTrail`](agentic-ai-security.md) — each entry commits to the one
+before it, so `verify()` fails on any edit.
 
 ### Traces and metrics over OTLP
 
@@ -98,10 +102,10 @@ from tulip.hooks.builtin import TelemetryHook
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, enrich_indicator],
+    tools=[lookup_order, issue_refund],
     hooks=[
         TelemetryHook(
-            service_name="soc-triage-agent",
+            service_name="support-agent",
             record_arguments=False,    # set True to attach tool args to spans
             record_results=False,      # set True for results (watch PII)
         ),
@@ -138,7 +142,7 @@ pip install "tulip-agents[telemetry]"
 ### Token cost — already on every result
 
 ```python
-result = agent.run_sync("Triage alert SOC-4821.")
+result = agent.run_sync("Resolve the duplicate charge on ord-4821.")
 print(f"prompt:     {result.metrics.prompt_tokens}")
 print(f"completion: {result.metrics.completion_tokens}")
 print(f"total:      {result.metrics.total_tokens}")
@@ -152,8 +156,8 @@ For dashboards, key on `agent_id` plus the same metrics the
 ## PII and tool arguments
 
 `record_arguments=True` and `record_results=True` are off by default
-because tool args and results often contain sensitive input — raw alert
-payloads, account identifiers, attacker-supplied free-text. Turn them on
+because tool args and results often contain sensitive input — order
+records, account identifiers, untrusted user input. Turn them on
 selectively, and only after you've verified your tracing backend has
 appropriate retention and access controls. For PII redaction *inside*
 the agent before anything leaves, see [Safety](safety.md).
@@ -229,10 +233,10 @@ from tulip.agent import Agent
 run_id = "my-run-1"
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, enrich_indicator],
+    tools=[query_metrics, get_deploy_status],
     hooks=[EventBusHook(run_id=run_id)],
 )
-result = agent.run_sync("Investigate the spike in failed logins on host web-01.")
+result = agent.run_sync("Investigate the spike in checkout latency after deploy-77.")
 
 # Read the history after the fact.
 bus = get_event_bus()

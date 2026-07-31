@@ -46,16 +46,16 @@ import asyncio
 from tulip.multiagent.functional import task, entrypoint
 
 @task
-async def enrich_ioc(ioc: dict) -> dict:
-    """Run the triage agent against one indicator."""
-    return triage_agent.run_sync(f"Enrich {ioc['value']}.").message
+async def summarize_doc(doc: dict) -> dict:
+    """Run the review agent against one document."""
+    return review_agent.run_sync(f"Summarize {doc['title']}.").message
 
 @entrypoint
-async def enrich_all(iocs: list[dict]) -> list[dict]:
-    """Enrich every indicator in parallel; gather the results."""
-    return await asyncio.gather(*[enrich_ioc(i) for i in iocs])
+async def summarize_all(docs: list[dict]) -> list[dict]:
+    """Summarize every document in parallel; gather the results."""
+    return await asyncio.gather(*[summarize_doc(d) for d in docs])
 
-scored = await enrich_all(indicators)        # or: asyncio.run(enrich_all(indicators))
+summaries = await summarize_all(documents)   # or: asyncio.run(summarize_all(documents))
 ```
 
 ## Map/reduce with retries and timeouts
@@ -68,13 +68,13 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 @task
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=0.5))
-async def enrich_ioc(ioc: dict) -> dict:
-    return triage_agent.run_sync(f"Enrich {ioc['value']}.").message
+async def summarize_doc(doc: dict) -> dict:
+    return review_agent.run_sync(f"Summarize {doc['title']}.").message
 
 @entrypoint
-async def enrich_all_with_deadline(iocs: list[dict]) -> list[dict]:
+async def summarize_all_with_deadline(docs: list[dict]) -> list[dict]:
     async with asyncio.timeout(60):                # 60s wall-clock cap
-        return await asyncio.gather(*[enrich_ioc(i) for i in iocs])
+        return await asyncio.gather(*[summarize_doc(d) for d in docs])
 ```
 
 ## Tasks calling tasks
@@ -84,18 +84,18 @@ including parallel batches inside sequential phases:
 
 ```python
 @task
-async def prioritize_alerts(queue: list[dict]) -> list[dict]:
-    return triage_agent.run_sync(f"Pick the top 5 from {len(queue)}.").message
+async def shortlist_docs(queue: list[dict]) -> list[dict]:
+    return review_agent.run_sync(f"Pick the top 5 from {len(queue)}.").message
 
 @task
-async def enrich(alert: dict) -> dict:
-    return triage_agent.run_sync(f"Enrich {alert['ioc']}.").message
+async def summarize(doc: dict) -> dict:
+    return review_agent.run_sync(f"Summarize {doc['title']}.").message
 
 @entrypoint
 async def end_to_end(queue: list[dict]) -> dict:
-    shortlisted = await prioritize_alerts(queue)            # phase 1
-    scored = await asyncio.gather(*[enrich(a) for a in shortlisted])  # phase 2 (parallel)
-    final = containment_agent.run_sync(f"Recommend containment from: {scored}").message  # phase 3
+    shortlisted = await shortlist_docs(queue)               # phase 1
+    summaries = await asyncio.gather(*[summarize(d) for d in shortlisted])  # phase 2 (parallel)
+    final = editor_agent.run_sync(f"Draft the review digest from: {summaries}").message  # phase 3
     return final
 ```
 

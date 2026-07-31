@@ -67,29 +67,29 @@ shape (`text`, `raw`, `url`, `data`) and back.
 from tulip.agent import Agent
 from tulip.a2a import A2AServer, AgentSkill
 
-intel_agent = Agent(
+research_agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[lookup_ioc, enrich_domain, cite],
-    system_prompt="You enrich indicators of compromise and summarise the intel.",
+    tools=[web_search, fetch_page, cite],
+    system_prompt="You research questions across sources and summarise the evidence.",
 )
 
 server = A2AServer(
-    agent=intel_agent,
-    name="threat_intel",
-    description="Enriches indicators of compromise. Cites the source of each detection.",
-    url="https://intel.example.com",
+    agent=research_agent,
+    name="research",
+    description="Researches a question across sources. Cites the source of each claim.",
+    url="https://research.example.com",
     skills=[
         AgentSkill(
-            id="threat_intel",
-            name="Threat intel",
-            description="Look up an indicator against intel feeds and known campaigns.",
-            tags=["intel", "ioc"],
+            id="topic_research",
+            name="Topic research",
+            description="Research a question across sources and summarise the answer.",
+            tags=["research", "search"],
         ),
         AgentSkill(
-            id="ioc_enrichment",
-            name="IOC enrichment",
-            description="Enrich an IP / domain / hash with reputation and first-seen data.",
-            tags=["enrichment"],
+            id="source_check",
+            name="Source check",
+            description="Verify a claim against its cited sources and their dates.",
+            tags=["verification"],
         ),
     ],
     api_key="rotate-this-secret",
@@ -98,7 +98,7 @@ server.run(host="0.0.0.0", port=7421)
 ```
 
 The Agent Card is now reachable at
-`https://intel.example.com/.well-known/agent-card.json` (with the
+`https://research.example.com/.well-known/agent-card.json` (with the
 required bearer token).
 
 ### Client side — fetch the card and send a message
@@ -106,7 +106,7 @@ required bearer token).
 ```python
 from tulip.a2a import A2AClient, Message, TextPart
 
-client = A2AClient(url="https://intel.example.com", api_key="rotate-this-secret")
+client = A2AClient(url="https://research.example.com", api_key="rotate-this-secret")
 
 # Read the public card to learn the agent's skills + capabilities.
 card = await client.get_agent_card()
@@ -116,7 +116,7 @@ print(card.name, [s.id for s in card.skills])
 task = await client.send_message(
     Message(
         role="user",
-        parts=[TextPart(text="Enrich 198.51.100.7 and tell me if alert A-101 is a true positive.")],
+        parts=[TextPart(text="Research why checkout conversion dropped last week; cite sources.")],
         messageId="m-1",
     )
 )
@@ -137,7 +137,7 @@ helpers.
 async for event in client.send_message_streaming(
     Message(
         role="user",
-        parts=[TextPart(text="Enrich 198.51.100.7 and tell me if alert A-101 is a true positive.")],
+        parts=[TextPart(text="Research why checkout conversion dropped last week; cite sources.")],
         messageId="m-2",
     )
 ):
@@ -216,7 +216,7 @@ The pre-spec endpoints are still served:
 
 ```python
 # Legacy: flat string-in / string-out — bypass the JSON-RPC envelope.
-reply = await client.invoke("Enrich 198.51.100.7...")
+reply = await client.invoke("Research why checkout conversion dropped last week...")
 ```
 
 Anything that imported `A2AMessage` / `A2ARequest` / `A2AResponse` from

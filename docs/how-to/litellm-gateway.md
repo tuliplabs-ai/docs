@@ -4,7 +4,7 @@
 branded the **LiteLLM Proxy Server** and the **LiteLLM AI Gateway** —
 that fronts 100+ model providers behind one OpenAI-shaped HTTP API.
 
-When you route your SOC's LLM traffic through it, Tulip consumes it
+When you route your agents' model traffic through it, Tulip consumes it
 through its existing
 [`OpenAIModel`](../concepts/providers/openai.md) with no Tulip-side code
 change. The gateway carries the parts of the integration that genuinely
@@ -12,7 +12,7 @@ belong in a gateway: virtual keys, per-team budgets, fallback chains,
 centralised observability, cost reporting, caching, and guardrails.
 
 ```text
-Tulip triage agent
+Tulip agent
    │  OpenAIModel(base_url="http://litellm-gateway:4000", api_key="<virtual-key>")
    ▼
 LiteLLM Proxy Server  (config.yaml carries every provider + key)
@@ -37,9 +37,9 @@ in-process, lower-latency, and have no extra service to operate.
 
 **Reach for the gateway when** you need:
 
-- **Multi-tenant key management** — issue virtual keys per SOC team /
-  triage agent / tenant with per-key budgets, RPM/TPM limits, expiry,
-  and model allowlists.
+- **Multi-tenant key management** — issue virtual keys per team /
+  agent / tenant with per-key budgets, RPM/TPM (requests/tokens per
+  minute) limits, expiry, and model allowlists.
 - **Fallback chains across regions or providers** — "OpenAI →
   Anthropic" defined in `config.yaml`, no Tulip restart.
 - **Centralised observability** — one Langfuse / OpenTelemetry /
@@ -47,8 +47,8 @@ in-process, lower-latency, and have no extra service to operate.
   service feeds it.
 - **Centralised cost tracking** — Postgres-backed per-key / per-team /
   per-model spend reporting across every consumer.
-- **Polyglot consumers** — Python Tulip triage agents, the JS SOC
-  console, Ruby / Go enrichment services all talk OpenAI to the same gateway.
+- **Polyglot consumers** — Python Tulip agents, a JS web console,
+  Ruby / Go enrichment services all talk OpenAI to the same gateway.
 - **Caching across services** — Redis / S3 / Qdrant in-flight, shared
   across every consumer.
 
@@ -98,7 +98,7 @@ curl http://localhost:4000/key/generate \
     "models":   ["gpt-4o"],
     "max_budget": 5.00,
     "duration": "24h",
-    "metadata": {"team": "soc-triage", "owner": "soc-platform"}
+    "metadata": {"team": "payments", "owner": "platform"}
   }'
 ```
 
@@ -110,7 +110,7 @@ Response (truncated):
   "models": ["gpt-4o"],
   "max_budget": 5.0,
   "spend": 0.0,
-  "metadata": {"team": "soc-triage", "owner": "soc-platform"}
+  "metadata": {"team": "payments", "owner": "platform"}
 }
 ```
 
@@ -191,8 +191,8 @@ model = OpenAIModel(
     base_url="http://localhost:4000",            # the LiteLLM AI Gateway
 )
 
-agent = Agent(model=model, system_prompt="You are a concise SOC triage assistant.")
-print(agent.run_sync("Summarise alert SOC-4821.").message)
+agent = Agent(model=model, system_prompt="You are a concise support assistant.")
+print(agent.run_sync("Summarise ticket T-4821.").message)
 ```
 
 No new Tulip class is needed. The gateway handles provider auth,

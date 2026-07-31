@@ -1,6 +1,6 @@
 # ReAct loop
 
-The low-level ReAct loop primitives. Most users should reach for the
+The low-level ReAct (reason + act) loop primitives. Most users should reach for the
 high-level `Agent` API (see [Agent](agent.md)) — these classes are for
 when you need to compose your own loop shape (different node order,
 custom routing, batched execution).

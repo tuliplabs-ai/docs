@@ -20,8 +20,8 @@ Events, gated by optional bearer-token auth.
 from tulip.server import AgentServer
 
 server = AgentServer(
-    agent=soc_agent,
-    title="SOC triage & response",
+    agent=refund_agent,
+    title="Refund desk",
     api_key="…",                       # bearer-token auth
 )
 
@@ -35,32 +35,35 @@ if __name__ == "__main__":
 |---|---|
 | Exposing an agent to a web/mobile UI (a support console, an ops dashboard, a SOC console) | **yes — SSE plus per-thread persistence is what you want** |
 | Internal one-off task, single Python script | no — call `agent.run_sync(...)` directly |
-| Embedding an agent in your own FastAPI / SOAR service | possible, but consider importing `AgentServer.app` and mounting it under your existing app |
+| Embedding an agent in your own FastAPI service | possible, but consider importing `AgentServer.app` and mounting it under your existing app |
 | Scaling out across many workers, one thread resumable on any of them | yes, **with** an `S3Backend` (or another shared checkpointer) so every worker sees the same thread state |
 
 ## Getting started
 
-### 1. Wrap a SOC agent
+### 1. Wrap the refund bot
 
 ```python
 from tulip.agent import Agent
 from tulip.core.termination import ToolCalled, ConfidenceMet, MaxIterations
 from tulip.memory.backends.file import FileCheckpointer
-from tulip.security import security_toolset
 from tulip.server import AgentServer
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=security_toolset(siem=True, edr=True, threat_intel=True),
-    system_prompt="You are a SOC analyst. Cite SIEM/EDR evidence; abstain without it.",
+    tools=[lookup_order, check_refund_policy, issue_refund],
+    system_prompt="You are a refund agent. Cite order evidence; escalate without it.",
     reflexion=True,
     checkpointer=FileCheckpointer(base_dir="./cases"),
-    termination=(ToolCalled("isolate_host") & ConfidenceMet(0.9)) | MaxIterations(8),
+    termination=(ToolCalled("issue_refund") & ConfidenceMet(0.9)) | MaxIterations(8),
 )
 
 server = AgentServer(agent=agent, api_key="…")
 server.run(host="0.0.0.0", port=8080)
 ```
+
+The SOC variant is one swap:
+`tools=security_toolset(siem=True, edr=True, threat_intel=True)` (from
+`tulip.security`) and a `ToolCalled("isolate_host")` terminal.
 
 ### 2. Call `/invoke` (one-shot)
 
@@ -68,11 +71,11 @@ server.run(host="0.0.0.0", port=8080)
 curl -sS -X POST http://localhost:8080/invoke \
   -H "Authorization: Bearer $TULIP_SERVER_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"prompt": "Triage alert A-42.", "thread_id": "case-4821"}'
+  -d '{"prompt": "Refund the duplicate charge on ord-4821.", "thread_id": "ord-4821"}'
 ```
 
 Returns the full `AgentResult` JSON in one response. Use this for
-scheduled hunts, SOAR playbook steps, and anything that doesn't render
+scheduled jobs, workflow-engine steps, and anything that doesn't render
 incrementally.
 
 ### 3. Call `/stream` (Server-Sent Events)
@@ -93,7 +96,7 @@ const res = await fetch("/stream", {
     "Content-Type": "application/json",
     "Authorization": "Bearer " + token,
   },
-  body: JSON.stringify({ prompt: "Triage alert A-42.", thread_id: "case-4821" }),
+  body: JSON.stringify({ prompt: "Refund the duplicate charge on ord-4821.", thread_id: "ord-4821" }),
 });
 
 const reader = res.body.getReader();
@@ -110,7 +113,7 @@ for (;;) {
     if (line === "[DONE]") continue;
     const evt = JSON.parse(line);
     if (evt.type === "tool_start") {
-      status.innerText = `running ${evt.tool}`;     // query_siem, isolate_host…
+      status.innerText = `running ${evt.tool}`;     // lookup_order, issue_refund…
     } else if (evt.type === "done") {
       output.innerText = evt.message;
     }
@@ -155,7 +158,8 @@ schema by default.
   `api_key`, every authenticated caller resolves to the **same**
   principal, and thread IDs are prefixed with it (`<principal>:<tid>`).
   This prefix stops an unauthenticated peer from reading or guessing a
-  thread (CWE-639) and namespaces threads per *server instance* — it
+  thread (CWE-639, authorization bypass via user-controlled key) and
+  namespaces threads per *server instance* — it
   does **not** separate two analysts sharing the same key. For
   per-tenant isolation, run one keyed `AgentServer` per tenant.
 
@@ -175,9 +179,9 @@ server.run(host="127.0.0.1", port=8080)   # never 0.0.0.0
 
 ## Human-in-the-loop
 
-Reads (`query_siem`, `enrich_indicator`, `lookup_hash`, `fetch_alert`)
-can auto-run. Writes that change the world — `isolate_host`,
-`block_indicator`, issuing a refund, rolling out a deploy — should pause
+Reads (`lookup_order`, `check_refund_policy`, `get_deploy_status`)
+can auto-run. Writes that change the world — `issue_refund`,
+`deploy_service`, isolating a host — should pause
 for a human first. The SDK primitive for this is the in-process
 `interrupt()` / `ask_user()` call: a tool calls it, the agent yields an
 `InterruptEvent` and pauses, and the caller continues with
@@ -214,9 +218,9 @@ same `thread_id` → same thread, same accumulated state.
 
 ```bash
 # Day 1
-curl -X POST .../invoke -d '{"prompt":"Open investigation for alert A-42", "thread_id":"case-4821"}'
-# Day 2 — same thread_id, the investigation continues
-curl -X POST .../invoke -d '{"prompt":"What did we establish so far?", "thread_id":"case-4821"}'
+curl -X POST .../invoke -d '{"prompt":"Open a case for the duplicate charge on ord-4821", "thread_id":"ord-4821"}'
+# Day 2 — same thread_id, the case continues
+curl -X POST .../invoke -d '{"prompt":"What did we establish so far?", "thread_id":"ord-4821"}'
 ```
 
 For multi-worker deployments, swap the checkpointer to one the workers
@@ -247,7 +251,7 @@ your platform expects.
 | Symptom | Likely cause |
 |---|---|
 | Server starts but binds to loopback only | No `api_key` and no `allow_unauthenticated=True`. Pick one. |
-| Console SSE drops mid-investigation (~30s) | Reverse-proxy idle timeout. Bump `proxy_read_timeout` in nginx / `idle_timeout` on the LB, or have the agent send heartbeats every ~25s. A long `query_siem` is the usual trigger. |
+| Console SSE drops mid-run (~30s) | Reverse-proxy idle timeout. Bump `proxy_read_timeout` in nginx / `idle_timeout` on the LB, or have the agent send heartbeats every ~25s. A long-running tool call is the usual trigger. |
 | Threads don't persist across restarts | `FileCheckpointer` writes to disk in the working directory — ephemeral container filesystems lose state on restart. Mount a volume or move to `S3Backend`. |
 | `/threads/{tid}` 404s for the right tid | Thread IDs are prefixed with the principal — `<principal>:<tid>` is what's stored. The path you pass is *your* tid; the server prefixes. A request under a different key (or unauthenticated) won't find it. |
 

@@ -8,7 +8,7 @@ time**:
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[enrich_indicator, lookup_hash, query_siem],
+    tools=[lookup_order, fetch_customer_history, shipping_status],
     tool_execution="concurrent",   # default — fan out
     # tool_execution="sequential", # opt-in — one at a time
 )
@@ -21,7 +21,7 @@ them at once and gathers their results before the next Think:
 
 ```python
 # Think emits this:
-[enrich_indicator(...), lookup_hash(...), query_siem(...)]
+[lookup_order(...), fetch_customer_history(...), shipping_status(...)]
 
 # Execute fires all three concurrently
 # Each emits its own ToolStartEvent / ToolCompleteEvent
@@ -30,12 +30,14 @@ them at once and gathers their results before the next Think:
 
 When parallelism helps:
 
-- **Multi-source enrichment** — fetch reputation from a threat-intel
-  feed, a passive-DNS index, and a malware sandbox in parallel, then merge.
-- **Independent reads** — indicator reputation, hash lookup, and SIEM
-  events have no dependency on each other; do them all at once.
-- **Tool fan-out** — the model called `enrich_indicator` for ten IOCs;
+- **Independent reads** — fetch the order, the customer's history, and
+  the shipping status in parallel; none depends on the others.
+- **Tool fan-out** — the model called `lookup_order` for ten orders;
   run them all instead of ten round-trips.
+- **Multi-source enrichment** (security variant) — look up an IOC
+  (indicator of compromise — an IP, domain, or file hash) in a
+  threat-intel feed, a passive-DNS index, and a malware sandbox in
+  parallel, then merge.
 
 ## Sequential execution (opt-in)
 
@@ -63,10 +65,10 @@ any coroutines — is hash each `(tool_name, arguments)` and walk
 `@tool(idempotent=True)`, matched calls short-circuit to the cached
 receipt and never enter the executor at all.
 
-So a model that re-emits `isolate_host(host_id="WS-014", ...)` in
+So a model that re-emits `issue_refund(order_id="ord-4821", ...)` in
 iteration 5 — when the same call already fired in iteration 2 — gets
-the cached receipt without a network round-trip and without
-re-isolating the host. See [Idempotency](idempotency.md).
+the cached receipt without a network round-trip and without refunding
+the customer twice. See [Idempotency](idempotency.md).
 
 ## Errors don't kill the group (concurrent mode)
 
@@ -75,7 +77,7 @@ normally. The failure surfaces as a `ToolCompleteEvent` with its
 `error` field set (there is no separate `ToolErrorEvent`), plus a
 tool-error message in state; the next Think sees:
 
-> *Tool `query_siem` failed with: ConnectionTimeout(after 30s).*
+> *Tool `shipping_status` failed with: ConnectionTimeout(after 30s).*
 
 …and decides what to do (retry, try a different tool, give up). The
 agent loop never sees an exception unless the whole run errors.
@@ -104,8 +106,8 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 @tool
 @retry(stop=stop_after_attempt(3),
        wait=wait_exponential(multiplier=0.5))
-def lookup_hash(sha256: str) -> dict:
-    return ti.reputation(sha256)
+def shipping_status(order_id: str) -> dict:
+    return carrier.track(order_id)
 ```
 
 For non-transient errors, raise — the loop will see a

@@ -29,7 +29,7 @@ That's the only setup. The SDK reads the env var on import.
 
 ```python
 from tulip.agent import Agent
-agent = Agent(model="openai:gpt-5.5", system_prompt="You are a SOC triage analyst.")
+agent = Agent(model="openai:gpt-5.5", system_prompt="You are a support agent.")
 ```
 
 The string `"openai:gpt-5.5"` does two things: tells the SDK to use
@@ -39,9 +39,9 @@ the OpenAI provider (`openai:` prefix), and which model id to call
 ### 3. Run it
 
 ```python
-result = agent.run_sync("Is 198.51.100.23 a known C2 endpoint?")
+result = agent.run_sync("Summarise open orders for customer 4821.")
 print(result.message)
-# → 'Yes — flagged in threat intel as a known C2 endpoint.'
+# → 'Customer 4821 has two open orders — ord-4821 (refund under review) and ord-4907 (shipped).'
 ```
 
 Done. Streaming, tool calls, structured output — all of it works
@@ -65,7 +65,7 @@ it sends `max_completion_tokens` instead of `max_tokens` and drops the
 `temperature` / `top_p` sampling params the o-series rejects.
 
 ```python
-agent = Agent(model="openai:o3", system_prompt="You are a SOC triage analyst.")
+agent = Agent(model="openai:o3", system_prompt="You are a support agent.")
 ```
 
 Each turn's assistant message is surfaced as a `ThinkEvent` (carrying
@@ -81,7 +81,7 @@ deltas, the SDK turns them into `ModelChunkEvent`s, your `async for`
 loop reads them as they arrive — no buffering, no fake chunking.
 
 ```python
-async for event in agent.run("Summarise the timeline of alert A-42."):
+async for event in agent.run("Summarise the history of order ord-4821."):
     if isinstance(event, ModelChunkEvent) and event.content:
         print(event.content, end="", flush=True)
 ```
@@ -108,7 +108,7 @@ agent = Agent(
     output_schema=Finding,
     system_prompt="Reply as JSON matching the schema.",
 )
-result = agent.run_sync("Is the WIN-7731 beacon malicious?")
+result = agent.run_sync("Was order ord-4821 charged twice?")
 print(result.parsed)        # Finding(summary='...', confidence=0.83)
 ```
 
@@ -146,24 +146,26 @@ The `api_key` your `OPENAI_API_KEY` provides is forwarded — for Azure
 that's the Azure resource key, for Portkey it's the Portkey virtual
 key, etc.
 
-## Handling sensitive incident data
+## Handling sensitive data
 
-Provider traffic carries the same SOC data your tools touch — raw alert
-payloads, host names, attacker-supplied free-text. Two defaults keep it
-out of the wrong places:
+Provider traffic carries whatever your tools touch — customer PII,
+order data, internal hostnames — plus any untrusted user input that
+entered the conversation. Two defaults keep it out of the wrong places:
 
 - **Tool args/results aren't traced by default.** `record_arguments` and
-  `record_results` are off, so SIEM payloads and indicators don't leak
-  into your tracing backend unless you opt in (and verify its retention
-  and access controls first). See [Observability](../observability.md).
+  `record_results` are off, so order records and account details don't
+  leak into your tracing backend unless you opt in (and verify its
+  retention and access controls first). See [Observability](../observability.md).
 - **Redact before the reply leaves the box.** An `OutputFilterHook`
   strips PII or blocks topics in the model's output, so nothing
-  attacker-supplied round-trips into a downstream ticket or chat.
+  untrusted round-trips into a downstream ticket or chat.
 
 Every model call and tool invocation still lands on the typed SSE event
-stream — the faithful trace you forward to a SIEM verbatim — and
+stream — the faithful trace you forward to your logging backend — and
 admission decisions land on the hash-chained
-[`AuditTrail`](../agentic-ai-security.md). Routing through a gateway (Azure / Portkey /
+[`AuditTrail`](../agentic-ai-security.md) (hash-chained: each entry
+commits to the one before it, so editing any record breaks
+verification). Routing through a gateway (Azure / Portkey /
 LiteLLM) keeps your `OPENAI_API_KEY` off the egress path when policy
 requires it.
 

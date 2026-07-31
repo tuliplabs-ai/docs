@@ -14,7 +14,7 @@ Three orthogonal layers, each with its own contract:
 
 For checkpointing (state persistence between runs), see
 [Checkpointers](checkpointers.md) — those backends live in
-`tulip.memory.backends`, with **S3-compatible object storage** as a
+`tulip.memory.backends`, with S3-compatible object storage as a
 production target. Note those are *checkpointer* backends (per-thread
 state); the cross-thread **store** layer below is a separate contract.
 

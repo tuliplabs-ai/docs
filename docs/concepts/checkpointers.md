@@ -1,20 +1,24 @@
 # Checkpointers
 
-A checkpointer is the contract for **persisting investigation state**
-between runs. Pass one to `Agent(checkpointer=...)` and the agent saves
-`AgentState` after every iteration; resume an incident by re-running
-with the same `thread_id`. Same code, same case context, different
-process, different day.
+A checkpointer is the contract for **persisting agent state** between
+runs. Pass one to `Agent(checkpointer=...)` and the agent saves
+`AgentState` after every iteration; resume a thread by re-running with
+the same `thread_id`. Same code, same case context, different process,
+different day.
 
-This is the durability story for production SOC agents. An incident
-outlives a process: a host gets isolated at 02:00, the runner restarts,
-the on-call hands off, and the next shift must pick up the *same*
-investigation — every enriched indicator, every containment receipt,
-the case record carried forward. Without a checkpointer the agent forgets
-which host it isolated and re-litigates the alert from scratch. With
-one, the same `thread_id` round-trips through restarts, across
-containers, and across regions, so the record of *what was contained
+This is the continuity story for production agents. A case outlives a
+process: a refund case opens Friday, the service redeploys over the
+weekend, and Monday's run picks up the same conversation — every
+lookup, every approval, carried forward. Without a checkpointer the
+agent forgets what it already did and re-litigates the case from
+scratch. With one, the same `thread_id` round-trips through restarts,
+across containers, and across regions, so the record of *what was done
 and why* survives.
+
+The same story, security-operations flavored: a host gets isolated at
+02:00, the runner restarts, the on-call hands off, and the next shift
+must pick up the *same* investigation — every enriched indicator, every
+containment receipt, the case record carried forward.
 
 ```python
 from tulip.agent import Agent
@@ -80,7 +84,7 @@ agent = Agent(
 
 One JSON file per `thread_id` in the directory — one file per case.
 Zero dependencies; the on-disk case file is grep-able when you need to
-eyeball an investigation's saved state by hand.
+eyeball a thread's saved state by hand.
 
 ### Production: `S3Backend`
 
@@ -92,7 +96,7 @@ agent = Agent(
     tools=[...],
     # S3Backend implements BaseCheckpointer directly — no adapter needed.
     checkpointer=S3Backend(
-        bucket="soc-case-checkpoints",
+        bucket="agent-thread-checkpoints",
         endpoint_url="https://s3.amazonaws.com",  # or a MinIO / R2 endpoint
         prefix="prod/",
     ),
@@ -156,8 +160,8 @@ agent = Agent(
 )
 ```
 
-Fastest reads, optional TTL for short-lived triage cases that
-auto-expire once the alert is closed.
+Fastest reads, optional TTL for short-lived threads that
+auto-expire once the case is closed.
 
 ### SQL: `PostgreSQLBackend` / `MySQLBackend`
 
@@ -265,23 +269,23 @@ for a worked example.
 ## Cross-thread store
 
 Checkpointers persist *one case's* state. The companion abstraction —
-`BaseStore` — persists key-value data **across** cases: an analyst
-playbook, a known-bad indicator cache, anything that should outlive a
-single investigation.
+`BaseStore` — persists key-value data **across** cases: a team
+playbook, a pricing-exception cache, anything that should outlive a
+single case.
 
 ```python
 from tulip.memory.store import InMemoryStore   # tests / REPL
 
 store = InMemoryStore()
-await store.put(("tulip_memory", "soc"), "containment_policy", {"content": "Isolate on confirmed C2 beacon"})
-hit = await store.get(("tulip_memory", "soc"), "containment_policy")
+await store.put(("tulip_memory", "support"), "refund_policy", {"content": "Refunds over $500 need manager approval"})
+hit = await store.get(("tulip_memory", "support"), "refund_policy")
 ```
 
 The interface is `put / get / list / delete` keyed on a `(namespace,
 key)` pair. The [`LLMMemoryManager`](memory-manager.md) builds on this
 to give an agent a long-term memory layer; you can also use the store
 directly for anything cross-case that doesn't need LLM extraction
-(asset inventories, indicator allowlists, rate-limit counters).
+(product catalogues, customer allowlists, rate-limit counters).
 
 ### The built-in store: `InMemoryStore`
 
@@ -294,8 +298,8 @@ cross-thread store, subclass `BaseStore` over your backend of choice.
 from tulip.memory.store import InMemoryStore
 
 store = InMemoryStore()
-await store.put(("memory", "host-u42"), "fact-1", {"note": "u42 ran an unsigned binary from %TEMP%"})
-hits = await store.search(("memory", "host-u42"), query=None, limit=5)
+await store.put(("memory", "cust-4821"), "fact-1", {"note": "cust-4821 prefers store credit over card refunds"})
+hits = await store.search(("memory", "cust-4821"), query=None, limit=5)
 ```
 
 ## Common gotchas
@@ -304,7 +308,7 @@ hits = await store.search(("memory", "host-u42"), query=None, limit=5)
 |---|---|
 | `TypeError` on save (e.g. `save()` got an unexpected positional/`AgentState` where a dict was expected) | Storage backend (`RedisBackend` etc.) passed directly: its `save(thread_id, data)` signature doesn't match the agent's `save(state, thread_id)`. Wrap it with the matching `*_checkpointer()` factory. |
 | Open cases forgotten between deployments | `FileCheckpointer` directory inside an ephemeral container — the saved state dies with the pod. Mount a volume, or move to `S3Backend`. |
-| Two replicas show different case state for the same thread | The checkpointer isn't shared between replicas, so one worker doesn't know the host was already isolated. `FileCheckpointer` is per-host; switch to a centralised backend (Redis, Postgres, MySQL, S3). |
+| Two replicas show different case state for the same thread | The checkpointer isn't shared between replicas, so one worker doesn't know the refund was already issued. `FileCheckpointer` is per-host; switch to a centralised backend (Redis, Postgres, MySQL, S3). |
 | Slow first save | Some backends auto-create schema on first call. Pre-create in your deployment script if startup latency matters. |
 
 ## Source

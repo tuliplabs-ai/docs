@@ -1,10 +1,14 @@
 # Agentic AI-security
 
+This page covers `tulip.security`, Tulip's security domain module — one of
+several action domains (refunds, deployments, records) built on the same
+harness. It lets you build agents that test and assess other AI systems.
+
 **In plain terms:** you've deployed an AI — a chatbot, an agent with tools, or a
 model behind an API. Can someone jailbreak it, make it leak data, or trick it
-into doing something it shouldn't? Tulip lets you build an agent that checks,
+into doing something it shouldn't? The module builds an agent that checks,
 automatically and continuously, and reports only the flaws it can actually
-**prove**. Think of it as a penetration tester for AI that refuses to cry wolf.
+**prove** — a penetration tester for AI that refuses to cry wolf.
 
 **How it works, in three steps:**
 
@@ -13,7 +17,8 @@ automatically and continuously, and reports only the flaws it can actually
 3. **Get evidence** — each result is an `Evidence` finding (the attack worked, here's the proof)
    or an `Abstention` (no proof, so no claim). Never a guess.
 
-More precisely: Tulip builds agents whose **subject is another AI system** —
+More precisely: `tulip.security` builds agents whose **subject is another AI
+system** —
 agents that **red-team** and **assess** other AI (continuous **monitoring** is
 on the roadmap), and produce a grounded `Evidence` record or an explicit
 `Abstention`, never a hallucinated verdict.
@@ -32,12 +37,10 @@ surface: prompt injection (direct and indirect), tool abuse / excessive
 agency, data exfiltration, memory and RAG poisoning, A2A identity confusion,
 unknown model and hardware provenance.
 
-The tools that exist miss it. SIEM/SOC platforms see infrastructure, not agent
-semantics. Guardrail libraries *filter* I/O but don't *test* or *assess*.
-Cloud AI-SPM is *static* posture, not *dynamic adversarial testing of a live
-agent*. And AI red-team tooling that does test AI **hallucinates findings** —
-the literature is explicit that AI scorers lack grounding. Tulip's answer is
-**abstain-by-construction grounding** (GSAR): no evidence, no claim.
+Existing tooling either filters I/O without testing it, or tests it and
+**hallucinates findings** — the literature is explicit that AI scorers lack
+grounding. This module's answer is **abstain-by-construction grounding**
+(GSAR): no evidence, no claim.
 
 ## The `Target` — what you point at
 
@@ -75,7 +78,8 @@ for r in report:
 
 The bundled catalogue covers direct and indirect prompt injection, jailbreak,
 excessive agency / tool misuse, and sensitive-information disclosure — each
-tagged with the taxonomy a SOC and an AI-assurance reviewer expect.
+tagged with the taxonomy a SOC (security operations center) and an
+AI-assurance reviewer expect.
 
 ## `assure` — assess, grounded
 
@@ -90,12 +94,10 @@ posture = await assure(target)   # grounded guardrail-coverage posture
 ```
 
 This is a *grounded finding*, not a compliance attestation. `assure` never
-asserts posture it cannot evidence — it abstains. (Checkbox-style posture
-attestation is ground well held by Cisco DefenseClaw and Microsoft's Agent
-Governance Toolkit.) Tulip's governance lives one layer down, where the
-consequence is: the [admission gate on the action
-itself](#enforce-it-before-it-acts) — enforced policy, a human on the actions
-that warrant one, and a tamper-evident record.
+asserts posture it cannot evidence — it abstains. Tulip deliberately does not
+do compliance attestation; its governance acts on the action itself: the
+[admission gate](#enforce-it-before-it-acts) — enforced policy, a human on
+the actions that warrant one, and a tamper-evident record.
 
 ## Secure by default — the floor
 
@@ -117,30 +119,32 @@ The `AuditTrail` is a keyless, in-memory SHA-256 hash chain: every action
 commits to the hash before it, so any later edit, deletion, or reorder breaks
 `verify()` against a trusted head hash. That makes it tamper-*evident* (it
 **detects** edits) rather than tamper-proof — there is no signing or external
-anchoring yet. It exports as JSONL for shipping to a SIEM, where signing or
-write-once anchoring can harden it further.
+anchoring yet. It exports as JSONL for shipping to your audit store or a SIEM
+(a security team's log platform), where signing or write-once anchoring can
+harden it further.
 
 ## Enforce it before it acts
 
 Grounding, verification, and the audit trail make an agent *trustworthy*; the
-**admission gate** makes that trust *binding*. Run a side-effecting action through
-`admit()` (or `ctx.actions.execute()`): it fires only if the action clears the
-policy chain (`approve()` → ALLOW), holds it for a named person when policy
-answers `require_human`, and denies the rest — recording every decision, allowed,
-held, or denied, and raising `AdmissionError` whenever the action does not run. That's the line between an agent that *could* be safe
-and a runtime that *enforces* safety — no action reaches production without a
-verified, approved, audited warrant. See
+**admission gate** makes that trust *binding*. Run a side-effecting action
+through `admit()` (or `ctx.actions.execute()`). The action fires only if it
+clears the policy chain (`approve()` → ALLOW). When policy answers
+`require_human`, it is held for a named person; everything else is denied.
+Every decision — allowed, held, or denied — is recorded, and `AdmissionError`
+is raised whenever the action does not run. That's the line between an agent
+that *could* be safe and a runtime that *enforces* safety — no action reaches
+production without a verified, approved, audited warrant. See
 [SecurityContext](security-context.md#admission-control-the-enforcement-point).
 
-## Regular cyber — the second pillar
+## Regular cyber — classic security operations
 
-This page covers securing *AI* (pillar B). The same engine, pointed at
-*infrastructure* instead of an AI system, is the other pillar of "agentic AI for
-cybersecurity": classic security operations — the bundled SOC-analyst factory,
-the IR playbooks (`phishing_triage`, `ransomware_containment`, `nist_800_61_ir`),
-and read-only cloud-posture auditing. Different target, different taxonomy — same
-`Target` + grounded-`Evidence` contract. It's first-class, not a demo: grounding
-is exactly what makes an AI SOC agent's verdicts trustworthy, answering the
+This page covers securing *AI*. The same engine works on classic security
+operations too — the bundled SOC-analyst factory, the incident-response
+playbooks (`phishing_triage`, `ransomware_containment`, `nist_800_61_ir`), and
+read-only cloud-posture auditing are a full worked domain, alongside the
+general-operations examples elsewhere in the docs. Different target, different
+taxonomy — same `Target` + grounded-`Evidence` contract: grounding is exactly
+what makes an AI SOC agent's verdicts trustworthy, answering the
 false-positive pain teams hit with AI-graded triage.
 
 See also: [Grounded findings](security.md) · [GSAR typed grounding](gsar.md) ·
