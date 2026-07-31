@@ -1539,10 +1539,10 @@ form.md-header__option {
   align-items: center;
   flex: 0 0 auto;
 }
-.tulip-company-card__mark svg {
+.tulip-company-card__mark img {
   width: 2.4rem;
   height: 2.4rem;
-  color: var(--tl-red);
+  display: block;
 }
 
 .tulip-company-card__body {
