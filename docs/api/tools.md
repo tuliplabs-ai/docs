@@ -1,5 +1,8 @@
 # Tools
 
+Define the functions an agent can call — the `@tool` decorator,
+execution strategies, and JSON Schema generation.
+
 ## Decorator
 
 The primary entry point — wrap a Python function and you get a `Tool`

@@ -96,7 +96,7 @@ the *real* side effect lives in the host process, not in the tool body.
 ```python
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, isolate_host],
+    tools=[lookup_order, issue_refund],
     hooks=[AuditHook()],
 )
 ```

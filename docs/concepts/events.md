@@ -177,22 +177,22 @@ running.
 | `OrchestratorDecisionEvent` | Orchestrator picked its next step (`invoke_specialist`, `correlate`, `summarize`, `finalize`) |
 
 `SpecialistStartEvent`/`SpecialistCompleteEvent` pair on
-`specialist_id`, so you can attribute each IR phase to the agent that
+`specialist_id`, so you can attribute each phase to the agent that
 ran it:
 
 ```python
 phase = {}  # specialist id → wall-clock ms
 
-async for event in orchestrator.run("Sev-1 ransomware on ws-0042: triage, then contain."):
+async for event in orchestrator.run("Order dispute on ord-4821: verify the order, reprice, refund if owed."):
     match event:
         case SpecialistStartEvent(specialist_id=s, task=t):
             print(f"→ {s}: {t}")
         case SpecialistCompleteEvent(specialist_id=s, duration_ms=d):
             phase[s] = d
-        case ToolCompleteEvent(tool_name="isolate_host", error=None):
-            print("   ↳ containment fired")  # which specialist? the last Start was 'containment'
+        case ToolCompleteEvent(tool_name="issue_refund", error=None):
+            print("   ↳ refund fired")  # which specialist? the last Start was 'refund'
 
-# {'triage': 1840, 'forensics': 6120, 'containment': 410}
+# {'verify': 1840, 'pricing': 6120, 'refund': 410}
 ```
 
 See [Multi-agent](multi-agent.md).

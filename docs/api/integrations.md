@@ -1,6 +1,8 @@
 # Integrations
 
 Adapters that bridge Tulip to external frameworks, clouds, and vendor APIs.
+Cloud posture is one worked example domain — the same adapter pattern
+applies to any vendor API.
 
 ## FastMCP
 
@@ -28,8 +30,8 @@ Install the extra: `pip install 'tulip-agents[aws]'`.
 ::: tulip.security.aws.aws_services
 
 The agent-facing `@tool` wrappers (`describe_aws_tool`, `use_aws_tool`) and the
-[`create_soc_analyst`](../concepts/cloud-posture.md) factory compose these into
-a grounded posture agent.
+[`create_soc_analyst`](../concepts/cloud-posture.md) security-operations (SOC)
+analyst factory compose these into a grounded posture agent.
 
 ## Vendor integration examples
 
@@ -43,10 +45,10 @@ the offline demo and a live deployment.
 
 | Tool | Vendor shape | Credential |
 |------|--------------|------------|
-| [`enrich_indicator`][ti] | VirusTotal / GreyNoise IOC reputation | `VT_API_KEY` |
-| [`query_siem`][siem] | Splunk / Elastic log + alert search | `SIEM_URL`, `SIEM_TOKEN` |
-| [`dispatch_timing_probe`][gpu] | RunPod / Lambda inference-fingerprint probe | `RUNPOD_API_KEY`, `LAMBDA_API_KEY` |
 | [`measure_endpoint_timing`][rt] | Streaming time-to-first-token / cadence probe | none (uses any reachable endpoint) |
+| [`dispatch_timing_probe`][gpu] | RunPod / Lambda inference-fingerprint probe | `RUNPOD_API_KEY`, `LAMBDA_API_KEY` |
+| [`enrich_indicator`][ti] | VirusTotal / GreyNoise indicator-of-compromise (IOC) reputation | `VT_API_KEY` |
+| [`query_siem`][siem] | Splunk / Elastic log/alert search (a SIEM) | `SIEM_URL`, `SIEM_TOKEN` |
 
 Hand these to a triage agent end-to-end in
 [live vendor integrations](../notebooks/notebook_70_vendor_integrations.md);

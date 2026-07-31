@@ -2,11 +2,12 @@
 
 Every Tulip agent emits a typed event stream as it runs — a live,
 ordered trace of what the agent is doing. Each step (every model call,
-every tool call such as `isolate_host` or `block_indicator`) lands as a
+every tool call such as `issue_refund` or `deploy_service`) lands as a
 timestamped event the instant it happens, in the order it happened. The
 stream is the surface you render in a UI, forward to telemetry, and
 replay in original order when reviewing a run. (It is a faithful trace,
 not a tamper-evident ledger — for a hash-chained record of decisions,
+where each entry commits to the one before it,
 route them through the [`AuditTrail`](agentic-ai-security.md).)
 
 The events are frozen Pydantic classes — not strings, not
@@ -14,7 +15,7 @@ The events are frozen Pydantic classes — not strings, not
 your type checker can verify exhaustively:
 
 ```python
-async for event in agent.run("Triage alert SOC-4821."):
+async for event in agent.run("Resolve the duplicate charge on ord-4821."):
     match event:
         case ThinkEvent(reasoning=r) if r:
             print(f"💭 {r}")
@@ -24,9 +25,10 @@ async for event in agent.run("Triage alert SOC-4821."):
             print(f"\n✅ {m}")
 ```
 
-This is the surface a SOC console consumes (live token rendering,
-tool-call indicators, reasoning bubbles), the surface telemetry hooks
-observe, and the surface `AgentServer` re-emits over Server-Sent Events
+This is the surface an operations console consumes — a support desk, a
+deploy dashboard, a SOC console — with live token rendering,
+tool-call indicators, and reasoning bubbles; the surface telemetry hooks
+observe; and the surface `AgentServer` re-emits over Server-Sent Events
 for browsers.
 
 ## When to consume the event stream
@@ -43,7 +45,7 @@ for browsers.
 ### 1. Use `agent.run(prompt)` instead of `run_sync`
 
 ```python
-async for event in agent.run("Triage alert SOC-4821."):
+async for event in agent.run("Resolve the duplicate charge on ord-4821."):
     print(event)
 ```
 
@@ -62,7 +64,7 @@ from tulip.core.events import (
     TerminateEvent,
 )
 
-async for event in agent.run("Triage alert SOC-4821."):
+async for event in agent.run("Resolve the duplicate charge on ord-4821."):
     match event:
         case ThinkEvent(reasoning=r) if r:
             print(f"💭 {r}")
@@ -119,15 +121,16 @@ What `frozen=True` buys you: a hook, downstream consumer, or logging
 shim cannot silently rewrite a streaming event in process — what the
 agent did is what the in-memory stream says it did. Note the scope: this
 is **write-protection in memory only**. Once an event is serialised to
-SSE, a log, or a SIEM there is no integrity guarantee on the bytes; for a
-tamper-evident record route decisions through the
-[`AuditTrail`](agentic-ai-security.md) hash chain.
+SSE, a log, or a logging backend there is no integrity guarantee on the
+bytes; for a tamper-evident record route decisions through the
+[`AuditTrail`](agentic-ai-security.md) hash chain — each entry commits
+to the one before it, so editing any record breaks verification.
 
 ## Sync wrapper — when you don't need the stream
 
 ```python
-result = agent.run_sync("What severity is alert SOC-4821?")
-print(result.message)        # 'High.'
+result = agent.run_sync("What's the refund status of ord-4821?")
+print(result.message)        # 'Refunded.'
 print(result.metrics.iterations)
 ```
 
@@ -139,7 +142,7 @@ and scripts where the trace doesn't matter.
 ## Practical recipe — render to a terminal UI
 
 ```python
-async for event in agent.run("Enrich indicator 198.51.100.7 and isolate the host if it's malicious."):
+async for event in agent.run("Check ord-4821 for a duplicate charge and refund it if confirmed."):
     match event:
         case ToolStartEvent(tool_name=n):
             print(f"\n🔧 {n}", end="", flush=True)
@@ -187,7 +190,7 @@ yourself:
 const res = await fetch('/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Triage alert SOC-4821.' }),
+    body: JSON.stringify({ prompt: 'Resolve the duplicate charge on ord-4821.' }),
 });
 const reader = res.body.getReader();
 const decoder = new TextDecoder();

@@ -2,9 +2,9 @@
 
 A Tulip SDK agent is stateless
 between sessions by default. Checkpointing preserves the full message
-history for one investigation thread, but the TTPs learned hunting
-threat actor A are invisible when triaging incident B — and when a
-thread is deleted, every hard-won attacker pattern in it is gone.
+history for one thread, but the pricing exceptions learned handling
+customer A are invisible when helping customer B — and when a thread is
+deleted, everything the agent learned goes with it.
 
 `MemoryManager` fills that gap. It runs two lifecycle hooks
 on every agent invocation:
@@ -14,8 +14,8 @@ on every agent invocation:
 | `on_session_start` | Before the first model call | Retrieve stored memories → inject into system prompt |
 | `on_session_end` | After the agent stops | Extract durable facts from the conversation → persist to store |
 
-The result: a SOC analyst agent accumulates IR playbooks, attacker
-TTPs, and tuned SIEM queries across investigations — without the
+The result: a support agent accumulates standing rules, pricing
+exceptions, and customer preferences across cases — without the
 context window ever filling up with raw history.
 
 ## Where memories live
@@ -39,10 +39,10 @@ Storage layout inside the store:
 With the default prefix `("tulip_memory",)`:
 
 ```
-("tulip_memory", "user")       →  "role":             {content: "Tier-2 SOC analyst"}
-("tulip_memory", "feedback")   →  "no_auto_isolate":  {content: "Never auto-isolate prod hosts. Why: ..."}
-("tulip_memory", "project")    →  "phishing_triage":  {content: "Driven by an active campaign, not backlog"}
-("tulip_memory", "reference")  →  "siem_pipeline":    {content: "Alerts tracked in the SIEM 'INGEST' index"}
+("tulip_memory", "user")       →  "role":             {content: "Tier-2 support agent"}
+("tulip_memory", "feedback")   →  "refund_approval":  {content: "Refunds over $500 need manager approval. Why: ..."}
+("tulip_memory", "project")    →  "billing_rollout":  {content: "Driven by the new billing rollout, not backlog"}
+("tulip_memory", "reference")  →  "orders_api":       {content: "Orders tracked in the 'orders' service API"}
 ```
 
 Each memory key acts as a stable identifier: re-extracting the same
@@ -52,10 +52,10 @@ fact under the same key **updates** the record, not duplicates it.
 
 | Type | What to store | Decays? |
 |---|---|---|
-| `user` | Analyst role, tier, shift, expertise | Rarely |
-| `feedback` | Containment rules, IR playbook steps — what to do/avoid and *why* | Rarely |
-| `project` | Active investigations, attacker TTPs, containment decisions | Fast — include a *Why* |
-| `reference` | Pointers to external systems, tuned SIEM queries, threat-intel feeds, runbooks | Medium |
+| `user` | Operator role, tier, shift, expertise | Rarely |
+| `feedback` | Standing rules, playbook steps — what to do/avoid and *why* | Rarely |
+| `project` | Active cases, customer-specific exceptions, decisions taken | Fast — include a *Why* |
+| `reference` | Pointers to external systems, tuned queries, data feeds, runbooks | Medium |
 
 ## Quick start
 
@@ -71,14 +71,14 @@ agent = Agent(
     memory_manager=LLMMemoryManager(store=store),
 )
 
-# Session 1 — agent learns a standing containment rule
-async for event in agent.run("Never auto-isolate production hosts — page on-call for approval first."):
+# Session 1 — agent learns a standing rule
+async for event in agent.run("Refunds over $500 need manager approval — page the duty manager first."):
     ...
 
 # Session 2 — the agent already knows
-async for event in agent.run("Host web-01 looks compromised. What do you do?"):
+async for event in agent.run("The customer on order ord-4821 wants a $750 refund. What do you do?"):
     ...
-# → agent requests approval before isolation, no reminder needed
+# → agent requests manager approval before refunding, no reminder needed
 ```
 
 ## Supplying an LLM extraction function
@@ -114,10 +114,10 @@ You are a memory extraction assistant. Given a conversation, identify
 facts worth remembering across sessions. Return JSON:
 
 [
-  {"type": "user",      "key": "role",          "content": "..."},
-  {"type": "feedback",  "key": "no_auto_isolate","content": "... Why: ... How to apply: ..."},
-  {"type": "project",   "key": "phishing",      "content": "... Why: ..."},
-  {"type": "reference", "key": "siem",          "content": "..."}
+  {"type": "user",      "key": "role",           "content": "..."},
+  {"type": "feedback",  "key": "refund_approval","content": "... Why: ... How to apply: ..."},
+  {"type": "project",   "key": "billing",        "content": "... Why: ..."},
+  {"type": "reference", "key": "orders_api",     "content": "..."}
 ]
 
 Only include facts that are non-obvious, durable, and actionable.
@@ -158,13 +158,13 @@ without changing how your `Agent` consumes memory.
 ```python
 from tulip.memory.managers import Mem0MemoryManager
 
-manager = Mem0MemoryManager(user_id="analyst-7")
+manager = Mem0MemoryManager(user_id="agent-7")
 agent = Agent(model="anthropic:claude-sonnet-4-6", memory_manager=manager)
 
 # Pass user_id (and optional thread_id) via metadata to scope retrieval:
 agent.run_sync(
-    "I'm on the night shift — I prefer concise triage summaries.",
-    metadata={"user_id": "analyst-7", "thread_id": "t-a"},
+    "I'm on the night shift — I prefer concise case summaries.",
+    metadata={"user_id": "agent-7", "thread_id": "t-a"},
 )
 ```
 
@@ -202,14 +202,14 @@ after the main system prompt:
 
 ```
 [System Prompt]
-You are a SOC triage assistant.
+You are a customer-support assistant.
 
 [Memory Block — injected by MemoryManager]
 [Long-term Memory]
-USER [role]: Tier-2 SOC analyst, covers the night shift.
-FEEDBACK [no_auto_isolate]: Never auto-isolate production hosts. Why: prior outage from a false positive.
-PROJECT [phishing_triage]: Active phishing campaign, prioritise mailbox alerts.
-REFERENCE [siem_pipeline]: Alerts tracked in the SIEM 'INGEST' index.
+USER [role]: Tier-2 support agent, covers the night shift.
+FEEDBACK [refund_approval]: Refunds over $500 need manager approval. Why: prior chargeback from an unreviewed refund.
+PROJECT [billing_rollout]: Active billing migration, prioritise invoice disputes.
+REFERENCE [orders_api]: Orders tracked in the 'orders' service API.
 
 [Conversation continues...]
 ```

@@ -22,8 +22,8 @@ others.
 | Tool args from the model are sometimes malformed | Validation — already on; nothing to do |
 | Public-facing agent — block prompt injection, SQL/command/path-traversal patterns, cap input length | `GuardrailsHook` with the default `GuardrailConfig` |
 | Customer-facing answer where leaking PII (emails, SSN, credit cards, IPs) is a compliance issue | `GuardrailsHook` with PII patterns enabled |
-| High-stakes tools (`isolate_host`, `block_indicator`, `delete_*`) — want a second model to sanity-check the call | `SteeringHook` with a steering `model=` and a policy string |
-| Domain restriction — *"the user came in to triage this alert, reject anything else"* | `SteeringHook` with that policy verbatim |
+| High-stakes tools (`issue_refund`, `delete_records`, `isolate_host`) — want a second model to sanity-check the call | `SteeringHook` with a steering `model=` and a policy string |
+| Domain restriction — *"the user came in to resolve this ticket, reject anything else"* | `SteeringHook` with that policy verbatim |
 | Internal-only agent, trusted prompts, low-stakes tools | none of the above; default validation is enough |
 
 ## Getting started
@@ -202,4 +202,4 @@ the model — and the backstop doesn't trust the gate either.
 - [Tools](tools.md) — the `@tool` decorator and its schema validation.
 - [Reasoning: grounding](reasoning.md#grounding) — the answer-side analogue, claim-by-claim.
 - [Cloud-posture agent](cloud-posture.md) — read-only-by-construction tools in practice.
-- [Threat scenarios](threat-scenarios.md) — which guardrail defends which OWASP / ATLAS item.
+- [Threat scenarios](threat-scenarios.md) — security mapping: which guardrail covers which OWASP / ATLAS item.

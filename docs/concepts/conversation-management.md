@@ -1,6 +1,6 @@
 # Conversation management
 
-An Tulip agent holds one user's
+A Tulip agent holds one user's
 conversation in `state.messages`. To make that conversation **survive
 across requests** — across deploys, restarts, and "I'll come back
 tomorrow" gaps — you wire a checkpointer and a `thread_id`.
@@ -21,11 +21,11 @@ agent = Agent(
 )
 
 # Day 1
-agent.run_sync("Investigate the beacon from host WIN-7731.", thread_id="case-7731")
+agent.run_sync("Look into the refund request on order ord-4821.", thread_id="ticket-8912-refund")
 
 # Day 2 — same thread_id, conversation continues
-agent.run_sync("What did we conclude?",                      thread_id="case-7731")
-# → "We traced the WIN-7731 beacon to a known C2 endpoint. Want me to draft the containment ticket?"
+agent.run_sync("What did we conclude?",                           thread_id="ticket-8912-refund")
+# → "The return on ord-4821 is eligible. Want me to draft the refund for manager approval?"
 ```
 
 The `thread_id` is the unit of conversation. Every node that runs
@@ -35,14 +35,14 @@ thread_id=...)` call rehydrates state before the first Think.
 ## Threads, not sessions
 
 The SDK uses **thread** as the term — borrowing from chat UIs and
-issue trackers — because a single investigation can have many
+issue trackers — because a single piece of work can have many
 simultaneous conversations:
 
 | Thread | Use |
 |---|---|
-| `case-7731-triage` | an open SOC triage conversation for one alert |
-| `case-7731-hunt` | a parallel threat-hunt the same analyst kicked off |
-| `hunt-c2-sweep-q3` | a long-running autonomous sweep not tied to a single case |
+| `ticket-8912-refund` | an open support conversation about one refund request |
+| `deploy-2026-07-rollout` | a release thread the deploy operator drives across the week |
+| `case-7731-triage` | a security-operations triage conversation for one alert |
 
 A thread is a string. Pick the convention that matches your domain.
 
@@ -66,7 +66,7 @@ goes in `metadata`.
 ```python
 # List all threads in a bucket
 threads = await checkpointer.list_threads()
-# → ["case-7731-triage", "case-7731-hunt", ...]
+# → ["ticket-8912-refund", "case-7731-triage", ...]
 
 # Inspect one
 state = await checkpointer.load("case-7731-triage")
@@ -79,7 +79,7 @@ await checkpointer.copy_thread(
 )
 
 # Drop
-await checkpointer.delete("case-7731-replay")
+await checkpointer.delete("case-7731-triage-replay")
 
 # Vacuum old threads via lifecycle policy (per backend)
 ```
@@ -94,9 +94,9 @@ level and the store handles the cleanup.
 Two `agent.run(...)` calls against the same `thread_id` are usually a
 bug — you'll race on the checkpoint. Three patterns to avoid that:
 
-1. **Per-case lock at the application layer.** Most SOC consoles already
-   serialise messages per session.
-2. **Distinct sub-threads.** If the analyst asks two things in
+1. **Per-case lock at the application layer.** Most chat UIs and
+   ticketing systems already serialise messages per session.
+2. **Distinct sub-threads.** If the user asks two things in
    parallel, give them two thread ids.
 3. **Last-write-wins is the default.** The SDK's checkpointers do not
    currently expose a conflict exception — if you need optimistic

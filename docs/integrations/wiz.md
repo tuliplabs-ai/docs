@@ -1,4 +1,4 @@
-# Wiz (AI-SPM)
+# Wiz (AI-SPM — AI Security Posture Management)
 
 Wiz discovers *what AI exists in your cloud* (the AI-BOM) and the posture issues
 around it. This integration brings that into Tulip so an agent can **reason over

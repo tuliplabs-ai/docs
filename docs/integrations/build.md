@@ -1,9 +1,11 @@
 # Build an integration
 
 An integration is a small module that implements the core **`SecurityAdapter`**
-contract and reuses the core toolkit. It lives in a separate distribution
-(`tulip-integrations` or your own), depends one-way on `tulip-agents`, and is
-discovered by explicit import.
+contract and reuses the core toolkit. The adapter pattern is general — it fits
+any vendor system an agent reads from or acts on; the protocol lives under
+`tulip.security` for historical reasons, and new domain packages are welcome.
+An integration lives in a separate distribution (`tulip-integrations` or your
+own), depends one-way on `tulip-agents`, and is discovered by explicit import.
 
 Place it in the **domain package that fits your vendor** — `siem/`, `edr/`,
 `identity/`, `threat_intel/`, `vuln/`, `compute/`, `notify/`, or `soar/` — one
@@ -27,9 +29,10 @@ from tulip.security import SecurityAdapter, ToolAdapter  # the protocol + a conc
 2. **An `async @tool`** wrapper that returns `tulip.security.as_json(...)`.
 3. **A `*_adapter()` factory** returning a `ToolAdapter`
    (`name`, `vendor`, `_tools=[…]`).
-4. **(If it asserts about an asset)** build a GSAR partition with
-   `tulip.security.tool_match` / `inference_claim` and route it through
-   `tulip.security.ground_finding`, so an ungrounded result abstains. (For
+4. **(If it asserts about an asset)** build a GSAR partition — GSAR is Tulip's
+   evidence check: a claim must be backed by tool output, otherwise the agent
+   abstains — with `tulip.security.tool_match` / `inference_claim` and route it
+   through `tulip.security.ground_finding`, so an ungrounded result abstains. (For
    threat-intel indicators, `tulip.security.indicator_type` maps a coarse kind —
    `"ip"` / `"domain"` / `"hash"` — to the typed enum.)
 5. **An optional extra** in `pyproject.toml` (`<area>-<vendor>`) if the live

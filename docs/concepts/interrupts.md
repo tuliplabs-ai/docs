@@ -1,9 +1,9 @@
 # Interrupts & human-in-the-loop
 
-Sometimes the agent shouldn't decide alone. A human approves
-isolating a production host. An incident lead signs off before an
-indicator is blocked fleet-wide. Policy requires an audit checkpoint
-between investigation and containment.
+Sometimes the agent shouldn't decide alone. A human approves the
+$4,000 refund. A release manager signs off before the deploy goes
+out. Policy requires a named person between recommendation and
+action.
 
 Tulip treats human approval as
 **a tool the model can call** — same shape as any other tool, except
@@ -28,19 +28,19 @@ from tulip.core.events import InterruptEvent
 from tulip.tools.decorator import tool
 
 @tool(idempotent=True)
-def isolate_host(host_id: str, incident_id: str) -> dict:
-    return edr.isolate(host_id, incident_id)
+def issue_refund(order_id: str, amount: float) -> dict:
+    return billing.refund(order_id, amount)
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[query_siem, isolate_host],   # ask_user is auto-registered
+    tools=[lookup_order, issue_refund],   # ask_user is auto-registered
     system_prompt=(
-        "You are a SOC incident responder. "
-        "Always call ask_user for approval before isolate_host."
+        "You are a customer-support agent. "
+        "Always call ask_user for approval before issue_refund."
     ),
 )
 
-async for event in agent.run("Contain host WS-014 if the beacon is malicious."):
+async for event in agent.run("Refund order ord-4821 if the return is eligible."):
     if isinstance(event, InterruptEvent):
         answer = input(f"{event.question} ")   # or Slack / web / email
         async for resumed in agent.resume(answer):
@@ -97,7 +97,7 @@ agent = Agent(
     ...,
     hooks=[SteeringHook(
         model="anthropic:claude-sonnet-4-6",
-        policy="Reject any tool call that doesn't match the analyst's stated request.",
+        policy="Reject any tool call that doesn't match the user's stated request.",
     )],
 )
 ```
@@ -158,7 +158,7 @@ debugging, or branch off a new thread from the partial conversation.
 - [Human in the loop](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_19_human_in_the_loop.py)
   — a full runnable example.
 - [Multi-agent + HITL](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py)
-  — three HITL patterns in one file (approval gate, human-as-tool,
+  — three HITL (human-in-the-loop) patterns in one file (approval gate, human-as-tool,
   long-pause snapshot/resume).
 - [Incident response](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py)
   — `interrupt()` as the page-the-human gate after severity

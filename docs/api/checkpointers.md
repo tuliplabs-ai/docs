@@ -1,6 +1,6 @@
 # Checkpointers
 
-State persistence between agent runs. **S3-compatible object storage**
+State persistence between agent runs. S3-compatible object storage
 (S3 / MinIO / R2 via boto3) is a production backend, alongside Redis,
 PostgreSQL, MySQL, and OpenSearch.
 

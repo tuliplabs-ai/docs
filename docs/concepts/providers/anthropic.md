@@ -6,7 +6,7 @@ Haiku for high-volume cheap calls — and want to talk to Anthropic
 without going through an intermediary.
 
 What makes this provider distinct is **prompt caching**: a long
-threat-intel block or SOC playbook reused across an investigation pays
+product-catalog, policy, or playbook block reused across a session pays
 1/10th the input cost on repeat turns. Each turn's assistant message is
 also surfaced as a typed `ThinkEvent`, so a UI can show the model's
 working as it streams.
@@ -16,8 +16,8 @@ working as it streams.
 | You want… | This is the right provider |
 |---|---|
 | Claude Opus / Sonnet / Haiku from Anthropic directly | ✓ |
-| Threat-intel context / SOC playbooks amortised across a long investigation | ✓ — built-in prompt caching |
-| Each turn's reasoning surfaced for the analyst to follow | ✓ — `ThinkEvent` stream |
+| Long shared context (catalogs, policies, playbooks) amortised across a session | ✓ — built-in prompt caching |
+| Each turn's reasoning surfaced for the operator to follow | ✓ — `ThinkEvent` stream |
 
 ## Getting started
 
@@ -33,7 +33,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 from tulip.agent import Agent
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    system_prompt="You are a SOC triage analyst.",
+    system_prompt="You are a support agent.",
 )
 ```
 
@@ -44,7 +44,7 @@ Anthropic accepts, the SDK accepts.
 ### 3. Run it
 
 ```python
-result = agent.run_sync("Summarise the triage findings for alert A-42 in three bullets.")
+result = agent.run_sync("Summarise the open orders for customer 4821 in three bullets.")
 print(result.message)
 ```
 
@@ -59,9 +59,9 @@ Whatever Anthropic ships, you can address by name:
 
 | Model | When to pick it |
 |---|---|
-| `claude-opus-4-8` | Hardest problems — incident timeline reconstruction, deep threat hunting, multi-step forensics |
-| `claude-sonnet-4-6` | Everyday workhorse — fast enough, smart enough, cheap enough for routine triage |
-| `claude-haiku-4-5` | High-volume cheap calls — alert classification, indicator routing, log summaries |
+| `claude-opus-4-8` | Hardest problems — timeline reconstruction, complex multi-step plans |
+| `claude-sonnet-4-6` | Everyday workhorse — fast enough, smart enough, cheap enough for routine work |
+| `claude-haiku-4-5` | High-volume classification and routing — cheap calls, log summaries |
 
 ### Real SSE streaming
 
@@ -70,7 +70,7 @@ converts them to `ModelChunkEvent`s; your `async for` loop reads
 them as they arrive.
 
 ```python
-async for event in agent.run("Summarise the timeline of alert A-42."):
+async for event in agent.run("Summarise the history of order ord-4821."):
     if isinstance(event, ModelChunkEvent) and event.content:
         print(event.content, end="", flush=True)
 ```
@@ -101,15 +101,15 @@ agent = Agent(
     model="anthropic:claude-sonnet-4-6",
     output_schema=Triage,
 )
-result = agent.run_sync("Beacon from WIN-7731 to a known C2 endpoint.")
+result = agent.run_sync("Customer 4821 reports a duplicate charge on ord-4821.")
 print(result.parsed)        # Triage(severity='high', needs_human=True)
 ```
 
 ### Prompt caching — opt in for long prompts
 
 This is the biggest cost saver if your system prompt or tool block is
-long (SOC playbooks, threat-intel feeds, detection rules). Re-feeding
-the same threat-intel context on every turn of an investigation is the
+long (product catalogs, policy docs, SOC playbooks). Re-feeding
+the same context on every turn of a session is the
 common case — and the expensive one. Anthropic's prompt-caching
 mechanism marks a span of the request as cacheable; subsequent turns
 within the cache window pay **1/10th** the input cost on the cached
@@ -130,7 +130,7 @@ agent = Agent(
         prompt_cache=True,
     ),
     tools=[...],
-    system_prompt="<a long system prompt — SOC playbooks, threat-intel context, detection rules>",
+    system_prompt="<a long system prompt — product catalog, policy docs, playbooks>",
 )
 
 result = agent.run_sync("...")
@@ -155,8 +155,8 @@ and the cost saved.
 ### Per-turn reasoning — visible message stream
 
 Each agent turn surfaces the model's assistant message as a
-`ThinkEvent` before any tool calls run, so the analyst can follow how
-the model is working through a triage call. The SDK builds the
+`ThinkEvent` before any tool calls run, so a human can follow how
+the model is working through a decision. The SDK builds the
 `ThinkEvent` from the turn's `message.content` (the Anthropic response
 parser handles `text` and `tool_use` blocks); it does **not** send an
 extended-thinking request param, so this is the normal per-turn message

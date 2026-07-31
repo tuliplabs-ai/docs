@@ -1,4 +1,4 @@
-# Multi-modal providers
+# Capability providers
 
 Non-LLM provider Protocols — web search, web fetch, image generation,
 text-to-speech, speech recognition. Setting any of them on

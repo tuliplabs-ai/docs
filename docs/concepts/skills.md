@@ -28,20 +28,20 @@ from tulip.agent import AgentConfig
 from tulip.skills import Skill
 
 skill = Skill(
-    name="code-review",
-    description="Use when reviewing code for bugs and security issues.",
+    name="release-notes",
+    description="Use when drafting release notes from a list of merged changes.",
     instructions=(
-        "# Code Review Checklist\n"
-        "1. Check for SQL injection\n"
-        "2. Check for hardcoded credentials\n"
-        "3. Check error handling\n"
-        "Report findings as: FINDING: <description>"
+        "# Release Notes Checklist\n"
+        "1. Group changes: features, fixes, breaking\n"
+        "2. Lead with user-visible impact, not internals\n"
+        "3. Call out migration steps for breaking changes\n"
+        "Report each entry as: NOTE: <description>"
     ),
 )
 
 agent = Agent(config=AgentConfig(
     model="anthropic:claude-sonnet-4-6",
-    system_prompt="You are a security reviewer. Use available skills.",
+    system_prompt="You are a release manager. Use available skills.",
     skills=[skill],
 ))
 ```
@@ -63,18 +63,18 @@ agent = Agent(config=AgentConfig(
 ```python
 from tulip.skills import Skill
 
-enrichment = Skill(
-    name="ioc-enrichment",
-    description="Use when triaging an indicator of compromise (IP, domain, URL, hash).",
+refund_triage = Skill(
+    name="refund-triage",
+    description="Use when a customer asks for a refund or disputes a charge.",
     instructions=(
-        "# IOC Enrichment\n\n"
-        "1. Classify the indicator (IP / domain / URL / hash).\n"
-        "2. Enrich it with `enrich_indicator`; for file hashes use `lookup_hash`.\n"
-        "3. Weigh vendor detections, registrar age, and prior sightings.\n"
-        "4. Return a verdict (malicious / suspicious / benign / unknown) with the evidence.\n"
-        "5. No corroborating evidence? Abstain — return `unknown`, never guess.\n"
+        "# Refund Triage\n\n"
+        "1. Pull the order with `lookup_order`; check the payment history.\n"
+        "2. Check eligibility with `check_refund_policy` — window, amount cap, prior refunds.\n"
+        "3. Weigh order value, account age, and dispute history.\n"
+        "4. Return a recommendation (approve / deny / escalate) with the evidence.\n"
+        "5. No corroborating evidence? Escalate — never guess.\n"
     ),
-    allowed_tools=["enrich_indicator", "lookup_hash"],
+    allowed_tools=["lookup_order", "check_refund_policy"],
 )
 ```
 
@@ -90,31 +90,30 @@ line.
 ### Filesystem — drop a `SKILL.md`
 
 ```text
-skills/ioc-enrichment/
+skills/refund-triage/
 ├── SKILL.md
 ├── scripts/
-│   └── correlate.py
+│   └── payment_history.py
 └── references/
-    └── severity-tiers.md
+    └── refund-policy.md
 ```
 
 ```markdown
 ---
-name: ioc-enrichment
-description: Use when triaging an indicator of compromise (IP, domain, URL, hash).
-allowed-tools: enrich_indicator lookup_hash
+name: refund-triage
+description: Use when a customer asks for a refund or disputes a charge.
+allowed-tools: lookup_order check_refund_policy
 metadata:
-  author: soc-team
+  author: support-team
   version: 1.0
 ---
 
-# IOC Enrichment
+# Refund Triage
 
-Classify the indicator, enrich it, and weigh vendor detections,
-registrar age, and prior sightings. Abstain to `unknown` when nothing
-corroborates. Reference `references/severity-tiers.md` for the internal
-score-to-severity mapping. Use `scripts/correlate.py` to pull related
-alerts.
+Pull the order, check eligibility, and weigh order value, account age,
+and dispute history. Escalate when nothing corroborates the request.
+Reference `references/refund-policy.md` for the caps and windows. Use
+`scripts/payment_history.py` to pull related charges.
 ```
 
 ### Load and attach
@@ -125,86 +124,67 @@ from tulip.skills import Skill
 
 skills = Skill.from_directory(Path("./skills"))   # all SKILL.md folders
 # …or one at a time:
-single = Skill.from_file("./skills/ioc-enrichment")
+single = Skill.from_file("./skills/refund-triage")
 
 agent = Agent(config=AgentConfig(model=..., skills=skills))
 ```
 
-### Worked example — a contained incident-response skill
+### Worked example — a contained refund-triage skill
 
-Phishing-link triage, scoped so the loaded skill is *steered* to read
-and enrich rather than isolate a host — containment stays a deliberate,
+Refund triage, scoped so the loaded skill is *steered* to read and
+recommend rather than pay out — the refund itself stays a deliberate,
 separately-authorised step. (Because `allowed_tools` is advisory, the
 hard guarantee comes from how you register tools, not the skill — see
 below.)
 
 ```python
 from tulip.agent import Agent, AgentConfig
-from tulip.security import security_toolset, ground_finding, is_finding, Severity
-from tulip.reasoning.gsar import Claim, EvidenceType, Partition
 from tulip.skills import Skill
 
-ir_triage = Skill(
-    name="ir-phishing-triage",
-    description="Use when a user reports a phishing email or clicked a suspicious link.",
+refund_triage = Skill(
+    name="refund-triage",
+    description="Use when a customer asks for a refund or disputes a charge.",
     instructions=(
-        "# Phishing IR — detection & analysis\n\n"
-        "1. Pull the alert with `fetch_alert`; correlate logins/proxy "
-        "hits with `query_siem`.\n"
-        "2. Enrich every URL and sender domain with `enrich_indicator`; "
-        "any attachment hash with `lookup_hash`.\n"
+        "# Refund triage — verify & recommend\n\n"
+        "1. Pull the order with `lookup_order`; correlate charges "
+        "with `lookup_customer`.\n"
+        "2. Check eligibility with `check_refund_policy` — window, "
+        "amount cap, prior refunds.\n"
         "3. Ground each conclusion: only report what a tool returned. "
-        "No evidence -> ABSTAIN, do not speculate.\n"
-        "4. Recommend containment in prose. Do NOT call `isolate_host` "
-        "or `block_indicator` — that is the responder's call.\n"
+        "No evidence -> ESCALATE, do not speculate.\n"
+        "4. Recommend the refund in prose. Do NOT call `issue_refund` "
+        "— that is the approver's call.\n"
     ),
-    # read + enrich only; steers the model away from containment tools
-    allowed_tools=["fetch_alert", "query_siem", "enrich_indicator", "lookup_hash"],
+    # read + check only; steers the model away from the write tool
+    allowed_tools=["lookup_order", "lookup_customer", "check_refund_policy"],
 )
 
 agent = Agent(config=AgentConfig(
     model="anthropic:claude-sonnet-4-6",
-    system_prompt="You are a SOC analyst. Cite evidence; abstain without it.",
+    system_prompt="You are a support agent. Cite evidence; escalate without it.",
     # register the full toolset; the skill narrows it while active
-    tools=security_toolset(allow_containment=True),
-    skills=[ir_triage],
+    tools=[lookup_order, lookup_customer, check_refund_policy, issue_refund],
+    skills=[refund_triage],
 ))
 
-result = agent.run("User clicked a link in alert AL-4471 — triage it.")
-
-# Gate the verdict through GSAR: ground_finding ships an Evidence only if
-# the supporting claims clear the threshold, else an Abstention. Build the
-# partition from what your tools actually returned (see GSAR for details).
-partition = Partition(
-    grounded=[
-        Claim(
-            text="enrich_indicator flagged the sender domain as malicious",
-            type=EvidenceType.TOOL_MATCH,
-            evidence_refs=[f"tool:{ex.name}" for ex in result.tool_executions],
-        ),
-    ],
-)
-verdict = ground_finding(
-    title="Phishing compromise confirmed for AL-4471",
-    description="User clicked a link whose sender domain is known-malicious.",
-    severity=Severity.HIGH,
-    asset="AL-4471",
-    remediation="Reset the user's credentials and isolate the host.",
-    partition=partition,
-)
-if is_finding(verdict):
-    print("CONFIRMED:", verdict.title, verdict.severity)
-else:
-    print("ABSTAINED —", verdict.reason)
+result = agent.run("Customer on ord-4821 reports a duplicate charge — triage it.")
 ```
 
-`security_toolset(allow_containment=True)` registers `isolate_host` and
-`block_indicator` on the agent, and the skill's instructions steer the
-model away from them while `ir-phishing-triage` is loaded. Because
-`allowed_tools` is advisory (not a hard filter), if you need containment
-to be *unreachable* during triage, omit `allow_containment=True` so the
-tools are never registered. Either way, a human (or a separate, audited
+`issue_refund` is registered on the agent, and the skill's
+instructions steer the model away from it while `refund-triage` is
+loaded. Because `allowed_tools` is advisory (not a hard filter), if
+you need the write to be *unreachable* during triage, don't register
+`issue_refund` at all. Either way, a human (or a separate, audited
 [playbook](playbooks.md)) pulls the trigger.
+
+The security-flavored variant is the same lesson. A phishing-triage
+skill steers the model to `fetch_alert` / `query_siem` /
+`enrich_indicator` and ends with *"Recommend containment in prose. Do
+NOT call `isolate_host` — that is the responder's call"*, over
+`tools=security_toolset(allow_containment=True)` — and gates the final
+verdict through `ground_finding` so an unsupported compromise claim
+abstains instead of shipping. See [Security](security.md) and
+[GSAR](gsar.md).
 
 ## Why progressive disclosure earns its keep
 

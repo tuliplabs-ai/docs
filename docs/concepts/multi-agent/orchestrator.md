@@ -17,7 +17,7 @@ specialists in one turn they run in parallel (bounded by
 Each `Specialist` is its own self-contained agent. Its fields:
 
 - a `name` — what the coordinator calls it by
-- a `specialist_type` — a short type tag (e.g. `"forensics"`)
+- a `specialist_type` — a short type tag (e.g. `"research"`)
 - a `description` — what the specialist is good at (the coordinator reads this)
 - a `system_prompt` — the specialist's own instructions
 - its own `tools` and `model`
@@ -50,55 +50,57 @@ from tulip.multiagent import Specialist, create_orchestrator
 
 model = "anthropic:claude-sonnet-4-6"
 
-triage = Specialist(
-    name="triage",
-    specialist_type="triage",
-    description="Reads the alerts. Enriches indicators. Scores severity.",
-    system_prompt="You are the Triage specialist.",
-    tools=[fetch_alerts, enrich_ioc],
+research = Specialist(
+    name="research",
+    specialist_type="research",
+    description="Searches sources. Collects evidence. Summarises what it found.",
+    system_prompt="You are the Research specialist.",
+    tools=[web_search, fetch_page],
 )
 
-forensics = Specialist(
-    name="forensics",
-    specialist_type="forensics",
-    description="Reconstructs the host timeline. Confirms compromise. Flags blast radius.",
-    system_prompt="You are the Forensics specialist.",
-    tools=[pull_edr_timeline, scan_host, search_iocs],
+data = Specialist(
+    name="data",
+    specialist_type="data",
+    description="Queries the warehouse. Reconstructs timelines. Quantifies impact.",
+    system_prompt="You are the Data specialist.",
+    tools=[query_metrics, query_warehouse],
 )
 
-containment = Specialist(
-    name="containment",
-    specialist_type="containment",
-    description="Isolates hosts and pages the on-call. Only after triage + forensics agree.",
-    system_prompt="You are the Containment specialist.",
-    tools=[isolate_host, page_oncall],     # ← idempotent writes
+writing = Specialist(
+    name="writing",
+    specialist_type="writing",
+    description="Drafts and publishes the report. Only after research + data agree.",
+    system_prompt="You are the Writing specialist.",
+    tools=[draft_report, publish_report],  # ← idempotent writes
 )
 
 orchestrator = create_orchestrator(
-    name="incident commander",
-    specialists=[triage, forensics, containment],
+    name="coordinator",
+    specialists=[research, data, writing],
     model=model,                           # the coordinator's routing model
 )
 orchestrator.system_prompt = (
-    "You are the incident commander. Delegate enrichment to triage, "
-    "host analysis to forensics, and only after both confirm call containment."
+    "You are the coordinator. Delegate source-gathering to research, "
+    "metrics to data, and only after both report back call writing."
 )
 
 result = await orchestrator.execute(
-    "Sev-1: ransomware detected on ws-0042. Investigate, contain, and recommend remediation.",
+    "Why did checkout conversion drop last week? Investigate and draft a report.",
 )
 ```
 
 `create_orchestrator` registers the specialists and propagates the
 coordinator's `model` into any specialist that doesn't carry its own.
-`execute()` is async — `await` it (or wrap in `asyncio.run`).
+`execute()` is async — `await` it (or wrap in `asyncio.run`). The same
+shape runs an incident commander: triage, forensics, and containment
+specialists, with containment gated behind the other two.
 
 ## What runs in parallel
 
 Specialists fire **concurrently** when the coordinator dispatches to
 several of them in one turn. So when the coordinator says "in
-parallel: triage, enrich the indicators on ws-0042; forensics, pull
-the host's EDR timeline" — both specialists run at the same time and
+parallel: research, pull the release notes for deploy-77; data, pull
+last week's funnel metrics" — both specialists run at the same time and
 their results merge back before the coordinator's next Think.
 
 ## Confidence thresholds
@@ -110,11 +112,11 @@ output or route the sub-task to another expert:
 
 ```python
 Specialist(
-    name="malware-rev",
-    specialist_type="malware_analysis",
-    description="Reverse-engineers suspicious binaries and flags capabilities.",
-    system_prompt="You reverse-engineer suspicious binaries.",
-    tools=[disassemble, sandbox_detonate],
+    name="data-quality",
+    specialist_type="data_quality",
+    description="Audits metric definitions and flags unreliable numbers.",
+    system_prompt="You audit metrics before they are cited.",
+    tools=[query_warehouse, profile_table],
     confidence_threshold=0.7,    # the bar this specialist's
                                  # self-estimated confidence is held to
 )

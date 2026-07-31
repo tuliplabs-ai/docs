@@ -7,13 +7,14 @@ hide:
 <div class="tulip-hero" markdown>
 <div class="tulip-hero__copy" markdown>
 
-<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span><span class="tpn-tag">the safest way to build agentic AI</span></p>
+<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span><span class="tpn-tag">the control runtime for agents that act</span></p>
 
 # Agents that act. <span class="accent">Safe by construction.</span>
 
 Tulip is an open-source **agentic harness** with one hard rule: **the model never holds
-the trigger.** A jailbreak can talk your agent into anything — it can't talk past the
-gate. Build agents on it, or [govern the ones you already run](integrations/frameworks.md)
+the trigger.** The agent decides to act — issue the refund, ship the deploy, change the
+account — and the action runs only after your policy clears it, in code the model can't
+reach. Build agents on it, or [govern the ones you already run](integrations/frameworks.md)
 in LangChain, CrewAI, or the OpenAI Agents SDK.
 
 <div class="tulip-hero__cta" markdown>
@@ -68,8 +69,8 @@ can't reach:
 - **[GSAR](concepts/gsar.md)** scores every claim against typed evidence — below threshold
   the agent regenerates or abstains, never guesses.
 - The **[admission gate](concepts/security-context.md)** clears every side-effecting call:
-  `admit()` allows it, holds it for a human, or denies it — and records the decision on a
-  hash-chained trail either way.
+  `admit()` allows it, holds it for a human, or denies it — and records the decision
+  either way, on a trail where editing any entry breaks `verify()`.
 
 ```python
 from tulip.control import (
@@ -91,7 +92,7 @@ async def safe_refund(order_id: str, usd: float):
         return "Held for a human — not run."
 ```
 
-A prompt rule is advisory: a jailbreak talks the model past it. The gate is structural —
+A prompt rule is advisory — the model can be argued out of it. The gate is structural —
 the wrong action isn't caught in a filter, it never runs.
 [How this compares to prompt rules and guardrails →](why-tulip.md)
 

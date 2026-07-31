@@ -62,8 +62,8 @@ Three options:
 ```python
 @tool
 def fetch_alert(alert_id: str) -> dict:
-    """Fetch the details of a SOC alert."""
-    return siem.get(alert_id)
+    """Fetch the details of an alert."""
+    return alerts.get(alert_id)
 ```
 
 1. **Let the loop handle it.** When `fetch_alert` raises, the SDK
@@ -99,11 +99,11 @@ second time, and the cached receipt is returned.
 
 ```python
 @tool(idempotent=True)
-def isolate_host(host_id: str) -> dict: ...
+def issue_refund(order_id: str, amount: float) -> dict: ...
 ```
 
 This means you can let the model loop, panic, and retry without
-isolating the same host twice (or paging the on-call twice). The
+refunding the same order twice (or paging the on-call twice). The
 Execute hash is `(tool_name,
 kwargs)`, so semantically-different calls aren't accidentally
 deduped.

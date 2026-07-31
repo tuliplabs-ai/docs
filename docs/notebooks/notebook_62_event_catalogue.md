@@ -1,6 +1,6 @@
 # Event Catalogue
 
-When a PCI DSS assessor asks "what can your payment agents do, and how
+When a payment-card compliance (PCI DSS) assessor asks "what can your payment agents do, and how
 would you know they did it?", the answer is the event catalogue — and it
 is generated from the code itself rather than a spreadsheet that drifts
 out of date. Every component in Tulip emits typed events under one stable prefix:

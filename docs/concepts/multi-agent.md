@@ -26,7 +26,7 @@ upgrades to a live provider by setting one env var.
 | **31** | Supervisor + critic loop | Recon → Report author → Skeptical reviewer, loop back to the author until the reviewer approves (cap'd revisions). | [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_31_supervisor_critic_loop.py) |
 | **32** | Adversarial debate + judge | One agent argues the finding is a true positive, another argues benign, across N rounds; Judge emits a typed `Verdict` via `output_schema`. | [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_32_debate_with_judge.py) |
 | **33** | Multi-agent + human-in-the-loop | Three patterns in one file: approval gate, human-as-tool, long-pause snapshot/resume. | [`notebook_33_multiagent_human_in_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py) |
-| **63** | IR war-room | Triage → 3 parallel investigators (SIEM / EDR / threat intel) → severity gate → page-the-responder → contain → typed `Postmortem`. | [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py) |
+| **63** | IR (incident-response) war-room | Triage → 3 parallel investigators (SIEM — a security team's log platform — EDR, and threat intel) → severity gate → page-the-responder → contain → typed `Postmortem`. | [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py) |
 | **64** | Vendor security review | Questionnaire analyst → Posture analyst → risk-tier router (auto / security-manager / +GRC / +CISO) → typed `VendorDecision`. Stacked `interrupt()` gates on the top tiers. | [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py) |
 | **65** | DPA & security-addendum review | Parser → 3 parallel reviewers (privacy / security / compliance) → revision gate → human analyst → `Command(goto="sign_off")` short-circuits when resolved. Cycles enabled. | [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py) |
 
@@ -172,7 +172,8 @@ below works in any of the eight shapes — you don't pick "shape" or
 "production-ready", you get both. And side-effecting tools inside any
 shape go through the admission gate —
 [`admit()`](security-context.md) — so every decision lands on the
-hash-chained `AuditTrail`.
+hash-chained `AuditTrail` (each entry commits to the one before it, so
+editing any record breaks verification).
 
 ### Reflexion — catch a bad turn before the next one
 
@@ -197,13 +198,13 @@ claims get dropped or sent back. → [Reasoning concept](reasoning.md) ·
 
 ```python
 @tool(idempotent=True)
-def isolate_host(host_id: str, case_id: str) -> dict:
-    return edr.quarantine(host_id, case_id)
+def issue_refund(order_id: str, case_id: str) -> dict:
+    return billing.refund(order_id, case_id)
 ```
 
 The ReAct loop dedupes repeat calls on the `(name, kwargs)` hash — the
-model can't double-isolate a host, double-page, or re-fire a containment
-action. → [Idempotency concept](idempotency.md).
+model can't double-refund an order, double-page on-call, or re-fire a
+deploy. → [Idempotency concept](idempotency.md).
 
 ### Checkpointing — survive every restart
 
@@ -243,12 +244,12 @@ from every layer simultaneously:
 from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
-    result = await orchestrator.execute("Investigate the phishing campaign against finance.")
+    result = await orchestrator.execute("Resolve the disputed orders in this morning's queue.")
 
     async for ev in get_event_bus().subscribe(rid):
         match ev.event_type:
             case "multiagent.orchestrator.decision":
-                print("incident commander →", ev.data["specialists_selected"])
+                print("orchestrator →", ev.data["specialists_selected"])
             case "agent.tool.started":
                 print("  🔧", ev.data["tool_name"])
             case "agent.terminate":

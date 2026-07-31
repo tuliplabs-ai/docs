@@ -1,11 +1,12 @@
 # Agent Yield Bridge
 
-A data-privacy review agent's tool calls are the part DPOs and auditors
-care about most. Every `Agent.run` is decorated with `@_bus_bridge` so
-the nine typed events it yields get republished on the bus as `agent.*`
-events when a `run_context` is open. No hook registration, no config
-flag — the bridge is always there; it only fires when telemetry is
-active. Every dataset the reviewer inspects shows up in the run stream.
+Every event an agent yields is republished on the bus automatically as
+an `agent.*` event whenever a `run_context` is open — no hook
+registration, no config flag. Under the hood, `Agent.run` is decorated
+with `@_bus_bridge`; the bridge is always there and only fires when
+telemetry is active. The scenario is a data-privacy review agent, whose
+tool calls are the part DPOs and auditors care about most: every
+dataset the reviewer inspects shows up in the run stream.
 
 Event mapping::
 

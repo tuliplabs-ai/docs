@@ -2,12 +2,13 @@
 
 > The single most important word in production agents is **once**.
 
-The model is *allowed* to retry. The side effect *isn't*. Tulip makes that distinction a
-one-keyword decision on the tool, enforced inside the ReAct loop.
-This is an SDK-specific primitive — none of LangChain / LangGraph
-/ CrewAI / Strands ship it.
+The model is *allowed* to retry. The side effect *isn't*. The model
+emits `issue_refund(order_id, amount)` twice — the customer is refunded
+once, always. Tulip makes that distinction a one-keyword decision on
+the tool, enforced inside the ReAct loop. This is an SDK-specific
+primitive — none of LangChain / LangGraph / CrewAI / Strands ship it.
 
-If you ever plan to run an agent that **isolates**, **blocks**,
+If you ever plan to run an agent that **refunds**, **deploys**,
 **pages**, **emails**, or **writes**, this is the most important
 single page on the docs site.
 
@@ -15,10 +16,10 @@ single page on the docs site.
 
 | Situation | `idempotent=True`? |
 |---|---|
-| Side-effecting tool with real-world cost (isolate a host, block an indicator, page on-call) | **yes — always** |
+| Side-effecting tool with real-world cost (issue a refund, ship a deploy, page on-call) | **yes — always** |
 | Database write you can't trivially roll back | **yes** |
 | External service that's already idempotent on its end | yes — the SDK dedupes the round-trip too |
-| Read-only indicator lookup | no — re-reads are cheap, leave it to the model |
+| Read-only order lookup | no — re-reads are cheap, leave it to the model |
 | Tool that *intentionally* generates a new entity each call (e.g. `mint_case_id`) | no — that breaks the contract |
 
 ## How it works
@@ -32,16 +33,16 @@ to the cached response** without invoking the body.
 ```python
 from tulip.tools import tool
 @tool(idempotent=True)
-def isolate_host(host_id: str, incident_id: str) -> dict:
-    """Isolate a host from the network. Re-fires within a run return the cached receipt."""
-    return edr.isolate(host_id, incident_id)
+def issue_refund(order_id: str, amount: float) -> dict:
+    """Refund an order. Re-fires within a run return the cached receipt."""
+    return billing.refund(order_id, amount)
 ```
 
 The argument hash is the trust boundary:
 
-- **Same call**: the model re-emits `isolate_host("WS-014", "INC-92")` after
+- **Same call**: the model re-emits `issue_refund("ord-4821", 120.0)` after
   seeing the receipt → cache hit, body skipped.
-- **Different call**: the model emits `isolate_host("WS-015", "INC-92")` →
+- **Different call**: the model emits `issue_refund("ord-4822", 120.0)` →
   different key, body runs.
 
 Dedup compares the **raw arguments dict** the model emitted, exactly as
@@ -55,25 +56,27 @@ won't break a match.)
 
 ## Why this matters
 
-### Containment actions
+### Actions with real-world cost
 
-The model that calls `isolate_host` twice in one run is more common
+The model that calls `issue_refund` twice in one run is more common
 than you think. Sometimes it sees an ambiguous tool result and tries
 again "to be sure". Sometimes the network glitches and the model
-believes the call failed. Without idempotency, you flap the host's
-network state twice and the on-call gets paged for the duplicate.
+believes the call failed. Without idempotency, the customer is refunded
+twice and finance opens a ticket for the duplicate.
 
 ```python
 @tool(idempotent=True)
-def isolate_host(host_id: str, incident_id: str) -> dict:
-    return edr.isolate(host_id, incident_id)
+def issue_refund(order_id: str, amount: float) -> dict:
+    return billing.refund(order_id, amount)
 ```
 
-The host gets isolated once. Always.
+The customer is refunded once. Always. The same keyword covers a deploy
+(`deploy_service`), a page (`page_oncall`), and the security-operations
+variant (`isolate_host` — cut a compromised host off the network).
 
 ### Outbound side-effects
 
-`page_oncall`, `block_indicator`, `open_case`, `slack_alert` — anything
+`page_oncall`, `open_case`, `slack_alert`, `block_indicator` — anything
 that touches a human or a downstream system. **One and done**.
 
 ### Database writes you can't roll back
@@ -98,37 +101,37 @@ it.)
 |---|---|---|
 | Scope | within a single agent run | cross-run — restart and the cache is gone (use a [checkpointer](checkpointers.md)) |
 | Failure | one fire per identical call | retry — if the body raises, the exception propagates as the cached "result" |
-| Boundary | per-agent | network — two different agents both calling `isolate_host(h, i)` each fire once |
+| Boundary | per-agent | network — two different agents both calling `issue_refund(o, a)` each fire once |
 
 If you need cross-run idempotency, configure a checkpointer + an
 idempotent server-side endpoint. The combo gives you "the side
 effect runs at most once across all replays of all agents".
 
-## Practical recipe — containment approval
+## Practical recipe — refund approval
 
 A canonical multi-agent idempotency shape: an agent (or three of
-them, debating) loops over a containment decision, then writes once.
+them, debating) loops over a refund decision, then writes once.
 
 ```python
 @tool(idempotent=True)
-def isolate_host(host_id: str, incident_id: str) -> dict:
-    return edr.isolate(host_id, incident_id)
+def issue_refund(order_id: str, amount: float) -> dict:
+    return billing.refund(order_id, amount)
 
 @tool(idempotent=True)
-def page_oncall(incident_id: str, summary: str) -> str:
-    return pager.notify(team="soc", subject=f"INC {incident_id}", body=summary)
+def page_oncall(case_id: str, summary: str) -> str:
+    return pager.notify(team="support", subject=f"CASE {case_id}", body=summary)
 ```
 
-The agent can iterate ten times reasoning about whether to contain.
-The host gets isolated once. The on-call gets paged once. The model
-can fail mid-run and a checkpointer-backed resume re-issues the same
-calls; the side effects still fire exactly once.
+The agent can iterate ten times reasoning about whether to refund.
+The customer is refunded once. The duty manager gets paged once. The
+model can fail mid-run and a checkpointer-backed resume re-issues the
+same calls; the side effects still fire exactly once.
 
 ## Common gotchas
 
 | Symptom | Likely cause |
 |---|---|
-| Tool re-fires despite `idempotent=True` | Argument changed between calls. Check that the model isn't mutating host / incident ids between turns. |
+| Tool re-fires despite `idempotent=True` | Argument changed between calls. Check that the model isn't mutating order ids / amounts between turns. |
 | Idempotent cache survives across runs unexpectedly | It shouldn't — only the checkpointer persists state. If you're seeing this, you're loading state from a checkpoint and don't want to. |
 | Body raised first time, cache returns the exception | This is by design — the failure is part of the "result" of the first call. The model sees the failure and can react. To re-attempt, the model must change an argument. |
 | Read-only lookup tagged `idempotent=True` | Harmless but wasteful — the cache hit savings are negligible vs the read itself. Leave it off. |

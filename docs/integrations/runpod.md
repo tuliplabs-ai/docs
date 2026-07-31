@@ -11,7 +11,8 @@
 reconnaissance: by renting a GPU *next to* a target and measuring how it streams
 tokens, an adversary can infer the **model class, inference engine, and hardware**
 behind an API — the opening move of model extraction
-(**MITRE ATLAS [AML.T0040](https://atlas.mitre.org/techniques/AML.T0040) — Inference
+(**MITRE ATLAS** — a public catalog of attack techniques against AI systems —
+**[AML.T0040](https://atlas.mitre.org/techniques/AML.T0040) — Inference
 API Access** → **[AML.T0024](https://atlas.mitre.org/techniques/AML.T0024) —
 Exfiltration via ML Inference API**). This integration runs that probe
 **defensively**: point it at endpoints *you operate* to measure what they leak and

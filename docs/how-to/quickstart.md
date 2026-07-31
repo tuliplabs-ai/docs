@@ -1,7 +1,6 @@
 # Quickstart
 
-A working Tulip SOC agent in five
-minutes.
+A working Tulip agent in five minutes.
 
 ## 1. Install
 
@@ -35,33 +34,34 @@ offline against the `MockModel` bundled with the examples.
 
 ## 3. Your first agent
 
-Save this as `soc_agent.py`:
+Save this as `support_agent.py`:
 
 ```python
 from tulip.agent import Agent
 from tulip.tools.decorator import tool
 
 @tool
-def scan_endpoint(ip: str, port: int) -> dict:
-    """Scan an endpoint for cert expiry and known CVEs."""
-    return {"ip": ip, "port": port, "cert_not_after": "2026-05-30",
-            "cves": ["CVE-2024-3094"]}
+def lookup_order(order_id: str) -> dict:
+    """Look up an order: status, amount, and delivery events."""
+    return {"order_id": order_id, "status": "delivered", "amount_usd": 42.50,
+            "delivery_events": ["shipped", "delivered", "damage reported"]}
 
 @tool
-def check_domain_reputation(domain: str) -> dict:
-    """Look up a domain in the threat-intel feeds."""
-    return {"domain": domain, "verdict": "malicious", "sources": 4}
+def check_refund_eligibility(order_id: str) -> dict:
+    """Check an order against the refund policy."""
+    return {"order_id": order_id, "eligible": True,
+            "reason": "damage reported within the 30-day window"}
 
 agent = Agent(
     model="openai:gpt-4o",
-    tools=[scan_endpoint, check_domain_reputation],
-    system_prompt="You are a SOC analyst triaging alerts. "
-                  "Cite the evidence behind every verdict.",
+    tools=[lookup_order, check_refund_eligibility],
+    system_prompt="You are a support agent handling refund requests. "
+                  "Cite the evidence behind every recommendation.",
 )
 
 result = agent.run_sync(
-    "Scan 192.0.2.10:443 for cert expiry and check its reputation "
-    "in our threat feeds."
+    "Order ORD-7842 arrived damaged. Look it up and check whether "
+    "it qualifies for a refund."
 )
 print(result.message)
 ```
@@ -69,15 +69,16 @@ print(result.message)
 Run:
 
 ```bash
-python soc_agent.py
+python support_agent.py
 ```
 
 You should see something like:
 
 ```text
-192.0.2.10:443 serves an expired cert (not_after 2026-05-30) and is
-vulnerable to CVE-2024-3094. Evidence: scan_endpoint + threat feeds
-flag the host malicious across 4 sources. Verdict: HIGH, isolate.
+ORD-7842 ($42.50) shows a damage report in its delivery events, and the
+policy check confirms it was reported within the 30-day window.
+Evidence: lookup_order + check_refund_eligibility. Verdict: eligible
+for refund — issuing it requires approval.
 ```
 
 ## 3.5 Gate the action
@@ -94,24 +95,24 @@ from tulip.control import (
     Action, admit, ControlPolicy, AuditTrail, AdmissionError)
 
 policy = ControlPolicy()    # conservative defaults: production → human
-trail = AuditTrail()        # hash-chained, replayable, tamper-evident
+trail = AuditTrail()        # tamper-evident and replayable — editing any record breaks verification
 
-# The triage above said "isolate 192.0.2.10". Don't just do it — admit it.
+# The check above said "eligible for refund". Don't just issue it — admit it.
 risky = Action(
-    name="isolate_host", asset="192.0.2.10",
-    blast_radius=1, kind="containment", environment="production")
+    name="issue_refund", asset="ORD-7842",
+    blast_radius=1, kind="payment", environment="production")
 
-async def isolate():
-    ...  # your real containment call (CrowdStrike, firewall, etc.)
+async def issue_refund():
+    ...  # your real payment call (Stripe, your billing service, etc.)
 
 try:
-    await admit(risky, isolate, policy=policy, trail=trail)
+    await admit(risky, issue_refund, policy=policy, trail=trail)
 except AdmissionError as e:
-    print(e.decision.outcome)   # -> "require_human" — held; isolate did NOT run
+    print(e.decision.outcome)   # -> "require_human" — held; the refund did NOT run
 
 # Either way it's on the record:
 print(trail.verify())           # True — chain intact
-print(trail.export_jsonl())     # SIEM-ready, one event per line
+print(trail.export_jsonl())     # one JSON event per line — ready for your log pipeline or audit store
 ```
 
 That `admit()` call is the difference between a library that *suggests*
@@ -131,7 +132,7 @@ from tulip.core.events import (
 )
 
 async def main():
-    async for event in agent.run("Scan 192.0.2.10:443 and triage it."):
+    async for event in agent.run("Look up ORD-7842 and assess the refund request."):
         match event:
             case ThinkEvent(reasoning=r) if r:
                 print(f"💭 {r}")
@@ -163,9 +164,9 @@ agent = Agent(
 )
 
 # Day 1
-agent.run_sync("Open the investigation for alert A-42.", thread_id="case-4821")
+agent.run_sync("Open case C-4821 for the billing dispute.", thread_id="case-4821")
 
-# Day 2 — same thread_id, the investigation continues
+# Day 2 — same thread_id, the case continues
 agent.run_sync("What did we establish so far?", thread_id="case-4821")
 ```
 
@@ -184,17 +185,17 @@ from tulip.core.termination import (
 )
 
 @tool(idempotent=True)
-def isolate_host(host_id: str, incident_id: str) -> dict:
-    return edr.isolate(host_id, incident_id)
+def issue_refund(order_id: str, amount: float) -> dict:
+    return payments.refund(order_id, amount)
 
 agent = Agent(
     model="openai:gpt-4o",
-    tools=[query_siem, isolate_host],
+    tools=[lookup_order, issue_refund],
     system_prompt="...",
     reflexion=True,
     checkpointer=S3Backend(bucket="tulip-threads", prefix="..."),
     termination=(
-        ToolCalled("isolate_host") & ConfidenceMet(0.9)
+        ToolCalled("issue_refund") & ConfidenceMet(0.9)
     ) | MaxIterations(8),
 )
 ```
@@ -245,6 +246,8 @@ expects that bearer token. Deploys anywhere FastAPI runs — see
 - **Browse examples.** Progressive notebooks at
   [`examples/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples).
   Each is a single runnable file that adds one idea on top of the
-  previous.
+  previous. A security-flavored variant of this quickstart — SOC alert
+  triage with the same gate — lives in the
+  [security notebooks](../notebooks/notebook_79_soc_alert_triage.md).
 - **Steer it.** [Hooks](../concepts/hooks.md) give you logging,
   telemetry, retry, guardrails, and steering as one-line additions.

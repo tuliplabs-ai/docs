@@ -149,7 +149,7 @@ from tulip.core.termination import (
 )
 
 terminate = (
-    ToolCalled("isolate_host") & ConfidenceMet(0.9)
+    ToolCalled("issue_refund") & ConfidenceMet(0.9)
 ) | MaxIterations(10) | TokenLimit(15_000)
 ```
 
@@ -230,31 +230,32 @@ and `SteeringHook` (LLM-as-judge tool approval). Source:
 
 ## A concrete example
 
-Consider this prompt against the agent on the homepage:
+Consider this prompt against a support agent with `lookup_order` +
+`issue_refund`:
 
-> *"Triage alert A-42: a beacon from host WIN-7731 to 198.51.100.23. Isolate the host if it's confirmed malicious."*
+> *"Process refund request R-42: verify order ord-4821, refund if eligible."*
 
 Iteration by iteration:
 
 | # | Node | What happens |
 |---|---|---|
-| 1 | Think | Model emits a tool call: `enrich_indicator(indicator="198.51.100.23", kind="ipv4")`. Streams `ThinkEvent` + `ModelChunkEvent`s. |
-| 1 | Execute | Runs `enrich_indicator`. Tool is **not** marked idempotent (read-only) so no dedup. Result added to `state.tool_executions`. Emits `ToolStartEvent`, `ToolCompleteEvent`. |
+| 1 | Think | Model emits a tool call: `lookup_order(order_id="ord-4821")`. Streams `ThinkEvent` + `ModelChunkEvent`s. |
+| 1 | Execute | Runs `lookup_order`. Tool is **not** marked idempotent (read-only) so no dedup. Result added to `state.tool_executions`. Emits `ToolStartEvent`, `ToolCompleteEvent`. |
 | 1 | Reflect | Skipped — first iteration, no error, no loop. Router goes back to Think. |
-| 1 | Terminate? | `MaxIterations(8)` not yet hit. `ToolCalled("isolate_host")` not satisfied. Continue. |
-| 2 | Think | The reputation result confirms a known C2 endpoint, so the model emits `isolate_host(host_id="WIN-7731", alert_id="A-42")`. |
-| 2 | Execute | Tool is `idempotent=True`. Execute hashes `("isolate_host", {host_id: "WIN-7731", alert_id: "A-42"})` and walks `state.tool_executions` for matches. None — so the body fires. Containment ticket `CN-58291` returned. |
+| 1 | Terminate? | `MaxIterations(8)` not yet hit. `ToolCalled("issue_refund")` not satisfied. Continue. |
+| 2 | Think | The order record confirms an eligible return, so the model emits `issue_refund(order_id="ord-4821", request_id="R-42")`. |
+| 2 | Execute | Tool is `idempotent=True`. Execute hashes `("issue_refund", {order_id: "ord-4821", request_id: "R-42"})` and walks `state.tool_executions` for matches. None — so the body fires. Refund receipt `RF-58291` returned. |
 | 2 | Reflect | Reflexion runs (the cadence trigger fires). Confidence assessed at 0.93. `ReflectEvent` emitted. |
-| 2 | Terminate? | `ToolCalled("isolate_host")` ✓ AND `ConfidenceMet(0.9)` ✓. The AND branch fires; the OR short-circuits true. Loop exits with `TerminateEvent(reason="tool_called:isolate_host AND confidence_met")`; `result.stop_reason` normalizes to `"terminal_tool"`. |
+| 2 | Terminate? | `ToolCalled("issue_refund")` ✓ AND `ConfidenceMet(0.9)` ✓. The AND branch fires; the OR short-circuits true. Loop exits with `TerminateEvent(reason="tool_called:issue_refund AND confidence_met")`; `result.stop_reason` normalizes to `"terminal_tool"`. |
 
 Total: **two iterations, two tool calls, one Reflect, one Terminate**.
 
-If the model had hallucinated and re-emitted `isolate_host` with the
+If the model had hallucinated and re-emitted `issue_refund` with the
 same args on iteration 3 (it didn't, but it could), Execute would
 have caught the duplicate `(name, arguments)` match, returned the cached
-`CN-58291`, and flagged that `ToolExecution` with
+`RF-58291`, and flagged that `ToolExecution` with
 `idempotent_cache_hit=True` so the trace shows the short-circuit
-clearly. Re-isolating an already-contained host is a no-op — exactly
+clearly. Refunding an already-refunded order is a no-op — exactly
 what idempotency guarantees.
 
 ## Stop reasons
@@ -384,23 +385,23 @@ from tulip.core.termination import (
 from tulip.hooks.builtin import StructuredLoggingHook
 
 @tool(idempotent=True)
-def isolate_host(host_id: str, alert_id: str) -> dict:
-    return edr.isolate(host_id, alert_id)
+def issue_refund(order_id: str, request_id: str) -> dict:
+    return billing.refund(order_id, request_id)
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[enrich_indicator, isolate_host],
-    system_prompt="You are an incident responder.",
+    tools=[lookup_order, issue_refund],
+    system_prompt="You are a customer-support agent.",
     reflexion=True,                    # turn Reflect on
     grounding=True,                    # claim verification
     checkpointer=S3Backend(...),
     hooks=[StructuredLoggingHook(level="INFO")],
     termination=(
-        ToolCalled("isolate_host") & ConfidenceMet(0.9)
+        ToolCalled("issue_refund") & ConfidenceMet(0.9)
     ) | MaxIterations(10),
 )
 
-async for event in agent.run("Triage alert A-42 and contain the host if malicious.",
+async for event in agent.run("Process refund request R-42: verify the order, refund if eligible.",
                              thread_id="th-q3-2026"):
     match event:
         case ThinkEvent(reasoning=r) if r:    print(f"💭 {r}")

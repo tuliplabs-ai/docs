@@ -8,7 +8,7 @@ keyed by the component that produced it (`agent.*`, `multiagent.*`,
 `composition.*`, `router.*`, `rag.*`, `memory.*`, `a2a.*`, `skills.*`,
 `deepagent.*`).
 
-Each action — every `query_siem`, `enrich_indicator`, `isolate_host` —
+Each action — every `lookup_order`, `issue_refund`, `isolate_host` —
 surfaces as a timestamped, span-tied event you can render live or replay
 from the in-memory history buffer.
 
@@ -38,10 +38,10 @@ subscribe pay one contextvar read per call site.
 from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
-    # Subscribe — replays the triage timeline, then live events.
+    # Subscribe — replays the run's timeline, then live events.
     async for event in get_event_bus().subscribe(rid):
-        # e.g. agent.tool.completed {tool_name: "isolate_host", ...}
-        forward_to_siem(event.event_type, event.data)
+        # e.g. agent.tool.completed {tool_name: "issue_refund", ...}
+        forward_to_analytics(event.event_type, event.data)
 ```
 
 ## Event categories
@@ -62,7 +62,7 @@ for every iteration of the inner loop.
 | `agent.model.chunk` | `content_preview`, `done`, `has_tool_calls` | Streaming only |
 | `agent.model.completed` | `content_preview`, `tool_call_count`, `stop_reason` | Per LLM call |
 | `agent.tokens.used` | `prompt_tokens`, `completion_tokens`, `total_tokens` | Per LLM call (cost dashboards) |
-| `agent.interrupt` | `interrupt_id`, `question_preview`, `options` | HITL pause |
+| `agent.interrupt` | `interrupt_id`, `question_preview`, `options` | Human-in-the-loop (HITL) pause |
 | `agent.terminate` | `reason`, `iterations_used`, `final_confidence`, `total_tool_calls`, `final_message_preview` | One per dispatch |
 | `agent.model.retry` | `attempt`, `max_retries`, `delay_seconds`, `reason` | `ModelRetryHook` only |
 | `agent.steering.applied` | `action`, `tool_name`, `reason` | `SteeringHook` only |

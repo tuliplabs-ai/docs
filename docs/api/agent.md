@@ -1,5 +1,8 @@
 # Agent
 
+The high-level entry point — configure an `Agent`, run it, and read
+back a typed `AgentResult`.
+
 ## `Agent` class
 
 ::: tulip.agent.agent.Agent

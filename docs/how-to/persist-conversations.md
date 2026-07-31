@@ -3,9 +3,8 @@
 The agent keeps conversation state in `AgentState`. Pass a
 `BaseCheckpointer` and the same `thread_id` across invocations to
 resume a conversation — even across process restarts. This is what
-keeps a multi-day investigation durable: an analyst can pick up the
-same incident thread tomorrow, on a different worker, with the full
-history intact.
+keeps a multi-day case durable: a teammate picks up the same customer
+thread tomorrow, on a different worker, with full history intact.
 
 ## 1. Pick a backend
 
@@ -24,10 +23,10 @@ matters: you pass the **native** ones straight to `Agent`, and you
 **Storage-backed checkpointers** (wrap a dict-shaped storage with a
 factory):
 
-- `redis_checkpointer(...)` — Redis cluster (a managed Redis)
-- `postgresql_checkpointer(...)` — managed Postgres (managed Postgres)
-- `mysql_checkpointer(...)` — MySQL with the official Connector/Python async driver
-- `opensearch_checkpointer(...)` — OpenSearch cluster (managed OpenSearch)
+- `redis_checkpointer(...)` — Redis (self-hosted or managed)
+- `postgresql_checkpointer(...)` — Postgres (self-hosted or managed)
+- `mysql_checkpointer(...)` — MySQL (via the official Connector/Python async driver)
+- `opensearch_checkpointer(...)` — OpenSearch (self-hosted or managed)
 - `s3_checkpointer(...)` — an S3-compatible bucket
 
 The native ones are normal classes — `S3Backend(...)` and
@@ -83,11 +82,11 @@ agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[...], checkpointer=che
 ## 3. Use a stable thread_id
 
 ```python
-# First turn — new investigation thread
-await agent.run("Open investigation INC-4821 for the web-01 compromise.", thread_id="inc-4821").__anext__()
+# First turn — new case thread
+await agent.run("Open case C-4821 for the billing dispute.", thread_id="case-4821").__anext__()
 
-# Second turn, possibly a different process instance (next shift)
-await agent.run("Now correlate the new SIEM hits against the same host.", thread_id="inc-4821").__anext__()
+# Second turn, possibly a different process instance (a teammate tomorrow)
+await agent.run("What did we establish so far?", thread_id="case-4821").__anext__()
 ```
 
 The agent calls `checkpointer.load(thread_id)` at the start of every
@@ -114,12 +113,12 @@ prior conversation:
 
 ```python
 agent1 = Agent(..., checkpointer=checkpointer)
-await agent1.run("This is investigation INC-4821.", thread_id="t1").__anext__()
+await agent1.run("This is case C-4821.", thread_id="t1").__anext__()
 del agent1
 
-# Simulates a process restart / different worker (e.g. the next shift).
+# Simulates a process restart / different worker (e.g. a teammate tomorrow).
 agent2 = Agent(..., checkpointer=checkpointer)
-await agent2.run("Which investigation are we on?", thread_id="t1").__anext__()
+await agent2.run("Which case are we on?", thread_id="t1").__anext__()
 # The model sees the earlier user turn.
 ```
 

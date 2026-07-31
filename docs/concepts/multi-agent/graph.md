@@ -67,7 +67,7 @@ graph.add_conditional_edges(
     lambda state: END if state.confidence >= 0.85 else "investigate",
 )
 
-result = graph.compile().run_sync({"prompt": "Triage the phishing report for case INC-0042."})
+result = graph.compile().run_sync({"prompt": "Research why checkout conversion dropped last week."})
 print(result.report)
 ```
 

@@ -7,8 +7,8 @@ returns a ready client.
 
 ```python
 # tools, system_prompt, and other kwargs are the same across providers
-Agent(model="openai:gpt-4o", tools=security_toolset())                # OpenAI direct
-Agent(model="anthropic:claude-sonnet-4-6", tools=security_toolset())  # Anthropic direct
+Agent(model="openai:gpt-4o", tools=[lookup_order, issue_refund])                # OpenAI direct
+Agent(model="anthropic:claude-sonnet-4-6", tools=[lookup_order, issue_refund])  # Anthropic direct
 ```
 
 To reach a **self-hosted model** (Ollama, vLLM, or any OpenAI-compatible
@@ -22,14 +22,14 @@ from tulip.models.native.openai import OpenAIModel
 local = OpenAIModel(model="llama-3.3-70b",
                     base_url="http://localhost:11434/v1",  # Ollama default
                     api_key="ollama")                      # any non-empty string
-Agent(model=local, tools=security_toolset())               # on-prem, no data egress
+Agent(model=local, tools=[lookup_order, issue_refund])     # on-prem, no data egress
 ```
 
-The same SOC agent works against any provider — only the model id, the
-`base_url`, and the credentials change. Provider choice is a **security
-control**: it decides where triage prompts (which carry SIEM rows, host
-names, and indicators) are sent, who logs them, and which jurisdiction
-holds them.
+The same agent works against any provider — only the model id, the
+`base_url`, and the credentials change. Provider choice is a
+**data-governance decision**: it decides where your prompts — which may
+carry customer records, order data, or internal hostnames — are sent, who
+logs them, and which jurisdiction holds them.
 
 ## The provider tree at a glance
 
@@ -47,7 +47,7 @@ tulip.models
 ├── anthropic:                             ── Anthropic direct · AnthropicModel
 │   ├─ Claude family          — opus · sonnet · haiku
 │   └─ prompt caching         — cache the playbook + GSAR rubric once;
-│                               subsequent triage turns pay 1/10th input cost
+│                               subsequent turns pay 1/10th input cost
 │
 └── custom:                                ── register_provider("myco", MyModel)
     └─ implement ModelProtocol — complete · stream
@@ -55,10 +55,10 @@ tulip.models
 
 Pick the prefix that matches both your auth surface and your data-handling
 rules. The hosted API endpoints send prompts off-box — fine when the
-vendor's audit logging and data-residency terms cover your telemetry. For
-**air-gapped SOCs / classified telemetry**, point `openai` at a
-self-hosted OpenAI-compatible server (Ollama / vLLM) via `base_url` so
-alert payloads never leave the network.
+vendor's audit logging and data-residency terms cover your data. For
+**air-gapped or strictly data-residency-bound environments**, point
+`openai` at a self-hosted OpenAI-compatible server (Ollama / vLLM) via
+`base_url` so prompt payloads never leave the network.
 
 | Provider | Detail page |
 |---|---|
@@ -71,28 +71,28 @@ Implement the `ModelProtocol` interface — two methods (`complete` and
 `stream`) — and you are a first-class provider. No adapter layer, no
 inheritance from `OpenAIModel`. Register the class with the prefix you
 want; it becomes a valid model id. This is the hook for a self-hosted
-model behind your own audit proxy — every triage prompt logged to your
-SIEM before it reaches the LLM.
+model behind your own audit proxy — every prompt logged to your own audit
+store before it reaches the LLM.
 
 ```python
 from tulip.models import register_provider
 
 class AuditedModel:                          # duck-typed ModelProtocol
-    async def complete(self, messages, tools=None, **kw): ...  # tee → SIEM, then forward
+    async def complete(self, messages, tools=None, **kw): ...  # tee → audit store, then forward
     async def stream(self, messages, tools=None, **kw): ...
 
-register_provider("soc", lambda model_id, **kw: AuditedModel(model_id, **kw))
+register_provider("audited", lambda model_id, **kw: AuditedModel(model_id, **kw))
 
-agent = Agent(model="soc:internal-triage-llm", tools=security_toolset())
+agent = Agent(model="audited:internal-llm", tools=[lookup_order, issue_refund])
 ```
 
 Source: [`register_provider` in `models/registry.py:21`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/registry.py#L21).
 
 ## Credential pooling & rotation
 
-Incident response can't stall on a rate-limited credential. For
-always-on triage, wrap the model in a `CredentialPoolModel` that
-rotates through a pool of API keys for the **same** provider:
+Always-on agents can't stall on a rate-limited credential. Wrap the
+model in a `CredentialPoolModel` that rotates through a pool of API
+keys for the **same** provider:
 
 ```python
 import os
@@ -111,7 +111,7 @@ def _build(cred: Credential) -> AnthropicModel:
 
 agent = Agent(
     model=CredentialPoolModel(pool=pool, build_model=_build),
-    tools=security_toolset(),
+    tools=[lookup_order, issue_refund],
 )
 ```
 
@@ -126,7 +126,8 @@ Source:
 ## Notebook
 
 [`notebook_56_model_providers.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_56_model_providers.py)
-runs the same SOC triage agent against OpenAI and Anthropic by swapping one string.
+runs the same agent — a security-operations triage example — against OpenAI and
+Anthropic by swapping one string.
 
 ## Source
 

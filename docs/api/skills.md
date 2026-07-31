@@ -1,6 +1,6 @@
 # Skills
 
-AgentSkills.io-compatible packaged instruction bundles (`SKILL.md`
+[AgentSkills.io](https://agentskills.io)-compatible packaged instruction bundles (`SKILL.md`
 files) that agents load on demand via progressive disclosure:
 
 - **L1:** the skill catalog (names + descriptions) appears in the

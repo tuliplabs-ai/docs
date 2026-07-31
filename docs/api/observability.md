@@ -1,6 +1,6 @@
 # Observability
 
-Centralised in-process event bus + SSE telemetry. The `EventBus` is a
+Centralized in-process event bus + SSE telemetry. The `EventBus` is a
 singleton that fans `StreamEvent` instances scoped to a *run id* out
 to multiple consumers (Web SSE, CLI tail, JSON logs) from a single
 emission point.
@@ -29,7 +29,7 @@ this page covers the **lower-level** observability bus that
 
 ## Run context
 
-Scope events to a single cognitive dispatch via `run_context()` — a
+Scope events to a single run (e.g. one router dispatch) via `run_context()` — a
 context manager that sets and unsets the run id for the current task /
 coroutine.
 

@@ -44,41 +44,41 @@ from tulip.agent.composition import (
     SequentialPipeline, ParallelPipeline, LoopAgent,
 )
 
-# Sequential: recon → enrich → validate → report
+# Sequential: research → draft → review → publish
 pipeline = SequentialPipeline(agents=[
-    recon,
-    enrich,
-    validate,
-    report,
+    research,
+    draft,
+    review,
+    publish,
 ])
 
-result = await pipeline.run("Triage the attack surface on 192.0.2.10.")
+result = await pipeline.run("Why did checkout conversion drop last week?")
 ```
 
 ```python
-# Parallel: enrich one indicator across SIEM, EDR, and threat intel
+# Parallel: answer one question across web search, a data query, and docs
 parallel = ParallelPipeline(agents=[
-    siem_query,
-    edr_timeline,
-    threat_intel,
+    web_search_agent,
+    data_query_agent,
+    docs_retrieval_agent,
 ])
-enrichment = await parallel.run(
-    "Enrich 198.51.100.7: in our SIEM? EDR matches? known-bad campaigns?"
+answers = await parallel.run(
+    "Checkout conversion last week: what changed? which deploys? known issues?"
 )
 
-# Loop: revise the finding until the abstention clears, max 5 loops
+# Loop: revise the draft until the review clears, max 5 loops
 revise = LoopAgent(agent=reviser_agent, max_loops=5)
-final = await revise.run(initial_finding)
+final = await revise.run(initial_draft)
 ```
 
 ```python
 # Compose nested — Sequential of (Parallel + LoopAgent)
 end_to_end = SequentialPipeline(agents=[
-    ParallelPipeline(agents=[recon, validate]),
-    enrich,
+    ParallelPipeline(agents=[web_search_agent, data_query_agent]),
+    draft,
     LoopAgent(agent=reviser, max_loops=5),
 ])
-result = await end_to_end.run("Triage the attack surface on 192.0.2.10.")
+result = await end_to_end.run("Why did checkout conversion drop last week?")
 ```
 
 ## Notebooks

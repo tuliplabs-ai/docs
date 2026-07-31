@@ -77,14 +77,14 @@ def submit_research(result: ResearchResult) -> str:
 agent = create_deepagent(
     model="anthropic:claude-sonnet-4-6",
     tools=[search_kb, submit_research],
-    system_prompt="You are a threat-intel research agent. Submit when confident.",
+    system_prompt="You are a market-research agent. Submit when confident.",
     output_schema=ResearchResult,
     submit_tool="submit_research",
     min_confidence=0.85,
     max_iterations=20,
 )
 
-result = agent.run_sync("Summarise the infrastructure behind CVE-2024-99999 exploitation.")
+result = agent.run_sync("Summarise the competitive landscape for mid-market CRM platforms.")
 report: ResearchResult = result.parsed  # Pydantic-typed structured output
 ```
 
@@ -131,17 +131,17 @@ gives the caller a live view after the run.
 ```python
 from tulip.deepagent import SubAgentDef
 
-indicator_analyst = SubAgentDef(
-    name="indicator_analyst",
-    description="Deep-dives on a single indicator's reputation and pivots.",
-    system_prompt="Enrich the given indicator and return its reputation and related infrastructure.",
-    tools=[enrich_indicator],
+competitor_analyst = SubAgentDef(
+    name="competitor_analyst",
+    description="Deep-dives on a single competitor's product and pricing.",
+    system_prompt="Research the given competitor and return its positioning, pricing, and recent launches.",
+    tools=[search_kb],
     max_iterations=4,
 )
 
 agent = create_deepagent(
     # model=..., tools=..., system_prompt=... (required)
-    subagents=[indicator_analyst],
+    subagents=[competitor_analyst],
 )
 ```
 
@@ -176,13 +176,13 @@ retriever = RAGRetriever(
 agent = create_deepagent(
     # model=..., tools=..., system_prompt=... (required)
     datastores={
-        "threat_intel": {
+        "industry_reports": {
             "retriever": retriever,
-            "description": "threat intel corpus: malware families, "
-                           "C2 infrastructure, ATT&CK techniques, IOCs",
+            "description": "analyst reports: market sizing, competitor "
+                           "pricing, launch timelines",
             "top_k": 6,
         },
-        # additional named stores — agent routes between them
+        # additional named stores (e.g. "support_tickets") — agent routes between them
     },
 )
 ```
@@ -236,7 +236,7 @@ SSE events stream out whenever a `run_context` is active:
 from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
-    result = agent.run_sync("Research the C2 infrastructure for this campaign.")
+    result = agent.run_sync("Research the pricing history for this product line.")
 
     async for ev in get_event_bus().subscribe(rid):
         match ev.event_type:
@@ -325,9 +325,10 @@ print(f"replans used: {result.final_state['replan_count']}")
 ```
 
 `create_research_workflow` accepts the same `datastores=` mapping as
-`create_deepagent`. Internally both call `wire_datastores(...)` so the
-execute agent gets the identical `search_<name>` tool surface and
-system-prompt routing block:
+`create_deepagent` — here with a threat-intel corpus as the
+security-flavored variant. Internally both call `wire_datastores(...)`
+so the execute agent gets the identical `search_<name>` tool surface
+and system-prompt routing block:
 
 ```python
 workflow = create_research_workflow(

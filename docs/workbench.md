@@ -79,7 +79,7 @@ seventy-four: **A2A protocol** (starts a socket server), **Skills** and
 **Cognitive router** (load skill packages from disk), and **Multi-modal
 providers** (fetches generated-image bytes from a non-CORS host). Everything
 else — agents, tools, memory, graphs, multi-agent, reasoning, guardrails, the
-approval gates, SOC/security workflows, and RAG — runs in the browser.
+approval gates, security workflows, and RAG — runs in the browser.
 
 **RAG on the web** works with an in-memory vector store, but the embeddings
 step needs a provider that serves an embeddings model:
