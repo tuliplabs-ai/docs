@@ -116,6 +116,8 @@ finding = Evidence(
     title="Account compromise: impossible-travel sign-ins",
     description="High-risk Auth0 user with impossible travel between two sign-ins.",
     severity=Severity.HIGH,
+    asset="mallory@corp.com",
+    remediation="Disable the account and force a credential reset.",
     evidence_refs=["auth0:logs:mallory@corp.com"],
     gsar_score=0.86,
 )
