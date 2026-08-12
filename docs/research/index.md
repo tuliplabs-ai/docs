@@ -24,4 +24,8 @@ the caller can accidentally ship.
 agent risk policy tends to encode one family of consequence and stay silent
 about the others, and the blindness survives code review, its own tests,
 validation against the real tool catalog, and training. Three independent
-instances, including one in a model we trained for exactly this job.
+instances, including a measured one: **Clusiana-Admit-4B**, a classifier we
+train for exactly this job, scored 6/6 on destruction and **1/6 on standing
+commitment** — and enumerating the missing families in the policy made overall
+recall *worse*, not better. 64-case dataset, two conditions, numbers and limits
+on the page.
