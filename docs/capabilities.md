@@ -110,13 +110,14 @@ skips the gate.
 ![NL request → GoalFrame extractor → ProtocolRegistry → PolicyGate → CognitiveCompiler → one of eight compiled SDK shapes](img/patterns/router.svg){ .diagram }
 
 ```python
-from tulip.router import GoalFrame, PolicyGate, Risk, TaskType
+from tulip.router import Complexity, GoalFrame, PolicyGate, Risk, TaskType
 
 # Auto-run reads; require a human before any refund or payout.
 gate = PolicyGate(max_risk=Risk.HIGH, require_approval_above=Risk.MEDIUM)
 
 frame = GoalFrame(primary_goal=TaskType.DIAGNOSE, domain="payments",
-                  risk=Risk.LOW, required_capabilities=["read_transaction"])
+                  complexity=Complexity.LOW, risk=Risk.LOW,
+                  required_capabilities=["read_transaction"])
 verdict = gate.check(frame, chosen)
 # LOW-risk balance read → verdict.allow; an issue_refund frame at HIGH
 # risk → verdict.require_approval, wrapped in the approval interrupt.

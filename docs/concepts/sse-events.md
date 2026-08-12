@@ -200,6 +200,7 @@ runs.
 
 2. Emit at the call site:
 
+   <!-- docs: skip -->
    ```python
    from tulip.observability.emit import EV_FOO_BAR, emit
    await emit(EV_FOO_BAR, key1=value1, key2=value2)

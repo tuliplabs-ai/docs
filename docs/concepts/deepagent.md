@@ -169,8 +169,8 @@ from tulip.rag import OpenAIEmbeddings, RAGRetriever
 from tulip.rag.stores.qdrant import QdrantVectorStore
 
 retriever = RAGRetriever(
-    embedder=OpenAIEmbeddings(model_id="cohere.embed-v4.0", ...),
-    store=QdrantVectorStore(dsn=..., table_name="VECTOR_DOCUMENTS", dimension=1536),
+    embedder=OpenAIEmbeddings(model="text-embedding-3-small"),
+    store=QdrantVectorStore(collection_name="industry_reports", dimension=1536),
 )
 
 agent = create_deepagent(
@@ -267,13 +267,16 @@ from tulip.deepagent import KnowledgeProvider, KnowledgeRow, ItemRef
 
 class AssetInventoryProvider(KnowledgeProvider):
     def list_items(self) -> list[ItemRef]:
-        return [ItemRef(id=h, label=h) for h in inventory.list_hosts()]
+        return [
+            ItemRef(name=h, provider="asset_inventory")
+            for h in inventory.list_hosts()
+        ]
 
     def describe_item(self, ref: ItemRef) -> str:
-        return inventory.describe_host(ref.id)
+        return inventory.describe_host(ref.name)
 
     def to_row(self, ref: ItemRef, result: ResearchResult) -> KnowledgeRow:
-        return KnowledgeRow(id=ref.id, data=result.model_dump())
+        return KnowledgeRow(id=ref.name, data=result.model_dump())
 ```
 
 Feed the provider into your scan loop. Each item gets its own agent
