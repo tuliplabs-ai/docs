@@ -97,7 +97,14 @@ markdown_extensions:
 - pymdownx.snippets:
     base_path: [., .sdk, ../tulip-agents]
     check_paths: true
-- pymdownx.superfences
+# Mermaid diagrams render client-side via Material's built-in integration;
+# the custom_fence is what routes ```mermaid to it instead of highlighting
+# it as source. Required by docs/research/ and the concept diagrams.
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: !!python/name:pymdownx.superfences.fence_code_format
 - pymdownx.tabbed:
     alternate_style: true
 - pymdownx.emoji:
