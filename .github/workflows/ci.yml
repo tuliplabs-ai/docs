@@ -108,12 +108,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # `curl -sSL` without --fail writes the error page to the output file
+      # on an HTTP error, so a transient release-CDN blip lands an HTML body
+      # in trivy.tar.gz and the next line fails with "not in gzip format"
+      # rather than saying the download failed. Both failure modes were seen
+      # on consecutive runs of an unchanged tree. --fail turns an HTTP error
+      # into a curl error; --retry rides out the blip; the magic-byte check
+      # means a 200 that is not a tarball can never be mistaken for the
+      # scanner silently doing nothing.
       - name: Install Trivy
         run: |
           set -euo pipefail
           cd "$RUNNER_TEMP"
-          curl -sSL -o trivy.tar.gz \
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-delay 3 --retry-all-errors \
+            -o trivy.tar.gz \
             "https://github.com/aquasecurity/trivy/releases/download/v0.71.0/trivy_0.71.0_Linux-64bit.tar.gz"
+          if [ "$(head -c2 trivy.tar.gz | xxd -p)" != "1f8b" ]; then
+            echo "::error::Downloaded Trivy archive is not gzip -- got:"
+            head -c 200 trivy.tar.gz
+            exit 1
+          fi
           tar xzf trivy.tar.gz trivy
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
       - name: Trivy secret scan
