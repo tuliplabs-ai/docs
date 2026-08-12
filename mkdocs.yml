@@ -1,5 +1,5 @@
 site_name: tulip agents
-site_description: An open-source agentic harness — the control runtime for agents that act. Every consequential action clears your policy, waits for a person when it matters, and lands on a record you can prove. Build agents on it, or govern the ones you already run.
+site_description: A complete open-source agent framework — tools, memory, RAG, multi-agent, streaming — where control is native. Every consequential action clears your policy, waits for a person when it matters, and lands on a record you can prove. Build agents on it, or govern the ones you already run.
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/sdk-python
 repo_name: tuliplabs-ai/sdk-python
