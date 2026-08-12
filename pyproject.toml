@@ -26,12 +26,19 @@ dependencies = [
 sdk = "python -m pip install -e {env:TULIP_SDK_DIR:../tulip-agents}"
 serve = "mkdocs serve {args}"
 build = "mkdocs build --strict {args}"
+# Validates every ```python block against the installed SDK -- syntax,
+# symbols, and call signatures. Needs `hatch run sdk` first, same as the
+# API reference does.
+snippets = "python scripts/check_snippets.py {args:docs}"
 
 # The repo ships real Python tooling — the cache-bust mkdocs hook and the
 # notebook-page scaffolder — so it carries the org-wide ≥95% coverage gate
 # (see [[tulip-quality-bar]]), not just prose. `hatch run test:check` enforces it.
 [tool.hatch.envs.test]
-dependencies = ["pytest>=8", "pytest-cov>=6.0"]
+# pydantic: the snippet checker's tests build a stub SDK model to exercise
+# the required-field and silently-ignored-extra paths without installing
+# the real SDK into this env.
+dependencies = ["pytest>=8", "pytest-cov>=6.0", "pydantic>=2"]
 
 [tool.hatch.envs.test.scripts]
 run = "pytest {args:tests}"

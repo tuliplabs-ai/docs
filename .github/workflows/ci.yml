@@ -69,6 +69,13 @@ jobs:
       - name: Build docs (strict)
         run: hatch run build
 
+      # --strict proves links and mkdocstrings references resolve; it never
+      # looks inside a fenced code block. This runs the snippets against the
+      # same pinned SDK, so a renamed keyword or a moved symbol fails the PR
+      # instead of shipping. Static only -- no keys, no network.
+      - name: Check code snippets against the SDK
+        run: hatch run snippets
+
   lint:
     name: Lint scripts (ruff)
     runs-on: ubuntu-latest
