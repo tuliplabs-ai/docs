@@ -2,7 +2,7 @@
 
 The source for **[tulipagents.ai](https://tulipagents.ai/)** — the
 documentation site for [Tulip](https://github.com/tuliplabs-ai/sdk-python),
-the open-source agentic harness — the control runtime for agents that act.
+the complete open-source agent framework where control is native.
 Everything you'd expect — tools, memory, multi-agent, RAG, streaming —
 behind one `Agent` class, with control wired through the core: the cognitive
 router (PRISM) picks which shape runs, GSAR (typed evidence-grounding)
