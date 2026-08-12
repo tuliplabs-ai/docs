@@ -172,6 +172,7 @@ nav:
   - Cognitive Router: concepts/router.md
   - GSAR grounding: concepts/gsar.md
   - The control layer: concepts/security-context.md
+  - Writing a policy that holds: concepts/policy-authoring.md
   - Skills & Playbooks:
     - Skills: concepts/skills.md
     - Playbooks: concepts/playbooks.md

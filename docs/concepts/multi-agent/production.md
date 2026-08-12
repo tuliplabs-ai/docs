@@ -100,7 +100,7 @@ attribution), use [GSAR](../gsar.md).
 
 ```python
 from tulip.core.events import ToolStartEvent, TerminateEvent
-from tulip.streaming import StreamMode
+from tulip.multiagent import StreamMode
 
 async for event in graph.stream(initial, mode=StreamMode.NODES):
     match event:
