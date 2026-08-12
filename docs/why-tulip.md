@@ -1,11 +1,13 @@
 # Why Tulip
 
-Tulip is an open-source **agentic harness** — the control runtime for agents that
-act. Everything you'd expect from a full-stack agent framework — tools, memory,
-multi-agent, RAG, streaming — is here, behind one `Agent` class, and the same
-harness [governs agents you already run elsewhere](integrations/frameworks.md).
-What makes it different is that control isn't an add-on you remember to wire;
-it's built through the core.
+Tulip is a **complete open-source agent framework** — tools, memory, multi-agent,
+RAG, streaming, all behind one `Agent` class — where control is native rather than
+an add-on you remember to wire. The same runtime also
+[governs agents you already run elsewhere](integrations/frameworks.md).
+
+The breadth is what makes the control claim possible. Picking which shape runs,
+checking what gets asserted, and gating what actually fires are three different
+moments in one loop — you can only hold all three if you own that loop.
 
 A frontier model can be brilliant and still be talked into a catastrophic action
 — by a misleading document, its own confused reasoning, or a cleverly worded
