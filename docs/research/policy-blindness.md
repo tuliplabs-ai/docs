@@ -18,34 +18,20 @@ Admission control for an agent has two halves, and they get very different
 amounts of attention.
 
 ```mermaid
-graph LR
-  M["model proposes<br/>a tool call"] --> C
-
-  subgraph soft ["written by a person · rarely audited"]
-    C["<b>classify</b><br/>what kind of thing is this?"]
-  end
-
-  subgraph hard ["deterministic · always audited"]
-    G["<b>admit()</b><br/>allow / hold / deny"]
-  end
-
-  C -->|"Action(kind, blast_radius, tags)"| G
-  G -->|allow| P["the action runs"]
-  G -->|hold / deny| T["audit trail"]
-  G --> T
-
-  classDef soften fill:#fde8f0,stroke:#ED5A8B,stroke-width:2px,color:#1E1B17
-  classDef harden fill:#e8f0fd,stroke:#5A7BED,stroke-width:2px,color:#1E1B17
-  class C soften
-  class G harden
+flowchart LR
+  M[model proposes a tool call] --> C
+  C[classify: what kind of thing is this?] --> G
+  G{"admit()"} -->|allow| P[the action runs]
+  G -->|denied| X[refused]
+  G --> A[(audit trail)]
 ```
 
-The enforcement point is easy to get right: a few hundred lines, deterministic,
-exhaustively testable. Everyone reviews it, because it looks like security.
+The right-hand side — `admit()` and the trail — is deterministic, a few
+hundred lines, and exhaustively testable. Everyone reviews it, because it looks
+like security.
 
-The classification is a tuple of strings somebody wrote on a Tuesday. **That is
-the part that decides what gets enforced on, and it is almost never given
-adversarial attention.**
+`classify` is a tuple of strings somebody wrote on a Tuesday. **It decides what
+gets enforced on, and it is almost never given adversarial attention.**
 
 ## Three gates, three different blind spots
 
@@ -81,17 +67,12 @@ The subtler version: you hold an action, and leave an unheld route to the same
 outcome. From the billing gate —
 
 ```mermaid
-graph TD
-  A["agent wants payment<br/>from a customer"] --> B["send_invoice"]
-  A --> C["generate_invoice_qr_code"]
-  B --> D["🛡️ HELD<br/>outbound communication"]
-  C --> E["✅ allowed<br/>'just rendering a code'"]
-  E --> F["a scannable, payable artifact<br/>for an invoice never sent"]
-
-  classDef held fill:#e8f0fd,stroke:#5A7BED,color:#1E1B17
-  classDef open fill:#fde8f0,stroke:#ED5A8B,stroke-width:2px,color:#1E1B17
-  class D held
-  class E,F open
+flowchart TD
+  A[agent wants payment from a customer] --> B[send_invoice]
+  A --> C[generate_invoice_qr_code]
+  B --> D[held: outbound communication]
+  C --> E[allowed: 'just rendering a code']
+  E --> F[a scannable, payable artifact for an invoice never sent]
 ```
 
 Both reach "the customer can pay this." Only one was classified. **An unheld
