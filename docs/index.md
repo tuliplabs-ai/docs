@@ -102,31 +102,6 @@ A prompt rule is advisory — the model can be argued out of it. The gate is str
 the wrong action isn't caught in a filter, it never runs.
 [How this compares to prompt rules and guardrails →](why-tulip.md)
 
-## Govern the agents you already run
-
-You don't rebuild anything. Wrap a tool once with
-[`tulip-frameworks`](integrations/frameworks.md) and drop it back in — same name, same
-schema — and every call now goes through the same gate and audit trail:
-
-```python
-from tulip.control import Action, AuditTrail
-from tulip_frameworks.langchain import gate_langchain_tool
-from tulip_frameworks.policy_presets import action_gate_policy
-
-safe_refund = gate_langchain_tool(
-    refund,  # your existing LangChain @tool, unchanged
-    action=lambda name, a: Action(
-        name=name, asset=a["order_id"],
-        kind="payment", environment="production",
-    ),
-    policy=action_gate_policy(),  # production → held for a human
-    trail=AuditTrail(),
-)
-```
-
-Bridges ship for LangChain, LangGraph, CrewAI, the OpenAI Agents SDK, LlamaIndex, and
-Google ADK.
-
 ## What you get
 
 <div class="grid cards tulip-feature-cards" markdown>
@@ -168,6 +143,31 @@ Google ADK.
     `verify()` fails on any edit. Replay any run.
 
 </div>
+
+## Govern the agents you already run
+
+You don't rebuild anything. Wrap a tool once with
+[`tulip-frameworks`](integrations/frameworks.md) and drop it back in — same name, same
+schema — and every call now goes through the same gate and audit trail:
+
+```python
+from tulip.control import Action, AuditTrail
+from tulip_frameworks.langchain import gate_langchain_tool
+from tulip_frameworks.policy_presets import action_gate_policy
+
+safe_refund = gate_langchain_tool(
+    refund,  # your existing LangChain @tool, unchanged
+    action=lambda name, a: Action(
+        name=name, asset=a["order_id"],
+        kind="payment", environment="production",
+    ),
+    policy=action_gate_policy(),  # production → held for a human
+    trail=AuditTrail(),
+)
+```
+
+Bridges ship for LangChain, LangGraph, CrewAI, the OpenAI Agents SDK, LlamaIndex, and
+Google ADK.
 
 ## Build it across any domain
 
