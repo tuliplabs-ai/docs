@@ -306,6 +306,9 @@ nav:
   - Compute:
     - RunPod (GPU probe): integrations/runpod.md
     - Lambda Cloud (GPU probe): integrations/lambda.md
+- Research:
+  - Overview: research/index.md
+  - Policy blindness: research/policy-blindness.md
 - Workbench: workbench.md
 - Reference:
   - Agent: api/agent.md
