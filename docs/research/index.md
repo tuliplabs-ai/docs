@@ -20,12 +20,13 @@ the caller can accidentally ship.
 
 ## Findings
 
-**[The family of harm your agent policy cannot see](policy-blindness.md)** — an
-agent risk policy tends to encode one family of consequence and stay silent
-about the others, and the blindness survives code review, its own tests,
-validation against the real tool catalog, and training. Three independent
-instances, including a measured one: **Clusiana-Admit-4B**, a classifier we
-train for exactly this job, scored 6/6 on destruction and **1/6 on standing
-commitment** — and enumerating the missing families in the policy made overall
-recall *worse*, not better. 64-case dataset, two conditions, numbers and limits
-on the page.
+**[The family of harm your agent policy cannot see](policy-blindness.md)** — a
+risk policy tends to encode one family of consequence and stay silent about the
+others, and the silence survives code review, its own tests, validation against
+the real tool catalog, and training.
+
+Three independent instances, one of them measured: **Clusiana-Admit-4B** on
+8,989 held-out rows reaches a 0.74% false-allow rate, but its errors cluster —
+5.45% on execution and 5.32% on egress against 0.00% on destruction. Includes a
+seven-model comparison against GPT-5 and Claude Opus/Sonnet/Haiku on identical
+rows, and the reason the headline number from that comparison is misleading.
