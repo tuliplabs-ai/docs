@@ -259,7 +259,7 @@ house convention says *hold*.
 models are not being reckless — they have not been told the rule. Which gives
 the honest version of the claim:
 
-> A 4B model tuned to your organisation's policy conventions matches frontier
+> A 4B model tuned to a given organisation's policy conventions matches frontier
 > reasoning where the policy is explicit, is an order of magnitude less
 > over-cautious, and vastly outperforms it where correctness depends on
 > conventions no general model could know — at 8 tokens, locally, with nothing
@@ -282,8 +282,9 @@ never says yes.
   produces empty answers. Our first Opus run scored 21.79% with 445 of 638
   responses unparseable; at an adequate budget the same model scored 68.50%
   with one. Both numbers came from the same model on the same rows.
-- We are publishing a weakness in a model we sell. A finding that only indicts
-  other people's work is marketing.
+- The model measured here is our own, and the weakness is published rather
+  than omitted. A finding that only indicts other people's work is not a
+  finding.
 
 ---
 

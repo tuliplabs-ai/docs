@@ -8,8 +8,7 @@ illustration rather than a benchmark, it says so.
 ## Papers
 
 **[GSAR: Typed Grounding for Hallucination Detection and Recovery in
-Multi-Agent LLMs](https://arxiv.org/abs/2604.23366)** — Federico A. Kamelhar,
-2026. Partitions every claim an agent makes into grounded / ungrounded /
+Multi-Agent LLMs](https://arxiv.org/abs/2604.23366)** — Tulip Labs, 2026. Partitions every claim an agent makes into grounded / ungrounded /
 contradicted / complementary against typed evidence, scores the partition, and
 routes the result to proceed, regenerate, replan or abstain. Evaluated with
 multiple LLM judges on FEVER.
