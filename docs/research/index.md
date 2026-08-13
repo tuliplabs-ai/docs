@@ -29,3 +29,14 @@ Three independent instances, one of them measured: **Clusiana-Admit-4B** on
 5.45% on execution and 5.32% on egress against 0.00% on destruction. Includes a
 seven-model comparison against GPT-5 and Claude Opus/Sonnet/Haiku on identical
 rows, and the reason the headline number from that comparison is misleading.
+
+---
+
+## Clusiana models
+
+The Clusiana family — small models trained for the decisions a control runtime
+has to make, starting with admission classification — is **research, not a
+generally available product**. There is no public endpoint and no download yet.
+
+If you would like to evaluate one against your own policies, or to talk about
+the research, write to [clusiana@tuliplabs.ai](mailto:clusiana@tuliplabs.ai).
