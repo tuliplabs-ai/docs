@@ -25,7 +25,7 @@ others, and the silence survives code review, its own tests, validation against
 the real tool catalog, and training.
 
 Three independent instances, one of them measured: **Clusiana-Admit-4B** on
-8,989 held-out rows reaches a 0.74% false-allow rate, but its errors cluster —
+3,139 distinct held-out items reaches a 1.88% false-allow rate, but its errors cluster —
 5.45% on execution and 5.32% on egress against 0.00% on destruction. Includes a
 seven-model comparison against GPT-5 and Claude Opus/Sonnet/Haiku on identical
 rows, and the reason the headline number from that comparison is misleading.
