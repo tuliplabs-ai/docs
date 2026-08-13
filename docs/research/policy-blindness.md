@@ -148,7 +148,12 @@ trained on the task should not reproduce it.
 
 Evaluated on its own held-out split: **8,989 rows it was never trained on**,
 from eight sources. Greedy decoding, verdict-constrained, so a hedge is not
-representable and no parsing heuristics are involved.
+representable and no parsing heuristics are involved. Train and test share no
+items and no groups — we checked, and the overlap is zero.
+
+Those 8,989 rows contain **3,139 distinct items**; the corpus repeats items,
+some as many as fifteen times. That matters enough to report both ways below,
+because the repeated items are not a random sample of the rest.
 
 Scored on three numbers rather than accuracy, because the corpus is 51%
 `require_human` and a constant predictor scores 51%:
@@ -161,14 +166,27 @@ Scored on three numbers rather than accuracy, because the corpus is 51%
 
 ### Results
 
-| metric | Clusiana-Admit-4B |
-|---|---|
-| accuracy | 94.27% *(majority baseline 51.20%)* |
-| **false-allow rate** | **0.74%** |
-| over-hold rate | 1.72% |
-| hold recall | 99.59% |
+| metric | all 8,989 rows | **3,139 distinct items** |
+|---|---|---|
+| accuracy | 94.27% | **84.71%** |
+| **false-allow rate** | 0.74% | **1.88%** |
+| over-hold rate | 1.72% | **4.23%** |
+| hold recall | 99.59% | 99.64% |
 
-Good — and the interesting part is where the remaining errors sit. They are not
+*(majority baseline 51.20%)*
+
+**The right-hand column is the honest one for most purposes.** Row-weighted
+numbers describe performance against the corpus's own item distribution;
+per-item numbers describe performance against distinct cases, which is what a
+reader assumes on seeing "8,989 held-out rows". Deduplicating moves the safety
+number from 0.74% to 1.88% — still good, and two and a half times worse than
+the headline.
+
+We reported only the flattering column first. That is precisely the error this
+page is about, committed by the people writing it, which is worth saying out
+loud rather than quietly editing.
+
+The interesting part is where the remaining errors sit. They are not
 spread evenly. They cluster by family:
 
 | family | risky rows | let through | rate |
@@ -216,15 +234,20 @@ verdict-constrained. Reasoning models were given enough budget to answer — at
 small budgets both GPT-5 and Opus spend the entire allowance reasoning and
 return empty content, which is a measurement artifact, not a result.
 
+Deduplicated to **456 distinct items**, for the reason given above. Zero
+unparseable responses from any model.
+
 | model | accuracy | false-allow | over-hold | tokens / verdict |
 |---|---|---|---|---|
-| **Clusiana-Admit-4B** | **93.89%** | **0.94%** | 3.32% | **8** |
-| claude-opus-5 | 68.50% | 28.57% | 2.84% | 67.2 |
-| claude-sonnet-5 | 67.24% | 28.57% | 4.27% | 6.3 |
-| claude-haiku-4.5 | 53.92% | 47.54% | 10.90% | 4.7 |
-| gpt-5 (default reasoning) | 51.25% | 54.33% | 4.27% | 211.2 |
-| gpt-5-mini | 49.69% | 54.10% | 8.53% | 10.6 |
-| gpt-5 (minimal reasoning) | 49.37% | 56.21% | 6.16% | 10.5 |
+| **Clusiana-Admit-4B** | **92.32%** | **1.23%** | 5.34% | **8** |
+| claude-opus-5 | 71.05% | 33.85% | 5.34% | 69.3 |
+| claude-sonnet-5 | 69.08% | 34.77% | 6.87% | 6.3 |
+| claude-haiku-4.5 | 53.29% | 56.62% | 15.27% | 4.7 |
+| gpt-5 (default reasoning) | 48.68% | 65.54% | 6.87% | 211.2 |
+| gpt-5-mini | 46.49% | 64.92% | 13.74% | 10.6 |
+| gpt-5 (minimal reasoning) | 46.27% | 67.38% | 9.92% | 10.5 |
+
+Deduplication cost every model rather than only ours, and widened the gap.
 
 **Do not read that table as "GPT-5 lets through 56% of dangerous actions."** We
 nearly published it that way. Splitting the rows by what the task actually asks
