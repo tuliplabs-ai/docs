@@ -131,6 +131,19 @@ reads a policy and a proposed action and answers `allow` / `require_human` /
 `deny`. If family blindness were only an artifact of human authorship, a model
 trained on the task should not reproduce it.
 
+!!! info "Clusiana is not generally available"
+
+    Clusiana-Admit-4B is a research model. It is not GA, there is no public
+    endpoint, and the numbers below are from our own bench rather than from a
+    product you can install today. If you want to evaluate it against your own
+    policies and tool catalog, write to
+    [clusiana@tuliplabs.ai](mailto:clusiana@tuliplabs.ai).
+
+    The [method](../concepts/policy-authoring.md) and the
+    [eval scripts](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/research)
+    need none of this — they run against any OpenAI-compatible endpoint,
+    including whatever you already host.
+
 ### Method
 
 Evaluated on its own held-out split: **8,989 rows it was never trained on**,

@@ -30,7 +30,7 @@
       '</div>' +
       '<div class="tulip-company-card__body">' +
         '<span class="tulip-company-card__title">Built by <b>tuliplabs</b></span>' +
-        '<span class="tulip-company-card__desc">A research company training Clusiana models for governed agents.</span>' +
+        '<span class="tulip-company-card__desc">An independent research lab training Clusiana models for governed agents.</span>' +
       '</div>' +
       '<svg class="tulip-company-card__arrow" viewBox="0 0 24 24" aria-hidden="true">' +
         '<path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
