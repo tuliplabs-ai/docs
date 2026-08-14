@@ -326,6 +326,8 @@ nav:
   - ReAct loop: api/loop.md
   - Tools: api/tools.md
   - Control: api/control.md
+  - Security: api/security.md
+  - A2A: api/a2a.md
   - Hooks: api/hooks.md
   - Termination: api/termination.md
   - Reasoning: api/reasoning.md
