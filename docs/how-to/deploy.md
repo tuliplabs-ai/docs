@@ -27,6 +27,10 @@ server = AgentServer(
     api_key="...",   # require this bearer token on every route except /health
 )
 
+# Module-level ASGI app, so a process manager can serve it directly:
+#   uvicorn server:app
+app = server.app
+
 if __name__ == "__main__":
     server.run(host="0.0.0.0", port=8080)
 ```
@@ -119,8 +123,11 @@ services.
 
 ```bash
 pip install "tulip-agents[openai,server]"
-git clone https://github.com/tuliplabs-ai/sdk-python.git ~/concierge
-cd ~/concierge
+
+# Your own server.py — the one from the top of this page. It ends in
+# `app = server.app`, which is the ASGI callable uvicorn loads below.
+mkdir -p ~/concierge && cd ~/concierge
+# ... put server.py here ...
 
 # Launch under systemd
 sudo tee /etc/systemd/system/concierge.service <<'EOF'
@@ -131,6 +138,7 @@ After=network.target
 [Service]
 Type=simple
 User=app
+WorkingDirectory=/home/app/concierge
 Environment=OPENAI_API_KEY=sk-...
 ExecStart=/home/app/.local/bin/uvicorn server:app --host 0.0.0.0 --port 8080
 Restart=always
