@@ -122,7 +122,7 @@ Posture Management.
 | **CrowdStrike Falcon** | EDR | Host device record + open detections (offline sample is a fuller forensic timeline), **network-contain a host** (write) | `CrowdStrikeEndpoint` | `edr-crowdstrike` |
 | **Cortex XSOAR** | SOAR | Read incidents, search, **close an incident** (write) + ground incidents to findings | `CortexXSOAR` | `soar-cortex-xsoar` |
 | **VirusTotal** | threat-intel | Reputation for an IP, domain, or file hash | `VirusTotalIntel` | `threat-intel-virustotal` |
-| **Wiz** | AI-SPM | AI-BOM inventory + posture issues → grounded findings | _(tools)_ | `vuln-wiz` |
+| **Wiz** | AI-SPM | AI-BOM inventory + posture issues → grounded findings | _(tools)_ | `wiz-aispm` |
 | **OSV** | supply-chain | Dependency vulnerability lookup (in core) | _(core)_ | built-in |
 
 → [Build your own integration](build.md) · [SecurityContext](../concepts/security-context.md)

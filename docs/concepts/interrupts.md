@@ -33,7 +33,11 @@ def issue_refund(order_id: str, amount: float) -> dict:
 
 agent = Agent(
     model="anthropic:claude-sonnet-4-6",
-    tools=[lookup_order, issue_refund],   # ask_user is auto-registered
+    tools=[lookup_order, issue_refund],
+    # ``ask_user`` is auto-registered only in explicit-completion mode; the
+    # default is "auto", where it is absent and the prompt below would ask
+    # for a tool the agent does not have.
+    completion_mode="explicit",
     system_prompt=(
         "You are a customer-support agent. "
         "Always call ask_user for approval before issue_refund."
@@ -92,11 +96,14 @@ fires:
 
 ```python
 from tulip.hooks.builtin.steering import SteeringHook
+from tulip.models import get_model
 
 agent = Agent(
     ...,
     hooks=[SteeringHook(
-        model="anthropic:claude-sonnet-4-6",
+        # A model instance, not a provider string — the hook calls
+        # ``.complete()`` on whatever it is given.
+        model=get_model("anthropic:claude-sonnet-4-6"),
         policy="Reject any tool call that doesn't match the user's stated request.",
     )],
 )

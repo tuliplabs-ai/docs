@@ -1,8 +1,9 @@
 # Hooks
 
-A hook is a callback the agent calls at six fixed moments in a run:
-before / after the run starts, before / after each model call, before /
-after each tool call. Everything that should happen *around* the
+A hook is a callback the agent calls at eight fixed moments in a run:
+before / after the run starts, before / after each loop iteration,
+before / after each model call, before / after each tool call.
+Everything that should happen *around* the
 agent's primary task — logging, OpenTelemetry traces, retry, guardrails,
 PII redaction, an LLM-as-judge approval gate on tool calls — lives in
 a hook.
@@ -22,7 +23,7 @@ ships (covers most production needs out of the box) or write your own
 | Add a tool to the registry | use [`tools=[...]` on Agent](tools.md) |
 | Change the system prompt mid-run | hooks can read state but not mutate the prompt; use a [skill](skills.md) instead |
 
-## The six lifecycle phases
+## The eight lifecycle phases
 
 A hook can subscribe to any of these. Each method receives a typed,
 write-protected event object.
@@ -31,6 +32,8 @@ write-protected event object.
 |---|---|---|
 | `on_before_invocation` | once, when `agent.run()` starts | initialise per-run state, open spans |
 | `on_after_invocation` | once, after the agent finishes | flush metrics, close spans |
+| `on_iteration_start` | at the top of each loop iteration | per-iteration budgets, step counters |
+| `on_iteration_end` | at the bottom of each loop iteration | per-iteration accounting, early termination |
 | `on_before_model_call` | before each request to the model | redact PII, count tokens |
 | `on_after_model_call` | after each response from the model | log usage, retry on empty |
 | `on_before_tool_call` | before each tool body runs | guardrails, audit, approval gates |
@@ -125,7 +128,7 @@ agent = Agent(
     hooks=[
         StructuredLoggingHook(),       # JSON logs at every phase
         TelemetryHook(),               # OTel spans + metrics + histograms
-        ModelRetryHook(max_retries=3), # backoff on empty / rate-limited responses
+        ModelRetryHook(max_retries=3), # backoff on empty model responses
         GuardrailsHook(),              # PII / SQL / XSS / command-injection
         SteeringHook(model=judge_model),  # LLM-as-judge tool approval
     ],
@@ -145,10 +148,17 @@ you want the API surface but no actual export (useful for tests).
 
 ### `ModelRetryHook`
 
-Backoff retries on empty model responses, rate-limit errors, and
-transient connection failures. Configurable `max_retries`,
-`initial_delay`, `max_delay`, and `backoff_factor`. Doesn't intercept
-your tool calls — only the model layer.
+Backoff retries on **empty model responses** — a reply with no content
+and no tool calls. Configurable `max_retries`, `initial_delay`,
+`max_delay`, and `backoff_factor`. Doesn't intercept your tool calls —
+only the model layer.
+
+!!! warning "It does not retry errors"
+    `on_after_model_call` has no exception handling, so rate limits,
+    5xx responses, and connection failures are **not** retried here.
+    Those are handled inside the provider client instead — the OpenAI
+    and Anthropic models take `max_retries` and `request_timeout` of
+    their own. See [Retry strategies](retry.md).
 
 ### `GuardrailsHook` / `ContentFilterHook`
 
