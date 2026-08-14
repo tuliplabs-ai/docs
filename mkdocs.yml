@@ -192,6 +192,7 @@ nav:
   - Observability:
     - Observability: concepts/observability.md
     - SSE event catalogue: concepts/sse-events.md
+    - Testing: concepts/testing.md
     - Evaluation: concepts/evaluation.md
   - Security domain:
     - Agentic AI-security: concepts/agentic-ai-security.md
