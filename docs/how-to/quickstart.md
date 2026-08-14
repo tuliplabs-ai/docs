@@ -91,6 +91,8 @@ That's the whole point of Tulip: wrap the action in `admit()` and it runs
 warrants it, and lands on a tamper-evident audit trail either way.
 
 ```python
+import asyncio
+
 from tulip.control import (
     Action, admit, ControlPolicy, AuditTrail, AdmissionError)
 
@@ -102,17 +104,20 @@ risky = Action(
     name="issue_refund", asset="ORD-7842",
     blast_radius=1, kind="payment", environment="production")
 
-async def issue_refund():
+async def do_refund():
     ...  # your real payment call (Stripe, your billing service, etc.)
 
-try:
-    await admit(risky, issue_refund, policy=policy, trail=trail)
-except AdmissionError as e:
-    print(e.decision.outcome)   # -> "require_human" — held; the refund did NOT run
+async def main():
+    try:
+        await admit(risky, do_refund, policy=policy, trail=trail)
+    except AdmissionError as e:
+        print(e.decision.outcome)   # -> "require_human" — held; the refund did NOT run
 
-# Either way it's on the record:
-print(trail.verify())           # True — chain intact
-print(trail.export_jsonl())     # one JSON event per line — ready for your log pipeline or audit store
+    # Either way it's on the record:
+    print(trail.verify())           # True — chain intact
+    print(trail.export_jsonl())     # one JSON event per line — ready for your log pipeline or audit store
+
+asyncio.run(main())
 ```
 
 That `admit()` call is the difference between a library that *suggests*

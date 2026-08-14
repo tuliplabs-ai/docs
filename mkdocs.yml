@@ -160,6 +160,7 @@ nav:
     - Overview: concepts/models.md
     - OpenAI: concepts/providers/openai.md
     - Anthropic: concepts/providers/anthropic.md
+    - OpenAI-compatible: concepts/providers/openai-compatible.md
   - Reasoning: concepts/reasoning.md
   - Memory:
     - Checkpointers & Store: concepts/checkpointers.md
@@ -324,6 +325,7 @@ nav:
   - DeepAgent: api/deepagent.md
   - ReAct loop: api/loop.md
   - Tools: api/tools.md
+  - Control: api/control.md
   - Hooks: api/hooks.md
   - Termination: api/termination.md
   - Reasoning: api/reasoning.md
