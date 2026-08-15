@@ -54,6 +54,32 @@ call and the gate is unchanged.
 Run it (fully offline — no model, no provider, no network):
     python examples/notebook_85_support_account_gate.py
 
+## Output
+
+Running it offline — no credentials, bundled mock model — prints the account action that needed a human:
+
+```text
+Notebook 85: A support agent changes a customer account — admit() holds the big ones
+============================================================
+
+--- Ticket SUP-7781: $5 goodwill credit for a late reply ---
+  Agent proposes: apply_credit (+$5) on cust:4821
+  ✓ ALLOWED — the change ran: cust:4821: set credit_balance_usd = 5.0
+
+--- Ticket SUP-7782: upgrade to enterprise + $500 retention credit ---
+  Agent proposes: upgrade_plan_and_credit (enterprise + $500) on cust:4821
+  ⏸  HELD for a human — require_human: blast radius 2 exceeds the maximum 1; labels ['high_value'] require human approval
+     The upgrade did NOT run. It waits for a support lead to approve.
+
+Audit trail
+------------------------------------------------------------
+  allow          apply_credit               cust:4821  —  all policy checks passed
+  require_human  upgrade_plan_and_credit    cust:4821  —  blast radius 2 exceeds the maximum 1; labels ['high_value'] require human approval
+
+Both decisions are on the trail: one allowed, one held. No write went unrecorded.
+```
+<!-- notebook-output:end -->
+
 ## Source
 
 ```python

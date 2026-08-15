@@ -57,6 +57,39 @@ the gate is unchanged.
 Run it (fully offline — no cloud account, no credentials needed):
     python examples/notebook_87_cloud_resource_gate.py
 
+## Output
+
+Running it offline — no credentials, bundled mock model — prints spend held at the policy boundary:
+
+```text
+Notebook 87: gating a cloud-ops agent's actions by blast radius and environment
+============================================================
+
+--- agent proposes: resize_instance ---
+    asset='i-dev-7a3'  env='staging'  blast_radius=1
+  ✅ ADMITTED — the cloud call ran: resized i-dev-7a3 -> t3.medium
+
+--- agent proposes: terminate_instance ---
+    asset='i-prod-db1'  env='production'  blast_radius=1
+  ⏸  HELD FOR A HUMAN — outcome=require_human
+     why: labels ['production'] require human approval
+     the cloud call did NOT run; the resource is untouched.
+
+Cloud account after both attempts:
+------------------------------------------------------------
+  i-dev-7a3     env=staging     state=running     size=t3.medium
+  i-prod-db1    env=production  state=running     size=r6i.4xlarge
+
+Audit trail:
+------------------------------------------------------------
+  #0  resize_instance       -> allow           (i-dev-7a3)
+  #1  terminate_instance    -> require_human   (i-prod-db1)
+  chain intact (tamper-evident): True
+
+All assertions passed: low-risk action ran, production change held, both audited.
+```
+<!-- notebook-output:end -->
+
 ## Source
 
 ```python
