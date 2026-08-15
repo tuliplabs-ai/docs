@@ -33,6 +33,41 @@ Runs offline — no network, no credentials; the payout is a local ledger stub.
 Run it:
     python examples/notebook_83_payment_refund_gate.py
 
+## Output
+
+Running it offline — no credentials, bundled mock model — prints a small refund paid, a large one held:
+
+```text
+Notebook 83: A refund gate that pays out small refunds and holds big ones
+============================================================
+
+--- Support agent proposes: refund $12.50 to cust:4821 ---
+    reason: duplicate shipping charge on order #A-9920
+    scope:  1 ledger entry, tags=['refund']
+  PAID    refunded $12.50 to cust:4821
+
+--- Support agent proposes: refund $4,000.00 to cust:7763 ---
+    reason: full-year subscription reversal after billing dispute
+    scope:  6 ledger entries, tags=['high_value', 'refund']
+  HELD    not admitted (require_human) — queued for a human
+            · blast radius 6 exceeds the maximum 1
+            · labels ['high_value'] require human approval
+
+Ledger:
+------------------------------------------------------------
+  paid: [('cust:4821', 12.5)]
+  held: [('cust:7763', 4000.0)]
+
+Audit trail:
+------------------------------------------------------------
+  #0 action-admission: issue_refund cust:4821 -> allow
+  #1 action-admission: issue_refund cust:7763 -> require_human
+  chain intact (tamper-evident): True
+
+OK: small refund paid, large refund held, both on the audit trail.
+```
+<!-- notebook-output:end -->
+
 ## Source
 
 ```python

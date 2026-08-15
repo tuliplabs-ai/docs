@@ -69,6 +69,12 @@ jobs:
       - name: Build docs (strict)
         run: hatch run build
 
+      # The notebook pages show captured output. Re-run the notebooks against
+      # the same pinned SDK the pages render from, so the output shown is the
+      # output of the source shown.
+      - name: Notebook output is still what the notebooks print
+        run: TULIP_SDK_DIR=./.sdk hatch run outputs
+
       # --strict proves links and mkdocstrings references resolve; it never
       # looks inside a fenced code block. This runs the snippets against the
       # same pinned SDK, so a renamed keyword or a moved symbol fails the PR
