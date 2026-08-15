@@ -274,11 +274,17 @@ playbook, a pricing-exception cache, anything that should outlive a
 single case.
 
 ```python
+import asyncio
 from tulip.memory.store import InMemoryStore   # tests / REPL
 
-store = InMemoryStore()
-await store.put(("tulip_memory", "support"), "refund_policy", {"content": "Refunds over $500 need manager approval"})
-hit = await store.get(("tulip_memory", "support"), "refund_policy")
+
+async def main():
+    store = InMemoryStore()
+    await store.put(("tulip_memory", "support"), "refund_policy", {"content": "Refunds over $500 need manager approval"})
+    hit = await store.get(("tulip_memory", "support"), "refund_policy")
+
+
+asyncio.run(main())
 ```
 
 The interface is `put / get / list / delete` keyed on a `(namespace,
@@ -295,11 +301,17 @@ default the [`LLMMemoryManager`](memory-manager.md) uses. For a durable
 cross-thread store, subclass `BaseStore` over your backend of choice.
 
 ```python
+import asyncio
 from tulip.memory.store import InMemoryStore
 
-store = InMemoryStore()
-await store.put(("memory", "cust-4821"), "fact-1", {"note": "cust-4821 prefers store credit over card refunds"})
-hits = await store.search(("memory", "cust-4821"), query=None, limit=5)
+
+async def main():
+    store = InMemoryStore()
+    await store.put(("memory", "cust-4821"), "fact-1", {"note": "cust-4821 prefers store credit over card refunds"})
+    hits = await store.search(("memory", "cust-4821"), query=None, limit=5)
+
+
+asyncio.run(main())
 ```
 
 ## Common gotchas

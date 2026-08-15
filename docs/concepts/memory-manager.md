@@ -60,25 +60,31 @@ fact under the same key **updates** the record, not duplicates it.
 ## Quick start
 
 ```python
+import asyncio
 from tulip.agent import Agent
 from tulip.memory.manager import LLMMemoryManager, Memory, MemoryType
 from tulip.memory.store import InMemoryStore
 
-store = InMemoryStore()   # swap for a persistent backend in production
 
-agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    memory_manager=LLMMemoryManager(store=store),
-)
+async def main():
+    store = InMemoryStore()   # swap for a persistent backend in production
 
-# Session 1 — agent learns a standing rule
-async for event in agent.run("Refunds over $500 need manager approval — page the duty manager first."):
-    ...
+    agent = Agent(
+        model="anthropic:claude-sonnet-4-6",
+        memory_manager=LLMMemoryManager(store=store),
+    )
 
-# Session 2 — the agent already knows
-async for event in agent.run("The customer on order ord-4821 wants a $750 refund. What do you do?"):
-    ...
-# → agent requests manager approval before refunding, no reminder needed
+    # Session 1 — agent learns a standing rule
+    async for event in agent.run("Refunds over $500 need manager approval — page the duty manager first."):
+        ...
+
+    # Session 2 — the agent already knows
+    async for event in agent.run("The customer on order ord-4821 wants a $750 refund. What do you do?"):
+        ...
+    # → agent requests manager approval before refunding, no reminder needed
+
+
+asyncio.run(main())
 ```
 
 ## Supplying an LLM extraction function

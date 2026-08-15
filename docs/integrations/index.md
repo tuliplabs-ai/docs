@@ -61,14 +61,20 @@ channel). The rest are read-only evidence sources.
 stays vendor-agnostic. Swap Okta for Auth0 by changing one line:
 
 ```python
+import asyncio
 from tulip.security import SecurityContext
 from tulip_integrations.identity.auth0 import Auth0Identity
 from tulip_integrations.threat_intel.virustotal import VirusTotalIntel
 
-ctx = SecurityContext(identity=Auth0Identity(), threat_intel=VirusTotalIntel())
-await ctx.identity.get_user("mallory@corp.com")  # read: hits the real Auth0 Management API
-# a write (ctx.identity.disable) goes through ctx.actions.execute — gated
-# (disable is a simulated offline stub today; risk reads are offline-sample-only)
+
+async def main():
+    ctx = SecurityContext(identity=Auth0Identity(), threat_intel=VirusTotalIntel())
+    await ctx.identity.get_user("mallory@corp.com")  # read: hits the real Auth0 Management API
+    # a write (ctx.identity.disable) goes through ctx.actions.execute — gated
+    # (disable is a simulated offline stub today; risk reads are offline-sample-only)
+
+
+asyncio.run(main())
 ```
 
 **2. As agent tools** — merge a vendor's `@tool`s into the toolset for an

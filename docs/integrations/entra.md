@@ -15,13 +15,19 @@ pip install "tulip-integrations[identity-entra]"
 | **Adapter** | `entra_adapter()` → `ToolAdapter` (a `SecurityAdapter`) |
 
 ```python
+import asyncio
 from tulip.security import SecurityContext
 from tulip_integrations.identity.entra import EntraIdentity
 
-ctx = SecurityContext(identity=EntraIdentity())
-await ctx.identity.get_user("mallory@example.com")   # profile (live: GET /users/{id})
-await ctx.identity.signins("mallory@example.com")    # recent sign-ins (live: /auditLogs/signIns)
-await ctx.identity.risk("mallory@example.com")        # risk + impossible_travel + mfa (offline sample)
+
+async def main():
+    ctx = SecurityContext(identity=EntraIdentity())
+    await ctx.identity.get_user("mallory@example.com")   # profile (live: GET /users/{id})
+    await ctx.identity.signins("mallory@example.com")    # recent sign-ins (live: /auditLogs/signIns)
+    await ctx.identity.risk("mallory@example.com")        # risk + impossible_travel + mfa (offline sample)
+
+
+asyncio.run(main())
 ```
 
 Look up a user and read sign-ins, read a risk signal, or block an account.

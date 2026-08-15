@@ -43,39 +43,45 @@ exits when the queue empties or `max_iterations` is hit.
 ## Code
 
 ```python
+import asyncio
 from tulip.multiagent import create_swarm, create_swarm_agent
 
-model = "anthropic:claude-sonnet-4-6"
 
-scout = create_swarm_agent(
-    name="Scout",
-    capabilities=["search", "collect", "investigate"],
-    system_prompt="You are a research scout. Find sources, pull data, scope leads.",
-)
-analyst = create_swarm_agent(
-    name="Analyst",
-    capabilities=["analyze", "verify", "compare"],
-    system_prompt="You are an analyst. Verify claims, cross-check sources, quantify findings.",
-)
-writer = create_swarm_agent(
-    name="Writer",
-    capabilities=["write", "summarize", "document"],
-    system_prompt="You are a writer. Take confirmed findings, draft the report.",
-)
+async def main():
+    model = "anthropic:claude-sonnet-4-6"
 
-swarm = create_swarm(
-    name="Research swarm",
-    agents=[scout, analyst, writer],
-    model=model,
-)
-swarm.max_iterations = 12
+    scout = create_swarm_agent(
+        name="Scout",
+        capabilities=["search", "collect", "investigate"],
+        system_prompt="You are a research scout. Find sources, pull data, scope leads.",
+    )
+    analyst = create_swarm_agent(
+        name="Analyst",
+        capabilities=["analyze", "verify", "compare"],
+        system_prompt="You are an analyst. Verify claims, cross-check sources, quantify findings.",
+    )
+    writer = create_swarm_agent(
+        name="Writer",
+        capabilities=["write", "summarize", "document"],
+        system_prompt="You are a writer. Take confirmed findings, draft the report.",
+    )
 
-result = await swarm.execute(
-    initial_task="Research why checkout conversion dropped last week: collect data, verify causes, draft a report.",
-)
-print(result.summary)
-for task in result.completed_tasks:
-    print(task.description, "→", task.status)
+    swarm = create_swarm(
+        name="Research swarm",
+        agents=[scout, analyst, writer],
+        model=model,
+    )
+    swarm.max_iterations = 12
+
+    result = await swarm.execute(
+        initial_task="Research why checkout conversion dropped last week: collect data, verify causes, draft a report.",
+    )
+    print(result.summary)
+    for task in result.completed_tasks:
+        print(task.description, "→", task.status)
+
+
+asyncio.run(main())
 ```
 
 A `SwarmAgent` carries free-form `capabilities` tags (not a tool list);

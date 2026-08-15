@@ -36,11 +36,17 @@ pip install "tulip-agents[mcp]"
 ### 2. Spawn the server and wrap it with `MCPClient`
 
 ```python
+import asyncio
 from tulip.integrations.fastmcp import MCPClient
 
-# Point MCPClient at a threat-intel MCP server launched over stdio:
-ti = MCPClient(server_command=["python", "-m", "ti_feed.mcp_server"])
-await ti.connect()
+
+async def main():
+    # Point MCPClient at a threat-intel MCP server launched over stdio:
+    ti = MCPClient(server_command=["python", "-m", "ti_feed.mcp_server"])
+    await ti.connect()
+
+
+asyncio.run(main())
 ```
 
 `MCPClient(server_command=[...])` describes a stdio MCP server;

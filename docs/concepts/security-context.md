@@ -14,13 +14,19 @@ example.
 ![SecurityContext exposes six domain ports — logs, endpoint, identity, cloud, threat_intel, actions — each resolving to an offline reference or an injected live vendor](../img/patterns/security-context.svg){ .diagram }
 
 ```python
+import asyncio
 from tulip.security import SecurityContext
 
-ctx = SecurityContext()                              # zero config — runs offline
-await ctx.logs.search("failed login spike", window="6h")
-await ctx.identity.risk("mallory@example.com")
-await ctx.threat_intel.enrich("198.51.100.23")
-await ctx.endpoint.get_host("WS-0142")
+
+async def main():
+    ctx = SecurityContext()                              # zero config — runs offline
+    await ctx.logs.search("failed login spike", window="6h")
+    await ctx.identity.risk("mallory@example.com")
+    await ctx.threat_intel.enrich("198.51.100.23")
+    await ctx.endpoint.get_host("WS-0142")
+
+
+asyncio.run(main())
 ```
 
 ## The domains
@@ -98,46 +104,52 @@ have to be true — the data is real, the claim is verified, and the action is
 gated. `SecurityContext` puts the trust spine right in the path:
 
 ```python
+import asyncio
 from tulip.control import Action, verify
 from tulip.security import Evidence, SecurityContext, Severity
 from tulip_integrations.identity.auth0 import Auth0Identity
 
-# Real identity provider. ctx.actions defaults to ControlPolicy(), which sends
-# production account-disables to a human.
-ctx = SecurityContext(identity=Auth0Identity())
 
-# 1. INVESTIGATE — by domain, against the real Auth0 tenant.
-risk = await ctx.identity.risk("mallory@corp.com")
-# -> {'user': ..., 'risk': 'high', 'impossible_travel': True}
+async def main():
+    # Real identity provider. ctx.actions defaults to ControlPolicy(), which sends
+    # production account-disables to a human.
+    ctx = SecurityContext(identity=Auth0Identity())
 
-# 2. FORM A FINDING, then VERIFY it. An independent skeptic challenges the
-#    evidence and re-scores confidence — a thin claim is refuted, not acted on.
-finding = Evidence(
-    title="Account compromise: impossible-travel sign-ins",
-    description="High-risk Auth0 user with impossible travel between two sign-ins.",
-    severity=Severity.HIGH,
-    asset="mallory@corp.com",
-    remediation="Disable the account and force a credential reset.",
-    evidence_refs=["auth0:logs:mallory@corp.com"],
-    gsar_score=0.86,
-)
-verdict = await verify(finding)
-if not verdict.survives:
-    return  # abstain — no hallucinated containment
+    # 1. INVESTIGATE — by domain, against the real Auth0 tenant.
+    risk = await ctx.identity.risk("mallory@corp.com")
+    # -> {'user': ..., 'risk': 'high', 'impossible_travel': True}
 
-# 3. PROPOSE CONTAINMENT — gated by policy through ctx.actions.
-decision = ctx.actions.request_approval(
-    Action(name="disable_user", asset="mallory@corp.com", environment="production"),
-    finding=finding,
-    verdict=verdict,
-)
-# decision.outcome -> "require_human": a person decides, with the evidence
-# and the verdict attached. The agent never disables a prod account on its own.
+    # 2. FORM A FINDING, then VERIFY it. An independent skeptic challenges the
+    #    evidence and re-scores confidence — a thin claim is refuted, not acted on.
+    finding = Evidence(
+        title="Account compromise: impossible-travel sign-ins",
+        description="High-risk Auth0 user with impossible travel between two sign-ins.",
+        severity=Severity.HIGH,
+        asset="mallory@corp.com",
+        remediation="Disable the account and force a credential reset.",
+        evidence_refs=["auth0:logs:mallory@corp.com"],
+        gsar_score=0.86,
+    )
+    verdict = await verify(finding)
+    if not verdict.survives:
+        return  # abstain — no hallucinated containment
 
-# 4. ON APPROVAL, ACT. NB: in the current build `disable` returns a simulated
-#    offline-sample receipt — it does not yet lock the account out.
-if decision.allowed:
-    await ctx.identity.disable("mallory@corp.com")
+    # 3. PROPOSE CONTAINMENT — gated by policy through ctx.actions.
+    decision = ctx.actions.request_approval(
+        Action(name="disable_user", asset="mallory@corp.com", environment="production"),
+        finding=finding,
+        verdict=verdict,
+    )
+    # decision.outcome -> "require_human": a person decides, with the evidence
+    # and the verdict attached. The agent never disables a prod account on its own.
+
+    # 4. ON APPROVAL, ACT. NB: in the current build `disable` returns a simulated
+    #    offline-sample receipt — it does not yet lock the account out.
+    if decision.allowed:
+        await ctx.identity.disable("mallory@corp.com")
+
+
+asyncio.run(main())
 ```
 
 `"require_human"` is the **held** outcome — every decision comes back allowed,

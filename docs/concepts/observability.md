@@ -195,13 +195,19 @@ allocation, one `ContextVar.get()` per call site. The singleton is never
 instantiated.
 
 ```python
+import asyncio
 from tulip.observability import run_context, get_event_bus
 
-async with run_context() as rid:
-    # Subscribe before or during a run — history replay delivers the last
-    # 500 events on connect, then switches to live mode.
-    async for event in get_event_bus().subscribe(rid):
-        print(event.event_type, event.data)
+
+async def main():
+    async with run_context() as rid:
+        # Subscribe before or during a run — history replay delivers the last
+        # 500 events on connect, then switches to live mode.
+        async for event in get_event_bus().subscribe(rid):
+            print(event.event_type, event.data)
+
+
+asyncio.run(main())
 ```
 
 ### The agent yield bridge

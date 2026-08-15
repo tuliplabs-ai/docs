@@ -13,12 +13,18 @@ pip install "tulip-integrations[edr-crowdstrike]"
 | **Adapter** | `crowdstrike_adapter()` → `SecurityAdapter` |
 
 ```python
+import asyncio
 from tulip.security import SecurityContext
 from tulip_integrations.edr.crowdstrike import CrowdStrikeEndpoint
 
-ctx = SecurityContext(endpoint=CrowdStrikeEndpoint())
-await ctx.endpoint.get_host("WIN-ABC", window="24h")   # host device record (live)
-await ctx.endpoint.detections()                         # open detections (live)
+
+async def main():
+    ctx = SecurityContext(endpoint=CrowdStrikeEndpoint())
+    await ctx.endpoint.get_host("WIN-ABC", window="24h")   # host device record (live)
+    await ctx.endpoint.detections()                         # open detections (live)
+
+
+asyncio.run(main())
 ```
 
 On the live path `get_host` queries Falcon's device-entity endpoint
