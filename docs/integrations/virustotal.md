@@ -14,11 +14,17 @@ pip install "tulip-integrations[threat-intel-virustotal]"
 | **Adapter** | `virustotal_adapter()` → `ToolAdapter` (a `SecurityAdapter`) |
 
 ```python
+import asyncio
 from tulip.security import SecurityContext
 from tulip_integrations.threat_intel.virustotal import VirusTotalIntel
 
-ctx = SecurityContext(threat_intel=VirusTotalIntel())
-await ctx.threat_intel.enrich("8.8.8.8")   # -> {malicious_detections, classification, ...}
+
+async def main():
+    ctx = SecurityContext(threat_intel=VirusTotalIntel())
+    await ctx.threat_intel.enrich("8.8.8.8")   # -> {malicious_detections, classification, ...}
+
+
+asyncio.run(main())
 ```
 
 Reputation enrichment for an **IP, domain, or file hash** (the indicator type is

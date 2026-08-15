@@ -14,13 +14,19 @@ pip install "tulip-integrations[identity-okta]"
 | **Adapter** | `okta_adapter()` → `ToolAdapter` (a `SecurityAdapter`) |
 
 ```python
+import asyncio
 from tulip.security import SecurityContext
 from tulip_integrations.identity.okta import OktaIdentity
 
-ctx = SecurityContext(identity=OktaIdentity())
-await ctx.identity.get_user("mallory@example.com")   # profile + MFA (live: GET /api/v1/users)
-await ctx.identity.signins("mallory@example.com")     # recent sign-ins (live)
-await ctx.identity.risk("mallory@example.com")        # risk + impossible_travel (offline sample)
+
+async def main():
+    ctx = SecurityContext(identity=OktaIdentity())
+    await ctx.identity.get_user("mallory@example.com")   # profile + MFA (live: GET /api/v1/users)
+    await ctx.identity.signins("mallory@example.com")     # recent sign-ins (live)
+    await ctx.identity.risk("mallory@example.com")        # risk + impossible_travel (offline sample)
+
+
+asyncio.run(main())
 ```
 
 Look up a user and pull recent sign-ins (both live), read a risk signal, or

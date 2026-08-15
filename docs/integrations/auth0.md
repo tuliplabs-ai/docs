@@ -14,13 +14,19 @@ pip install "tulip-integrations[identity-auth0]"
 | **Adapter** | `auth0_adapter()` → `ToolAdapter` (a `SecurityAdapter`) |
 
 ```python
+import asyncio
 from tulip.security import SecurityContext
 from tulip_integrations.identity.auth0 import Auth0Identity
 
-ctx = SecurityContext(identity=Auth0Identity())
-await ctx.identity.get_user("mallory@example.com")   # Management API lookup (live path)
-await ctx.identity.signins("mallory@example.com")    # recent sign-in logs (live path)
-await ctx.identity.risk("mallory@example.com")        # risk + impossible_travel (offline sample)
+
+async def main():
+    ctx = SecurityContext(identity=Auth0Identity())
+    await ctx.identity.get_user("mallory@example.com")   # Management API lookup (live path)
+    await ctx.identity.signins("mallory@example.com")    # recent sign-in logs (live path)
+    await ctx.identity.risk("mallory@example.com")        # risk + impossible_travel (offline sample)
+
+
+asyncio.run(main())
 ```
 
 Look up a user and pull recent sign-ins (`get_user` / `signins` hit the

@@ -66,14 +66,20 @@ grounds each outcome. A probe whose attack *landed* yields an `Evidence`
 finding; an inconclusive one yields an `Abstention`.
 
 ```python
+import asyncio
 from tulip.security import Target, red_team, is_finding
 
-report = await red_team(Target.endpoint("https://bot.example/chat"), suite="owasp-asi")
-for r in report:
-    if is_finding(r):
-        print(r.severity.value, r.title, r.taxonomy)   # e.g. LLM01, ASI02, AML.T0054
-    else:
-        print("abstained:", r.reason)
+
+async def main():
+    report = await red_team(Target.endpoint("https://bot.example/chat"), suite="owasp-asi")
+    for r in report:
+        if is_finding(r):
+            print(r.severity.value, r.title, r.taxonomy)   # e.g. LLM01, ASI02, AML.T0054
+        else:
+            print("abstained:", r.reason)
+
+
+asyncio.run(main())
 ```
 
 The bundled catalogue covers direct and indirect prompt injection, jailbreak,
