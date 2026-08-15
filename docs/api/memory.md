@@ -27,13 +27,19 @@ state); the cross-thread **store** layer below is a separate contract.
 
 ## Cross-thread store
 
-The cross-thread KV the long-term memory manager writes to.
-`InMemoryStore` is the only `BaseStore` implementation that ships today
-(in-process, lost on exit) — `tulip.memory.store_backends` is a stub
-(`__all__ = []`). For a durable store, subclass `BaseStore` yourself or
-front a third-party service (e.g. Mem0). The drivers in
-`tulip.memory.backends` referenced by [Checkpointers](checkpointers.md)
-implement `BaseCheckpointer` (per-thread state), **not** `BaseStore`.
+The cross-thread KV the long-term memory manager writes to. Three
+implementations ship:
+
+| Store | Backing | Reach for it when |
+|---|---|---|
+| `InMemoryStore` | in-process dict | tests, and anything that can lose memory on exit |
+| `HolographicStore` | SQLite + FTS5 + holographic reduced representations | you want durable memory with **no external infrastructure** |
+| `PgMemory` | Postgres + pgvector, per-tenant row-level security | multi-tenant, where isolation has to hold at the database |
+
+The drivers in `tulip.memory.backends` referenced by
+[Checkpointers](checkpointers.md) implement `BaseCheckpointer` (per-thread
+state), **not** `BaseStore`. The two layers are separate contracts and a
+backend for one is not a backend for the other.
 
 ::: tulip.memory.store.BaseStore
 ::: tulip.memory.store.InMemoryStore
@@ -43,6 +49,13 @@ implement `BaseCheckpointer` (per-thread state), **not** `BaseStore`.
 ::: tulip.memory.store.StoreCapabilities
 ::: tulip.memory.store.StoreCapabilityError
 ::: tulip.memory.store.SemanticSearchResult
+
+### Durable store backends
+
+Both shipped in 2.2.0.
+
+::: tulip.memory.store_backends.holographic.HolographicStore
+::: tulip.memory.store_backends.postgresql.PgMemory
 
 ## Long-term memory manager
 

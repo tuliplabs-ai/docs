@@ -46,15 +46,21 @@ in an `Action` and route it through `admit()` so policy (and a human, in
 production) clears it first, and the decision lands on the audit trail:
 
 ```python
+import asyncio
 from tulip.control import Action, admit, ControlPolicy, AuditTrail
 from tulip_integrations.soar.cortex_xsoar import xsoar_close_incident
 
-trail = AuditTrail()
-await admit(
-    Action(name="xsoar_close", asset="INC-1001", environment="production", kind="soar"),
-    lambda: xsoar_close_incident("INC-1001", reason="auto-triaged: benign"),
-    policy=ControlPolicy(), trail=trail,
-)
+
+async def main():
+    trail = AuditTrail()
+    await admit(
+        Action(name="xsoar_close", asset="INC-1001", environment="production", kind="soar"),
+        lambda: xsoar_close_incident("INC-1001", reason="auto-triaged: benign"),
+        policy=ControlPolicy(), trail=trail,
+    )
+
+
+asyncio.run(main())
 ```
 
 !!! warning "`xsoar_close_incident` is a real action"

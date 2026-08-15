@@ -40,11 +40,13 @@ Usage::
 from __future__ import annotations
 
 import ast
+import builtins
 import importlib
 import inspect
 import pathlib
 import re
 import sys
+import textwrap
 from dataclasses import dataclass
 from typing import Any
 
@@ -180,12 +182,91 @@ def _check_call(node: ast.Call, target: str, obj: Any) -> list[tuple[str, str]]:
     return found
 
 
+def _compiles(source: str) -> str | None:
+    """``None`` if ``source`` compiles as a module, else the error message.
+
+    ``ast.parse`` is more permissive than the compiler — it builds a tree for
+    top-level ``await`` quite happily, and only ``compile()`` rejects it. That
+    gap is not theoretical: it is how the quickstart shipped a headline snippet
+    that raised ``SyntaxError`` for every reader who pasted it, while this
+    checker ran over that file and reported no problems.
+    """
+    try:
+        compile(source, "<snippet>", "exec")
+    except SyntaxError as exc:
+        return str(exc).split("(")[0].strip()
+    return None
+
+
+def _bound_names(tree: ast.Module) -> set[str]:
+    """Every name the snippet defines for itself."""
+    bound: set[str] = set(dir(builtins)) | {"__name__", "__file__", "__doc__"}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            bound |= {(alias.asname or alias.name).split(".")[0] for alias in node.names}
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            bound.add(node.name)
+            args = node.args
+            bound |= {
+                a.arg
+                for a in [*args.posonlyargs, *args.args, *args.kwonlyargs]
+            }
+            bound |= {a.arg for a in (args.vararg, args.kwarg) if a}
+        elif isinstance(node, ast.Lambda):
+            args = node.args
+            bound |= {a.arg for a in [*args.posonlyargs, *args.args, *args.kwonlyargs]}
+            bound |= {a.arg for a in (args.vararg, args.kwarg) if a}
+        elif isinstance(node, ast.ClassDef):
+            bound.add(node.name)
+        elif isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
+            # Covers assignment, for-targets, walrus and comprehension targets.
+            bound.add(node.id)
+        elif isinstance(node, ast.ExceptHandler) and node.name:
+            bound.add(node.name)
+        elif isinstance(node, (ast.Global, ast.Nonlocal)):
+            bound |= set(node.names)
+    return bound
+
+
+def _is_excerpt(tree: ast.Module, source: str) -> bool:
+    """Whether this is an illustrative fragment rather than a runnable file.
+
+    The docs are full of snippets that show a shape — an ``Orchestrator`` wired
+    to ``issue_refund`` and ``flag_transaction``, neither of them defined
+    anywhere in the block. Those were never pasteable, with or without the
+    ``await``, and rewriting them into ``asyncio.run(main())`` would add
+    ceremony to the one thing they exist to communicate.
+
+    So the discriminator is whether the snippet resolves: if it loads a name it
+    never binds, it is a fragment and its top-level ``await`` is a stylistic
+    choice. If every name is defined, a reader *can* paste it — and then
+    top-level ``await`` is a ``SyntaxError`` they will actually hit. That is
+    the exact shape of the quickstart defect this check exists for.
+
+    (An earlier version used "has top-level imports" as the test, which these
+    fragments also satisfy — it flagged 60 of them.)
+    """
+    if _compiles(f"async def _fragment():\n{textwrap.indent(source, '    ')}\n") is not None:
+        # Broken inside a coroutine too, so it is wrong either way.
+        return False
+    used = {
+        node.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load)
+    }
+    return bool(used - _bound_names(tree))
+
+
 def check_block(source: str) -> list[tuple[str, str]]:
     """Every problem in one snippet, as ``(kind, message)``."""
     try:
         tree = ast.parse(source)
     except SyntaxError as exc:
         return [("syntax", str(exc).split("(")[0].strip())]
+
+    # Parse is not enough — see ``_compiles``.
+    if (error := _compiles(source)) is not None and not _is_excerpt(tree, source):
+        return [("syntax", error)]
 
     found: list[tuple[str, str]] = []
     bound: dict[str, str] = {}

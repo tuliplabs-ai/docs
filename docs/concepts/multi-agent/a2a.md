@@ -104,24 +104,30 @@ required bearer token).
 ### Client side — fetch the card and send a message
 
 ```python
+import asyncio
 from tulip.a2a import A2AClient, Message, TextPart
 
-client = A2AClient(url="https://research.example.com", api_key="rotate-this-secret")
 
-# Read the public card to learn the agent's skills + capabilities.
-card = await client.get_agent_card()
-print(card.name, [s.id for s in card.skills])
+async def main():
+    client = A2AClient(url="https://research.example.com", api_key="rotate-this-secret")
 
-# Synchronous send — returns a Task in the `completed` state.
-task = await client.send_message(
-    Message(
-        role="user",
-        parts=[TextPart(text="Research why checkout conversion dropped last week; cite sources.")],
-        messageId="m-1",
+    # Read the public card to learn the agent's skills + capabilities.
+    card = await client.get_agent_card()
+    print(card.name, [s.id for s in card.skills])
+
+    # Synchronous send — returns a Task in the `completed` state.
+    task = await client.send_message(
+        Message(
+            role="user",
+            parts=[TextPart(text="Research why checkout conversion dropped last week; cite sources.")],
+            messageId="m-1",
+        )
     )
-)
-final_text = task.artifacts[-1].parts[0].text
-print(final_text)
+    final_text = task.artifacts[-1].parts[0].text
+    print(final_text)
+
+
+asyncio.run(main())
 ```
 
 By default `A2AClient` sends `A2A-Version: 1.0` and uses the v1.0 method

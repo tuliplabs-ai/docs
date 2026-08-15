@@ -122,6 +122,88 @@ def test_syntax_error_is_reported():
     assert message
 
 
+def test_top_level_await_in_a_pasteable_snippet_is_reported():
+    """``ast.parse`` accepts this; only ``compile`` rejects it.
+
+    This exact snippet shipped as the quickstart's headline example (#52) and
+    raised ``SyntaxError`` for every reader who pasted it — while this checker
+    ran over that file and reported no problems.
+    """
+    problems = check_block(
+        "import asyncio\n"
+        "from tulip.agent import Agent\n\n"
+        "agent = Agent(model='openai:gpt-4o')\n"
+        "result = await agent.arun('hi')\n"
+        "print(result.message)\n"
+    )
+    assert [kind for kind, _ in problems] == ["syntax"]
+    assert "await" in problems[0][1]
+
+
+def test_a_fragment_with_undefined_helpers_is_not_reported():
+    """The docs are full of these, and they were never pasteable anyway.
+
+    A snippet that wires an Orchestrator to tools it never defines exists to
+    show a shape. Rewriting it into ``asyncio.run(main())`` would add ceremony
+    to the one thing it communicates — and an earlier discriminator
+    ("does it have top-level imports?") flagged 60 of them.
+    """
+    problems = check_block(
+        "from tulip.multiagent import Orchestrator\n\n"
+        "orch = Orchestrator(specialists=[settlement])\n"
+        "await orch.run('dispute 4821')\n"
+    )
+    # Import findings are expected: this env carries a stub SDK, not the real
+    # one. The claim under test is that the *syntax* gate stays quiet.
+    assert "syntax" not in [kind for kind, _ in problems]
+
+
+def test_a_bare_async_excerpt_is_not_reported():
+    assert not check_block("async for event in agent.run('hi'):\n    print(event)\n")
+
+
+def test_a_complete_async_program_is_not_reported():
+    problems = check_block(
+        "import asyncio\n"
+        "from tulip.agent import Agent\n\n"
+        "async def main():\n"
+        "    print(await Agent().arun('hi'))\n\n"
+        "asyncio.run(main())\n"
+    )
+    assert "syntax" not in [kind for kind, _ in problems]
+
+
+def test_code_broken_inside_a_coroutine_too_is_still_reported():
+    """The excerpt exemption must not become a blanket pass."""
+    assert [k for k, _ in check_block("from tulip.agent import Agent\n\nf(a=1, positional)\n")] == [
+        "syntax"
+    ]
+
+
+def test_every_binding_form_counts_as_defined():
+    """A name the snippet binds must not read as "undefined".
+
+    Each case below binds its name through a different AST shape. If one of
+    these stopped counting, snippets using it would be misclassified as
+    fragments and their top-level ``await`` would stop being reported.
+    """
+    for label, source in {
+        "lambda arg": "f = lambda x: x + 1\nawait f(1)\n",
+        "class": "class C:\n    pass\n\nawait C()\n",
+        "except name": "try:\n    pass\nexcept ValueError as err:\n    print(err)\nawait err\n",
+        "for target": "for item in [1]:\n    pass\nawait item\n",
+        "walrus": "if (n := 1):\n    pass\nawait n\n",
+        "comprehension": "xs = [y for y in [1]]\nawait xs\n",
+        "def arg": "def g(a, *rest, **kw):\n    return a\n\nawait g(1)\n",
+    }.items():
+        kinds = [kind for kind, _ in check_block(source)]
+        assert "syntax" in kinds, f"{label}: bound name was treated as undefined"
+
+
+def test_a_global_declaration_binds_the_name():
+    assert [k for k, _ in check_block("global counter\nawait counter\n")] == ["syntax"]
+
+
 def test_missing_symbol_is_reported():
     problems = check_block("from tulip.fake import Nope\n")
     assert ("symbol", "tulip.fake.Nope does not exist") in problems
