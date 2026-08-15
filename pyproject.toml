@@ -30,6 +30,10 @@ build = "mkdocs build --strict {args}"
 # symbols, and call signatures. Needs `hatch run sdk` first, same as the
 # API reference does.
 snippets = "python scripts/check_snippets.py {args:docs}"
+# The captured output on the notebook pages, re-run against the pinned SDK.
+# Rotted output is worse than none: a reader who runs it and gets something
+# else cannot tell which of the two is wrong.
+outputs = "python scripts/notebook_output.py {args:--check}"
 
 # The repo ships real Python tooling — the cache-bust mkdocs hook and the
 # notebook-page scaffolder — so it carries the org-wide ≥95% coverage gate

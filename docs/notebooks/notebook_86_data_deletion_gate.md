@@ -64,6 +64,45 @@ for real deletes and the gate is unchanged.
 Run it (fully offline — no model, no provider, no network):
     python examples/notebook_86_data_deletion_gate.py
 
+## Output
+
+Running it offline — no credentials, bundled mock model — prints a GDPR erasure, and the chain that proves it:
+
+```text
+Notebook 86: A human signs off before an agent erases personal data
+======================================================================
+
+--- DSR-7781: Article 15/20 export request ---
+  action : export_subject_data (export, blast_radius=4)
+  outcome: ALLOW (auto)
+  detail : exported 4 categories for subject:eu-44213: profile=name, email, postal address, orders=7 past orders with billing details, support_tickets=3 closed tickets, marketing_events=412 clickstream + email-open events
+
+--- DSR-7782: Article 17 erasure request ---
+  action : erase_subject_records (delete, blast_radius=4)
+  outcome: require_human
+  detail : labels ['irreversible'] require human approval
+  note   : nothing deleted — the agent could not act on its own
+
+--- Human-in-the-loop ---
+  [DPO] reviewing held request: erase_subject_records on subject:eu-44213
+  [DPO] verified identity, retention obligations, and legal holds
+  [DPO] decision: APPROVE erasure
+
+--- DSR-7782: erasure proceeds after sign-off ---
+  action : erase_subject_records (delete, blast_radius=4)
+  outcome: ALLOW (after human sign-off)
+  detail : erased 4 categories for subject:eu-44213; nothing remains
+
+--- Compliance record (AuditTrail) ---
+  #0 action-admission: export_subject_data -> allow
+  #1 action-admission: erase_subject_records -> require_human
+  #2 action-admission: erase_subject_records -> allow
+  chain intact (tamper-evident): True
+
+OK: the export, the human hold, and the approved erasure are all on the record.
+```
+<!-- notebook-output:end -->
+
 ## Source
 
 ```python

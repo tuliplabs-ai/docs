@@ -45,6 +45,35 @@ is unchanged.
 Run it (fully offline — no model, no provider, no network):
     python examples/notebook_84_infra_deploy_gate.py
 
+## Output
+
+Running it offline — no credentials, bundled mock model — prints a deploy admitted and a deploy denied:
+
+```text
+Notebook 84: An ops agent that ships to staging on its own and waits for a human in production
+============================================================
+
+--- deploy checkout-api in staging (blast radius 3) ---
+  ALLOWED — the agent acted on its own authority.
+  Applied: deploy checkout-api -> checkout-api:1.8.2 (staging)
+
+--- rollback checkout-api in production (blast radius 2) ---
+  HELD (require_human) — nothing was applied.
+  Reason: labels ['production'] require human approval
+  Next: route to the on-call human for sign-off.
+
+Audit trail
+------------------------------------------------------------
+  action-admission: deploy checkout-api -> allow
+  action-admission: rollback checkout-api -> require_human
+  chain intact: True
+
+Side effects applied: ['deploy checkout-api -> checkout-api:1.8.2 (staging)']
+
+OK — staging shipped, production held, both on the trail.
+```
+<!-- notebook-output:end -->
+
 ## Source
 
 ```python
