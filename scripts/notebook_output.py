@@ -70,7 +70,11 @@ def sdk_dir() -> Path:
         ROOT.parent / "tulip-agents",
     ):
         if candidate and Path(candidate).is_dir():
-            return Path(candidate)
+            # Resolved, because the subprocess below runs with ``cwd`` set to
+            # this directory: a relative path would then be interpreted
+            # relative to itself. CI passes ``TULIP_SDK_DIR=./.sdk``, which
+            # turned into ``.sdk/.sdk/examples/...`` and failed only there.
+            return Path(candidate).resolve()
     raise SystemExit("SDK checkout not found — set TULIP_SDK_DIR")
 
 

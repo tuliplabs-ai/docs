@@ -158,6 +158,24 @@ def test_the_env_var_wins_when_finding_the_sdk(tmp_path: Path, monkeypatch) -> N
     assert sdk_dir() == tmp_path
 
 
+def test_a_relative_sdk_path_is_resolved(tmp_path: Path, monkeypatch) -> None:
+    """The subprocess runs with ``cwd`` set to this directory, so a relative
+    path would be read relative to itself.
+
+    CI passes ``TULIP_SDK_DIR=./.sdk``; unresolved, that became
+    ``.sdk/.sdk/examples/...``. It passed locally, where the variable happened
+    to be absolute, and failed only on the runner.
+    """
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".sdk").mkdir()
+    monkeypatch.setenv("TULIP_SDK_DIR", "./.sdk")
+
+    resolved = sdk_dir()
+
+    assert resolved.is_absolute()
+    assert resolved == (tmp_path / ".sdk").resolve()
+
+
 def test_no_sdk_anywhere_is_refused(tmp_path: Path, monkeypatch) -> None:
     """Better than running against whatever happens to be importable."""
     monkeypatch.delenv("TULIP_SDK_DIR", raising=False)
