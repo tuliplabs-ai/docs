@@ -67,6 +67,29 @@ decides, and only an admitted call reaches the sandbox.
 
 ::: tulip.control.gate.gate_tool
 
+### Holding an action for a human
+
+A hold is only useful if the agent can find out what happened next. Give
+`gate_tool` an `approval` bridge and a held refusal carries an `approval_id` the
+agent can poll, while a human decides on a channel the agent cannot reach:
+
+```json
+{"status": "held_for_approval", "outcome": "require_human",
+ "action": "issue_refund", "asset": "ord-4821", "reason": "...",
+ "approval_id": "appr-77",
+ "next": "call approval_status(approval_id) once a human decides"}
+```
+
+A **denial** deliberately gets no id. It is final, and offering one would invite
+the agent to wait for a decision that is not coming.
+
+`ApprovalBridge` is a structural `Protocol` with no import-time dependency, so
+the same broker object satisfies this and the bridge of the same name in
+`tulip-frameworks` — neither package has to import the other, and a gateway
+approval broker matches it in shape.
+
+::: tulip.control.gate.ApprovalBridge
+
 ## Deriving action labels
 
 Turn a tool call into an `Action` using declarative rules, so the labels a
