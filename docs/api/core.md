@@ -54,6 +54,14 @@ for, e.g., a checkpoint miss vs. a model throttle.
 ::: tulip.core.errors.ToolNotFoundError
 ::: tulip.core.errors.ToolValidationError
 
+### Reasoning errors
+
+Raised only when `GSARConfig.fail_on_low_score` is set. The default is off — a
+judgment is information, and most callers want to weigh it. Turn it on for a
+pipeline that must not ship an un-grounded answer at all.
+
+::: tulip.core.errors.GSARValidationError
+
 ### Checkpoint errors
 
 ::: tulip.core.errors.CheckpointError

@@ -37,17 +37,50 @@ radius, and tags — never on the name of the tool performing it.
 
 ::: tulip.security.policy.Action
 
+## Gating a tool
+
+`gate_tool` puts the gate in front of a tool the agent already has. The
+returned tool keeps the original's name, description and parameter schema, so
+the model sees no difference and nothing else in the agent changes — which is
+what makes the control structural rather than advisory. There is nothing to
+notice, so nothing to talk around.
+
+```python
+from tulip.control import ControlPolicy, gate_tool
+
+agent = Agent(model=model, tools=[
+    lookup_order,                                     # read-only, ungated
+    gate_tool(issue_refund, policy=ControlPolicy()),  # gated
+])
+```
+
+A refusal comes back to the model as a readable result naming the outcome and
+the reason, so the agent can explain the hold rather than the run ending in a
+traceback. It is the same shape the
+[`tulip-frameworks`](https://github.com/tuliplabs-ai/tulip-frameworks) bridges
+return, so a policy reads the same whether the agent is Tulip-native or
+wrapped from LangChain, CrewAI or the OpenAI Agents SDK. Pass
+`on_refusal="raise"` for a caller that would rather stop.
+
+Gating a **sandboxed** tool composes rather than replacing it: the gate
+decides, and only an admitted call reaches the sandbox.
+
+::: tulip.control.gate.gate_tool
+
 ## Deriving action labels
 
 Turn a tool call into an `Action` using declarative rules, so the labels a
 policy matches on are not hand-written per call site.
 
+::: tulip.control.action.ActionSpec
 ::: tulip.control.action.resolve_action
 ::: tulip.control.action.default_action
 ::: tulip.control.action.action_from_labels
 ::: tulip.control.action.derive_labels
 ::: tulip.control.action.DerivedLabels
 ::: tulip.control.action.asset_from_args
+::: tulip.control.action.UNDETERMINED_TAG
+::: tulip.security.policy.SANDBOXED_TAG
 
 ## The record
 
