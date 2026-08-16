@@ -174,10 +174,10 @@ the agent before anything leaves, see [Safety](safety.md).
 
 ## Source and notebooks
 
-- [`notebook_12_agent_hooks.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_12_agent_hooks.py) — first hook, including logging.
-- [`notebook_14_hooks_advanced.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_14_hooks_advanced.py) — telemetry pipelines.
-- [`tulip.hooks.builtin.logging`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/hooks/builtin/logging.py) — `LoggingHook`, `StructuredLoggingHook`.
-- [`tulip.hooks.builtin.telemetry`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/hooks/builtin/telemetry.py) — `TelemetryHook`, `NoOpTelemetryHook`.
+- [`notebook_12_agent_hooks.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_12_agent_hooks.py) — first hook, including logging.
+- [`notebook_14_hooks_advanced.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_14_hooks_advanced.py) — telemetry pipelines.
+- [`tulip.hooks.builtin.logging`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/hooks/builtin/logging.py) — `LoggingHook`, `StructuredLoggingHook`.
+- [`tulip.hooks.builtin.telemetry`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/hooks/builtin/telemetry.py) — `TelemetryHook`, `NoOpTelemetryHook`.
 
 ---
 

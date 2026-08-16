@@ -64,7 +64,7 @@ The default provider is the bundled mock model. Set
 use a live model. Keep `TULIP_MODEL_PROVIDER=mock` for offline runs.
 
 Multi-backend ports (in-memory + OpenSearch) live in
-[`examples/projects/deep-research`](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/projects/deep-research).
+[`examples/projects/deep-research`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/projects/deep-research).
 
 ## Source
 

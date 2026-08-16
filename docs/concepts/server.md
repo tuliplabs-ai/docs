@@ -257,8 +257,8 @@ your platform expects.
 
 ## Source and notebook
 
-- [`notebook_68_agent_server.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_68_agent_server.py) — runnable wrapper plus a curl client.
-- [`tulip.server`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/server) — `AgentServer`, `InvokeRequest`, `InvokeResponse`.
+- [`notebook_68_agent_server.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_68_agent_server.py) — runnable wrapper plus a curl client.
+- [`tulip.server`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/server) — `AgentServer`, `InvokeRequest`, `InvokeResponse`.
 
 ## See also
 

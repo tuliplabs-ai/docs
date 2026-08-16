@@ -249,7 +249,7 @@ expects that bearer token. Deploys anywhere FastAPI runs — see
 - **Read deeper.** [Agent Loop](../concepts/agent-loop.md) is the
   architectural reference for how all of this fits together.
 - **Browse examples.** Progressive notebooks at
-  [`examples/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples).
+  [`examples/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples).
   Each is a single runnable file that adds one idea on top of the
   previous. A security-flavored variant of this quickstart — SOC alert
   triage with the same gate — lives in the

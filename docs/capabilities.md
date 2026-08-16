@@ -314,4 +314,4 @@ await ctx.actions.execute(
 
 - **For first-time visitors**: [Quickstart](how-to/quickstart.md) ships a working agent in five minutes.
 - **For architecture**: [Agent loop](concepts/agent-loop.md) is the canonical reference.
-- **For depth on any feature**: every row in this matrix links to its concept page. Source lives at [`src/tulip/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip); canonical entry is [`src/tulip/__init__.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/__init__.py).
+- **For depth on any feature**: every row in this matrix links to its concept page. Source lives at [`src/tulip/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip); canonical entry is [`src/tulip/__init__.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/__init__.py).

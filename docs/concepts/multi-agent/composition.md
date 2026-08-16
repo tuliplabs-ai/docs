@@ -83,18 +83,18 @@ result = await end_to_end.run("Why did checkout conversion drop last week?")
 
 ## Notebooks
 
-- [`notebook_21_composition.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_21_composition.py)
+- [`notebook_21_composition.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_21_composition.py)
   — `SequentialPipeline`, `ParallelPipeline`, `LoopAgent`.
-- [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_30_map_reduce_code_review.py)
+- [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_30_map_reduce_code_review.py)
   — same fan-out shape with `Send` inside a graph (use this when you
   need state-aware fan-out beyond what `ParallelPipeline` gives you).
-- [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_31_supervisor_critic_loop.py)
+- [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_31_supervisor_critic_loop.py)
   — `LoopAgent`-style refine-until-confidence written as a graph
   (the cycle version when you also need conditional edges).
 
 ## Source
 
-[`agent/composition.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/agent/composition.py)
+[`agent/composition.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/agent/composition.py)
 — `SequentialPipeline`, `ParallelPipeline`, `LoopAgent`.
 
 ## See also

@@ -140,7 +140,7 @@ trained on the task should not reproduce it.
     [clusiana@tuliplabs.ai](mailto:clusiana@tuliplabs.ai).
 
     The [method](../concepts/policy-authoring.md) and the
-    [eval scripts](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/research)
+    [eval scripts](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/research)
     need none of this — they run against any OpenAI-compatible endpoint,
     including whatever you already host.
 
@@ -375,7 +375,7 @@ almost never gets it.
 ## Reproducing this
 
 - **The family dataset and eval** —
-  [`examples/research/family_eval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/research/family_eval.py),
+  [`examples/research/family_eval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/research/family_eval.py),
   runnable against any OpenAI-compatible endpoint.
 - **The method, with a runnable coverage probe** —
   [Writing a policy that holds](../concepts/policy-authoring.md)

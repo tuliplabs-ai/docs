@@ -138,9 +138,9 @@ same calls; the side effects still fire exactly once.
 
 ## Source and notebook
 
-- [`@tool` decorator with idempotency hook](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/tools/decorator.py)
-- [`_find_matching_execution`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/nodes.py#L114) — where the dedup actually happens, in the ReAct loop's Execute node.
-- [`notebook_07_agent_with_tools.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_07_agent_with_tools.py) — walks through the `@tool` decorator end-to-end (idempotency covered in the agent-loop walkthrough).
+- [`@tool` decorator with idempotency hook](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/tools/decorator.py)
+- [`_find_matching_execution`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py#L114) — where the dedup actually happens, in the ReAct loop's Execute node.
+- [`notebook_07_agent_with_tools.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_07_agent_with_tools.py) — walks through the `@tool` decorator end-to-end (idempotency covered in the agent-loop walkthrough).
 
 ## See also
 

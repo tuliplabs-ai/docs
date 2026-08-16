@@ -196,9 +196,9 @@ through `TulipMCPServer` — same `@tool`, no rewrite. See
 
 ## Source
 
-- [`@tool` decorator and `Tool` class](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/tools/decorator.py)
-- [`ToolRegistry`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/tools/registry.py)
-- [Built-in tools](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/tools/builtins.py) — `get_today_date`. The agent also auto-injects `task_complete` and `ask_user` in explicit-completion mode.
+- [`@tool` decorator and `Tool` class](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/tools/decorator.py)
+- [`ToolRegistry`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/tools/registry.py)
+- [Built-in tools](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/tools/builtins.py) — `get_today_date`. The agent also auto-injects `task_complete` and `ask_user` in explicit-completion mode.
 
 ## See also
 

@@ -28,15 +28,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ### Provenance
 
-Tulip began as a fork of an earlier project released under the **Universal Permissive License v1.0 (UPL-1.0)**. Those original portions remain available under the UPL-1.0; all new contributions are licensed under the Apache License, Version 2.0. See the [`NOTICE`](https://github.com/tuliplabs-ai/sdk-python/blob/main/NOTICE) file for attribution details.
+Tulip began as a fork of an earlier project released under the **Universal Permissive License v1.0 (UPL-1.0)**. Those original portions remain available under the UPL-1.0; all new contributions are licensed under the Apache License, Version 2.0. See the [`NOTICE`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/NOTICE) file for attribution details.
 
-Full text: [LICENSE](https://github.com/tuliplabs-ai/sdk-python/blob/main/LICENSE) · [NOTICE](https://github.com/tuliplabs-ai/sdk-python/blob/main/NOTICE)
+Full text: [LICENSE](https://github.com/tuliplabs-ai/tulip-agents/blob/main/LICENSE) · [NOTICE](https://github.com/tuliplabs-ai/tulip-agents/blob/main/NOTICE)
 
 ---
 
 ## Third-party components
 
-tulip uses the following open-source libraries. Their licenses are reproduced below and in full in [`THIRD_PARTY_LICENSES.txt`](https://github.com/tuliplabs-ai/sdk-python/blob/main/THIRD_PARTY_LICENSES.txt).
+tulip uses the following open-source libraries. Their licenses are reproduced below and in full in [`THIRD_PARTY_LICENSES.txt`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/THIRD_PARTY_LICENSES.txt).
 
 ### Core dependencies
 

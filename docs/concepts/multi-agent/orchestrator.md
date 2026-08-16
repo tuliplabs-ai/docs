@@ -124,17 +124,17 @@ Specialist(
 
 ## Notebooks
 
-- [`notebook_26_orchestrator_pattern.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_26_orchestrator_pattern.py)
+- [`notebook_26_orchestrator_pattern.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_26_orchestrator_pattern.py)
   — router + three parallel specialists, results merged.
-- [`notebook_27_specialist_agents.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_27_specialist_agents.py)
+- [`notebook_27_specialist_agents.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_27_specialist_agents.py)
   — confidence floors and per-specialist playbooks.
-- [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
+- [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)
   — vendor security review with risk-tiered approval gates and a typed
   `VendorDecision` artifact.
 
 ## Source
 
-[`multiagent/orchestrator.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/orchestrator.py)
+[`multiagent/orchestrator.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/multiagent/orchestrator.py)
 — `Orchestrator`, `Specialist`.
 
 ## See also

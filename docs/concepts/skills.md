@@ -229,8 +229,8 @@ of them call.
 
 ## Source and notebook
 
-- [`notebook_48_skills.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_48_skills.py) — programmatic and filesystem-loaded skills end-to-end.
-- [`tulip.skills`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/skills) — `Skill`, `SkillsPlugin`.
+- [`notebook_48_skills.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_48_skills.py) — programmatic and filesystem-loaded skills end-to-end.
+- [`tulip.skills`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/skills) — `Skill`, `SkillsPlugin`.
 - [AgentSkills.io specification](https://agentskills.io) — the format the SDK implements.
 
 ## See also

@@ -129,15 +129,15 @@ summary above.
 
 ## Notebooks
 
-- [`notebook_25_agent_handoff.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_25_agent_handoff.py)
+- [`notebook_25_agent_handoff.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_25_agent_handoff.py)
   — full L1 triage + malware + phishing + intrusion escalation flow.
-- [`notebook_33_multiagent_human_in_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py)
+- [`notebook_33_multiagent_human_in_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_33_multiagent_human_in_loop.py)
   — handoff to a human via `interrupt()` (one of three
   human-in-the-loop (HITL) patterns in the same file).
 
 ## Source
 
-[`multiagent/handoff.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/handoff.py).
+[`multiagent/handoff.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/multiagent/handoff.py).
 
 ## See also
 

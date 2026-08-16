@@ -207,8 +207,8 @@ if you need a record that outlives the process.
 
 ## Source and notebook
 
-- [`notebook_46_playbooks.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_46_playbooks.py) — runnable end-to-end with execution tracking.
-- [`tulip.playbooks`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/playbooks) — `Playbook`, `PlaybookStep`, `PlaybookEnforcerHook`, `load_playbook`.
+- [`notebook_46_playbooks.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_46_playbooks.py) — runnable end-to-end with execution tracking.
+- [`tulip.playbooks`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/playbooks) — `Playbook`, `PlaybookStep`, `PlaybookEnforcerHook`, `load_playbook`.
 
 ## See also
 

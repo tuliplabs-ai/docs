@@ -43,7 +43,7 @@ def _sdk_examples() -> Path:
             return ex
     sys.exit(
         "SDK checkout not found — set TULIP_SDK_DIR to a checkout of "
-        "tuliplabs-ai/sdk-python (or clone it next to this repo as "
+        "tuliplabs-ai/tulip-agents (or clone it next to this repo as "
         "../tulip-agents)."
     )
 

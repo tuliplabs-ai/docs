@@ -68,7 +68,7 @@ Triggers:
 
 - The model produces a response with no tool calls (`complete` / `no_tools`).
 - A composable termination condition on `Agent(termination=...)` fires
-  (see [`tulip.core.termination`](https://github.com/tuliplabs-ai/sdk-python/-/blob/main/src/tulip/core/termination.py)
+  (see [`tulip.core.termination`](https://github.com/tuliplabs-ai/tulip-agents/-/blob/main/src/tulip/core/termination.py)
   for the eight built-in conditions).
 - `max_iterations`, `token_budget`, or `time_budget_seconds` is reached.
 - A terminal tool name (in `terminal_tools`, default

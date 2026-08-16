@@ -325,7 +325,7 @@ asyncio.run(main())
 
 ## Source
 
-- [`tulip.memory.backends`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/memory/backends) — every backend, plus `StorageBackendAdapter` and the `redis_checkpointer` / `postgresql_checkpointer` / `mysql_checkpointer` / `opensearch_checkpointer` / `s3_checkpointer` factory functions.
+- [`tulip.memory.backends`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/memory/backends) — every backend, plus `StorageBackendAdapter` and the `redis_checkpointer` / `postgresql_checkpointer` / `mysql_checkpointer` / `opensearch_checkpointer` / `s3_checkpointer` factory functions.
 
 ## See also
 

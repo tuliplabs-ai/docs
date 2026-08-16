@@ -312,10 +312,10 @@ a verdict backed *only* by corpus text abstains rather than ships. See
 
 ## Source and notebooks
 
-- [`notebook_38_rag_basics.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_38_rag_basics.py) — minimal end-to-end RAG.
-- [`notebook_39_rag_providers.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_39_rag_providers.py) — picking an embedder + store.
-- [`notebook_40_rag_agents.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_40_rag_agents.py) — `create_rag_tool` plugged into an agent.
-- [`tulip.rag`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/rag) — `RAGRetriever`, all embedders, all stores, `create_rag_tool`, `RAGToolkit`.
+- [`notebook_38_rag_basics.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_38_rag_basics.py) — minimal end-to-end RAG.
+- [`notebook_39_rag_providers.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_39_rag_providers.py) — picking an embedder + store.
+- [`notebook_40_rag_agents.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_40_rag_agents.py) — `create_rag_tool` plugged into an agent.
+- [`tulip.rag`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/rag) — `RAGRetriever`, all embedders, all stores, `create_rag_tool`, `RAGToolkit`.
 
 ## See also
 

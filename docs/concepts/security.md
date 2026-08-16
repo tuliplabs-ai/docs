@@ -227,4 +227,4 @@ ships a finding mapped to compliance controls.
 - Fingerprinting: [forensics specialist](../notebooks/notebook_27_specialist_agents.md)
 - RAG poisoning: [intel copilot](../notebooks/notebook_40_rag_agents.md)
 
-[gh]: https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/security
+[gh]: https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/security

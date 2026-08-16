@@ -86,7 +86,7 @@ register_provider("audited", lambda model_id, **kw: AuditedModel(model_id, **kw)
 agent = Agent(model="audited:internal-llm", tools=[lookup_order, issue_refund])
 ```
 
-Source: [`register_provider` in `models/registry.py:21`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/registry.py#L21).
+Source: [`register_provider` in `models/registry.py:21`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/models/registry.py#L21).
 
 ## Credential pooling & rotation
 
@@ -121,11 +121,11 @@ marked bad with a cooldown and the next one is tried. It rotates
 **credentials**, not providers — to fail over across *providers*,
 compose the failover classifier (`tulip.models.failover`) yourself.
 Source:
-[`CredentialPoolModel` in `models/pooled.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/pooled.py).
+[`CredentialPoolModel` in `models/pooled.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/models/pooled.py).
 
 ## Notebook
 
-[`notebook_56_model_providers.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_56_model_providers.py)
+[`notebook_56_model_providers.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_56_model_providers.py)
 runs the same agent — a security-operations triage example — against OpenAI and
 Anthropic by swapping one string.
 
@@ -133,7 +133,7 @@ Anthropic by swapping one string.
 
 | Area | Path |
 |---|---|
-| Provider registry | [`models/registry.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/registry.py) |
-| `OpenAIModel` | [`models/native/openai.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/native/openai.py) |
-| `AnthropicModel` | [`models/native/anthropic.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/native/anthropic.py) |
-| `CredentialPoolModel` | [`models/pooled.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/pooled.py) |
+| Provider registry | [`models/registry.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/models/registry.py) |
+| `OpenAIModel` | [`models/native/openai.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/models/native/openai.py) |
+| `AnthropicModel` | [`models/native/anthropic.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/models/native/anthropic.py) |
+| `CredentialPoolModel` | [`models/pooled.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/models/pooled.py) |

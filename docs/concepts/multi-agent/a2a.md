@@ -233,15 +233,15 @@ use `Message` + `client.send_message()` so they can read the full
 
 ## Notebook
 
-[`notebook_28_a2a_protocol.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_28_a2a_protocol.py)
+[`notebook_28_a2a_protocol.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_28_a2a_protocol.py)
 — host + client + streaming.
 
 ## Source
 
-[`a2a/spec.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/a2a/spec.py)
+[`a2a/spec.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/a2a/spec.py)
 — typed Pydantic models for every spec object.
 
-[`a2a/protocol.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/a2a/protocol.py)
+[`a2a/protocol.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/a2a/protocol.py)
 — `A2AServer`, `A2AClient`, JSON-RPC dispatch, in-memory task store.
 
 ## See also

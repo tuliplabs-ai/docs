@@ -90,6 +90,40 @@ approval broker matches it in shape.
 
 ::: tulip.control.gate.ApprovalBridge
 
+### What the user hears when an action is refused
+
+The `reason` in that payload is, by default, the policy's own — a join of the
+checks that fired:
+
+```
+"blast radius 3 exceeds the maximum 1; labels ['large_refund'] are denied by policy"
+```
+
+That is the right level of detail for the audit trail and for a developer
+reading a log. It is also control-plane vocabulary, and a model handed it
+repeats it verbatim. Run against a live model, the refusal above reached the
+customer as *"the blast radius (3) exceeds the maximum 1"* and *"it's
+classified as a `large_refund`"*.
+
+`refusal_reason` gives the model the sentence you want the user to hear
+instead. Pass a string, or `(decision) -> str` to vary it by outcome:
+
+```python
+gate_tool(
+    issue_refund,
+    policy=policy,
+    trail=trail,
+    refusal_reason=lambda d: (
+        "We can't refund this amount automatically."
+        if d.outcome == "deny"
+        else "This refund is waiting on a manager."
+    ),
+)
+```
+
+The full policy reason still goes to the trail — a friendlier sentence for the
+customer must not shrink the record. Added in 2.10.0.
+
 ## Deriving action labels
 
 Turn a tool call into an `Action` using declarative rules, so the labels a
@@ -115,6 +149,47 @@ hash, so editing any record breaks `verify()`.
     checked against a head hash you retain out-of-band; it does not prevent
     them, sign them, or anchor the log. Persist the JSONL and pin the head
     hash externally before relying on it as compliance evidence.
+
+### What `verify()` catches, and the one thing it cannot
+
+Called with no arguments, `verify()` catches every edit, every reorder, and
+every deletion **from the middle** of the chain — each leaves a record whose
+stored hash no longer matches its contents, or whose `prev_hash` no longer
+points at the record before it.
+
+It cannot, on its own, catch a **truncation**:
+
+| Attack | `verify()` | `verify(expected_head=…)` |
+| --- | --- | --- |
+| Edit a record | `False` | `False` |
+| Reorder records | `False` | `False` |
+| Delete from the middle | `False` | `False` |
+| Drop records off the end | `True` | `False` |
+| Discard the trail entirely | `True` | `False` |
+
+Dropping the tail leaves a shorter chain that is perfectly valid on its own
+terms. That is a property of hash chains in general, not of this
+implementation: nothing inside a chain can attest to a link that was never
+handed to it. An agent that can reach its own audit trail can therefore erase
+the end of it and still pass a bare `verify()`.
+
+Anchoring closes it. Every attack in that table moves the head, so keep
+`head` somewhere the agent cannot reach — a WORM bucket, an append-only log,
+a co-signer, a transparency log — and pass it back:
+
+```python
+trail = AuditTrail()
+...
+anchor = trail.head                      # to durable, external storage
+
+# later, on the exported chain
+restored = AuditTrail.from_records(records)
+restored.verify(expected_head=anchor)    # False if anything was removed
+```
+
+Added in 2.10.0, alongside a correction: `verify()` previously documented
+itself as detecting "no edit, deletion, or reorder", which overstated what a
+chain can prove about its own tail.
 
 ::: tulip.security.audit.AuditTrail
 ::: tulip.security.audit.AuditRecord

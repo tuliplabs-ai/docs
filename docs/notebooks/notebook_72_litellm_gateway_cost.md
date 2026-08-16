@@ -34,7 +34,7 @@ for the deployment shape.
 ## Prerequisites
 
 The Postgres-backed gateway from
-[`examples/litellm-gateway/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/litellm-gateway).
+[`examples/litellm-gateway/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/litellm-gateway).
 The stateless gateway from the LiteLLM AI Gateway notebook won't work for this notebook —
 `/key/generate` and `/spend/*` both require Postgres.
 

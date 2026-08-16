@@ -12,7 +12,7 @@ endpoint** (vLLM, Together, LiteLLM) via an optional base URL. We host the UI,
 not the inference: your key is sent per request and never stored server-side.
 
 [Open the hosted workbench](https://play.tulipagents.ai){ .md-button .md-button--primary }
-[Get the SDK](https://github.com/tuliplabs-ai/sdk-python){ .md-button }
+[Get the SDK](https://github.com/tuliplabs-ai/tulip-agents){ .md-button }
 
 ![Workbench UI screenshot](img/workbench.png)
 
@@ -245,7 +245,7 @@ The workbench surfaces the in-memory variant in the sidebar; the
 multi-backend versions live as standalone project demos in
 `examples/projects/deep-research/`.
 
-[dr]: https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/projects/deep-research
+[dr]: https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/projects/deep-research
 
 ### Long-term memory pattern
 

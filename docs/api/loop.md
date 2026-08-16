@@ -8,7 +8,7 @@
     in the other. Nothing here is a capability `Agent` lacks.
 
     Everything below still imports and works until 3.0.0, per the
-    [deprecation policy](https://github.com/tuliplabs-ai/sdk-python/blob/main/DEPRECATION.md).
+    [deprecation policy](https://github.com/tuliplabs-ai/tulip-agents/blob/main/DEPRECATION.md).
     Each access emits `TulipDeprecationWarning`; to find them in your own code:
 
     ```

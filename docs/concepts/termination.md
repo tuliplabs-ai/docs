@@ -145,8 +145,8 @@ and `|` work across the whole hierarchy.
 
 ## Source and notebook
 
-- [`notebook_15_termination.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_15_termination.py) — runnable algebra examples.
-- [`tulip.core.termination`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/termination.py) — every condition class, plus `__or__` / `__and__`.
+- [`notebook_15_termination.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_15_termination.py) — runnable algebra examples.
+- [`tulip.core.termination`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/termination.py) — every condition class, plus `__or__` / `__and__`.
 
 ## See also
 
