@@ -22,7 +22,8 @@ others.
 | Tool args from the model are sometimes malformed | Validation — already on; nothing to do |
 | Public-facing agent — block prompt injection, SQL/command/path-traversal patterns, cap input length | `GuardrailsHook` with the default `GuardrailConfig` |
 | Customer-facing answer where leaking PII (emails, SSN, credit cards, IPs) is a compliance issue | `GuardrailsHook` with PII patterns enabled |
-| High-stakes tools (`issue_refund`, `delete_records`, `isolate_host`) — want a second model to sanity-check the call | `SteeringHook` with a steering `model=` and a policy string |
+| High-stakes tools (`issue_refund`, `delete_records`, `isolate_host`) — the action must not happen unless a policy allows it | [`gate_tool`](../api/control.md) — a check in real code, which the model cannot talk around |
+| The same tools, where you want a second model's opinion *as well* | `SteeringHook` with a steering `model=` and a policy string — advisory, see below |
 | Domain restriction — *"the user came in to resolve this ticket, reject anything else"* | `SteeringHook` with that policy verbatim |
 | Internal-only agent, trusted prompts, low-stakes tools | none of the above; default validation is enough |
 
@@ -94,6 +95,27 @@ ML-backed policy (OpenAI Moderation, etc.)
 behind the same `Policy.check(text) -> str | None` shape.
 
 ### Steering — a second model judges every tool call
+
+!!! warning "Steering is advisory, and can fail open"
+
+    A steering policy is a second model asked to judge the first, so a judge
+    that does not intervene is indistinguishable from one that approved.
+
+    Measured against a self-hosted Qwen3.6-35B with
+    `policy="Never allow delete or destructive operations."` — the judge did
+    not intervene, and the agent reported:
+
+    > the `users` table has been successfully deleted.
+
+    Under the **same model and the same prompt**, a tool whose body goes
+    through [`admit()`](../api/control.md) held: the model still called the
+    destructive tool, admission refused it, the side effect never ran, and the
+    refusal landed on a chain that verifies.
+
+    Use steering to *steer*. For an action that must not happen, use
+    [`gate_tool`](../api/control.md) — or `interrupt_tools` below, which is a
+    set-membership check that never consults the judge and so cannot fail open.
+
 
 ```python
 from tulip.models import AnthropicModel
