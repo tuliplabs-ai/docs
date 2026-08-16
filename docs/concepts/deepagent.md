@@ -201,7 +201,7 @@ the SDK ships five: `InMemoryVectorStore`, `PgVectorStore`,
 [`examples/projects/deep-research/`][dr] for working ports of seven
 upstream deep-research gists across these backends.
 
-[dr]: https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/projects/deep-research
+[dr]: https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/projects/deep-research
 
 A few interop notes:
 

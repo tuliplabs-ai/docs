@@ -139,7 +139,7 @@ log adapters — you don't lose context.
 
 ## Source
 
-- [`tulip.core.errors`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/errors.py) — every exception class.
+- [`tulip.core.errors`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/errors.py) — every exception class.
 
 ## See also
 

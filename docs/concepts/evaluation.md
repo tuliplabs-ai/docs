@@ -168,8 +168,8 @@ evidence? — pair the structural checks here with the
 
 ## Source and notebook
 
-- [`notebook_55_evaluation.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_55_evaluation.py) — runnable end-to-end suite.
-- [`tulip.evaluation.framework`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/evaluation/framework.py) — `EvalCase`, `EvalRunner`, `EvalReport`.
+- [`notebook_55_evaluation.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_55_evaluation.py) — runnable end-to-end suite.
+- [`tulip.evaluation.framework`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/evaluation/framework.py) — `EvalCase`, `EvalRunner`, `EvalReport`.
 
 ## See also
 

@@ -234,10 +234,10 @@ any field; this is intentionally tight.
 
 ## Source and examples
 
-- [`HookProvider` and `HookOrchestrator`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/hooks/provider.py)
-- [Built-in hooks](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/hooks/builtin)
-- [`notebook_12_agent_hooks.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_12_agent_hooks.py) — write your first hook.
-- [`notebook_14_hooks_advanced.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_14_hooks_advanced.py) — guardrails + steering, end to end.
+- [`HookProvider` and `HookOrchestrator`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/hooks/provider.py)
+- [Built-in hooks](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/hooks/builtin)
+- [`notebook_12_agent_hooks.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_12_agent_hooks.py) — write your first hook.
+- [`notebook_14_hooks_advanced.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_14_hooks_advanced.py) — guardrails + steering, end to end.
 
 ## See also
 

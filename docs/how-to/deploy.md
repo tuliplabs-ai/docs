@@ -50,7 +50,7 @@ image.
 
 ## Container — the universal target
 
-The repo ships a multi-stage [`Dockerfile`](https://github.com/tuliplabs-ai/sdk-python/blob/main/Dockerfile)
+The repo ships a multi-stage [`Dockerfile`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/Dockerfile)
 (non-root user, `HEALTHCHECK` on `/health`). Build, push to any registry,
 and run anywhere that runs containers:
 

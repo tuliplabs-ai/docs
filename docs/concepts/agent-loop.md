@@ -10,12 +10,12 @@ to extend it.
 ![Agent loop — Think → Execute → Reflect → Terminate, with idempotent dedupe at Execute, Reflexion and Causal at Reflect, and composable termination algebra at Terminate](../img/agent-loop.svg)
 
 The loop is implemented in
-[`src/tulip/loop/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/loop)
+[`src/tulip/loop/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/loop)
 and is composed of four files:
-[`react.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/react.py) (the runner),
-[`nodes.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/nodes.py) (Think / Execute / Reflect / Terminate),
-[`router.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/router.py) (transitions),
-and [`runner.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/runner.py)
+[`react.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/react.py) (the runner),
+[`nodes.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py) (Think / Execute / Reflect / Terminate),
+[`router.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/router.py) (transitions),
+and [`runner.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/runner.py)
 (the loop driver that wires the nodes together).
 
 ## Origin: ReAct, then refinement
@@ -87,7 +87,7 @@ behaviours make it different from a "just run the function" callback:
    cached result is returned; the body never runs. The model can
    retry, loop, or panic without firing the tool a second time.
    Implementation:
-   [`_find_matching_execution()` `loop/nodes.py:114`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/nodes.py#L114-L144) — called from `ExecuteNode.execute` at [`loop/nodes.py:195`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/nodes.py#L195).
+   [`_find_matching_execution()` `loop/nodes.py:114`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py#L114-L144) — called from `ExecuteNode.execute` at [`loop/nodes.py:195`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py#L195).
 
 2. **Parallel dispatch.** Tool calls returned in the same model
    response fire concurrently. Execute awaits them all before
@@ -115,7 +115,7 @@ rather than going straight back to Think:
   repeating pattern.
 
 The Reflector itself
-([`Reflector` class — `reasoning/reflexion.py:70`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/reflexion.py#L70))
+([`Reflector` class — `reasoning/reflexion.py:70`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/reflexion.py#L70))
 asks the model to evaluate its last step, adjusts a confidence
 score, and emits a `ReflectEvent` carrying the `assessment`,
 `guidance`, and `new_confidence`. The next Think sees the reflection
@@ -132,8 +132,8 @@ Two complementary reasoning add-ons:
   `Agent(...)` flag.
 
 Source:
-[`GroundingEvaluator` `reasoning/grounding.py:106`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/grounding.py#L106) ·
-[`build_causal_chain` `reasoning/causal.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/causal.py).
+[`GroundingEvaluator` `reasoning/grounding.py:106`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/grounding.py#L106) ·
+[`build_causal_chain` `reasoning/causal.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/causal.py).
 
 ## Terminate
 
@@ -159,12 +159,12 @@ router emits a `TerminateEvent` carrying the satisfied condition's
 name + reason, then exits the loop.
 
 Source:
-[`src/tulip/core/termination.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/termination.py).
+[`src/tulip/core/termination.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/termination.py).
 
 ## The router
 
 Transitions between nodes are decided by
-[`Router` class — `loop/router.py:36`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/router.py#L36) (the `route_from_reflect` rule lives at [line 126](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/router.py#L126)).
+[`Router` class — `loop/router.py:36`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/router.py#L36) (the `route_from_reflect` rule lives at [line 126](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/router.py#L126)).
 It is a pure function of `(current_node, state)` returning the next
 node — no hidden state, no side effects, no surprises. Three rules:
 
@@ -224,9 +224,9 @@ Built-in hooks:
 `TelemetryHook` (OpenTelemetry-compatible),
 `ModelRetryHook`, `GuardrailsHook` (topic policy + PII redaction),
 and `SteeringHook` (LLM-as-judge tool approval). Source:
-[`hooks/builtin/__init__.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/hooks/builtin/__init__.py) (re-exports the four most-used hooks) ·
-[`hooks/builtin/steering.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/hooks/builtin/steering.py) ·
-[`hooks/builtin/retry.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/hooks/builtin/retry.py).
+[`hooks/builtin/__init__.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/hooks/builtin/__init__.py) (re-exports the four most-used hooks) ·
+[`hooks/builtin/steering.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/hooks/builtin/steering.py) ·
+[`hooks/builtin/retry.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/hooks/builtin/retry.py).
 
 ## A concrete example
 
@@ -342,7 +342,7 @@ provider's context window and fails. Three remedies:
    `Agent(conversation_manager=LLMCompactor(...))` protects the
    system prompt and the most recent turns, then summarises the
    middle on demand. Source:
-   [`src/tulip/memory/compactor.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/memory/compactor.py).
+   [`src/tulip/memory/compactor.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/memory/compactor.py).
 2. **Tighten tool result size** — return concise structured data,
    not blobs of HTML. The model rarely needs the full source.
 3. **Decompose with multi-agent** — let an orchestrator delegate

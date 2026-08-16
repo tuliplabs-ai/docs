@@ -234,8 +234,8 @@ implementation detail.
 
 ## Source and notebook
 
-- [`tulip.integrations.fastmcp`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/integrations/fastmcp.py) — built on FastMCP.
-- [`notebook_45_mcp_integration.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_45_mcp_integration.py) — consumer + producer end-to-end.
+- [`tulip.integrations.fastmcp`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/integrations/fastmcp.py) — built on FastMCP.
+- [`notebook_45_mcp_integration.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_45_mcp_integration.py) — consumer + producer end-to-end.
 
 ## See also
 

@@ -1,7 +1,7 @@
 # Tulip documentation
 
 The source for **[tulipagents.ai](https://tulipagents.ai/)** — the
-documentation site for [Tulip](https://github.com/tuliplabs-ai/sdk-python),
+documentation site for [Tulip](https://github.com/tuliplabs-ai/tulip-agents),
 the complete open-source agent framework where control is native.
 Everything you'd expect — tools, memory, multi-agent, RAG, streaming —
 behind one `Agent` class, with control wired through the core: the cognitive
@@ -63,4 +63,4 @@ Documentation prose © 2026 Tulip Labs, released under
 [Apache-2.0](LICENSE) (see [`NOTICE`](NOTICE) for provenance). Code samples
 are offered under the same terms as the SDK.
 
-[sdk]: https://github.com/tuliplabs-ai/sdk-python
+[sdk]: https://github.com/tuliplabs-ai/tulip-agents

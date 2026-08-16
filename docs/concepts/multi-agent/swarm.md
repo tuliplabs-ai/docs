@@ -118,12 +118,12 @@ Swarms stop when:
 
 ## Notebook
 
-[`notebook_24_swarm_multiagent.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_24_swarm_multiagent.py)
+[`notebook_24_swarm_multiagent.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_24_swarm_multiagent.py)
 — a three-agent research swarm with shared context.
 
 ## Source
 
-[`multiagent/swarm.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/swarm.py)
+[`multiagent/swarm.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/multiagent/swarm.py)
 — `Swarm`, `SharedContext`.
 
 ## See also

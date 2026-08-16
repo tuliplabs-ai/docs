@@ -101,16 +101,16 @@ async def end_to_end(queue: list[dict]) -> dict:
 
 ## Notebooks
 
-- [`notebook_23_functional_api.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_23_functional_api.py)
+- [`notebook_23_functional_api.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_23_functional_api.py)
   — `@task` and `@entrypoint` end-to-end.
-- [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_30_map_reduce_code_review.py)
+- [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_30_map_reduce_code_review.py)
   — same map/reduce shape, written as a graph with `Send` instead.
   Useful as the "graph version" comparison when you're choosing
   between functional and StateGraph for a fan-out workload.
 
 ## Source
 
-[`multiagent/functional.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/functional.py)
+[`multiagent/functional.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/multiagent/functional.py)
 — `task`, `entrypoint`, `TaskResult`, `EntrypointResult`.
 
 ## See also
