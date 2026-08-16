@@ -226,7 +226,7 @@ points the user-visible events come from. See [Hooks](hooks.md).
 
 ## Source
 
-- [`tulip.core.events`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/events.py) — every event class.
+- [`tulip.core.events`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/events.py) — every event class.
 
 ## See also
 

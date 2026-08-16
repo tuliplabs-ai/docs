@@ -155,14 +155,14 @@ builder, validation-error formatter.
 
 ## Notebooks
 
-- [`notebook_35_structured_output.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_35_structured_output.py)
+- [`notebook_35_structured_output.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_35_structured_output.py)
   covers both the standalone `parse_structured()` parser (useful for
   non-Agent flows) and the Agent `output_schema=` integration above.
-- [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_32_debate_with_judge.py)
+- [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_32_debate_with_judge.py)
   — typed `VerificationResult` as the workflow boundary artifact.
-- [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py)
+- [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_63_incident_response.py)
   — typed `Postmortem` as the terminal artifact of an incident graph.
-- [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
+- [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)
   — typed `PurchaseOrder` from a tiered approval flow.
-- [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py)
+- [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_65_contract_review.py)
   — typed `ContractDecision` from a parallel-review + negotiation loop.

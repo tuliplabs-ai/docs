@@ -57,8 +57,8 @@ the GPU probe grounds into a fingerprint finding in
 bring-your-own-credentials contract is documented in
 [`examples/integrations/README.md`][int].
 
-[int]: https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/integrations
-[ti]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/integrations/threat_intel.py
-[siem]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/integrations/siem_query.py
-[gpu]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/integrations/gpu_probe_dispatch.py
-[rt]: https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/integrations/remote_timing.py
+[int]: https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/integrations
+[ti]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/integrations/threat_intel.py
+[siem]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/integrations/siem_query.py
+[gpu]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/integrations/gpu_probe_dispatch.py
+[rt]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/integrations/remote_timing.py

@@ -18,7 +18,7 @@ budgets, observability, cost tracking, caching, guardrails).
 2. **Runs an `Agent`** built around `OpenAIModel(base_url=..., api_key=...)`
    against the alias in `LITELLM_GATEWAY_MODEL` (default
    `gpt-4o`, defined in
-   [`examples/litellm-gateway/config.yaml`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/litellm-gateway/config.yaml)).
+   [`examples/litellm-gateway/config.yaml`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/litellm-gateway/config.yaml)).
    The agent fields a couple of everyday cloud-ops questions (IaC,
    triaging a failing EC2 health check).
 3. **Streams a response** through the same agent to prove SSE flows
@@ -50,6 +50,6 @@ python examples/notebook_71_litellm_gateway.py
 
 - [`docs/how-to/litellm-gateway.md`](../how-to/litellm-gateway.md) — when
   the gateway is the right path; auth-boundary diagram; deployment.
-- [`examples/litellm-gateway/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/litellm-gateway) — the working sample: `config.yaml`, `docker-compose.yml`, `helm-values.yaml`.
+- [`examples/litellm-gateway/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/litellm-gateway) — the working sample: `config.yaml`, `docker-compose.yml`, `helm-values.yaml`.
 - [Model providers](../concepts/models.md) — the direct (no-gateway)
   providers, the right default for single-tenant.

@@ -10,4 +10,4 @@ coordinated disclosure.
 
 Instead, use [GitHub private vulnerability reporting](https://github.com/tuliplabs-ai/docs/security/advisories/new)
 on this repository. Issues in the SDK itself should be reported against
-[`sdk-python`](https://github.com/tuliplabs-ai/sdk-python/security/advisories/new).
+[`sdk-python`](https://github.com/tuliplabs-ai/tulip-agents/security/advisories/new).

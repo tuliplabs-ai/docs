@@ -212,11 +212,11 @@ the model — and the backstop doesn't trust the gate either.
 
 ## Source and notebooks
 
-- [`notebook_50_guardrails_security.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_50_guardrails_security.py) — basic guardrails.
-- [`notebook_51_guardrails_advanced.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_51_guardrails_advanced.py) — topic + content + PII layered.
-- [`notebook_49_steering.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_49_steering.py) — judge-model approval.
-- [`tulip.hooks.builtin.guardrails`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/hooks/builtin/guardrails.py)
-- [`tulip.hooks.builtin.steering`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/hooks/builtin/steering.py)
+- [`notebook_50_guardrails_security.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_50_guardrails_security.py) — basic guardrails.
+- [`notebook_51_guardrails_advanced.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_51_guardrails_advanced.py) — topic + content + PII layered.
+- [`notebook_49_steering.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_49_steering.py) — judge-model approval.
+- [`tulip.hooks.builtin.guardrails`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/hooks/builtin/guardrails.py)
+- [`tulip.hooks.builtin.steering`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/hooks/builtin/steering.py)
 
 ## See also
 

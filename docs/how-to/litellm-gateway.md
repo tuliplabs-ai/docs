@@ -222,7 +222,7 @@ python examples/notebook_07_agent_with_tools.py
 
 ## Deploying on Kubernetes
 
-The sample [`helm-values.yaml`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/litellm-gateway/helm-values.yaml)
+The sample [`helm-values.yaml`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/litellm-gateway/helm-values.yaml)
 in `examples/litellm-gateway/` plugs into LiteLLM's official Helm chart
 ([`ghcr.io/berriai/litellm-helm`](https://github.com/BerriAI/litellm/tree/main/deploy/charts/litellm-helm)).
 The recommended deployment shape is:
@@ -322,7 +322,7 @@ covers each surface (callbacks, cache, guardrails, audit) in depth.
 - [Model providers](../concepts/models.md) — the direct providers
   (`OpenAIModel`, `AnthropicModel`). The default for
   single-tenant deployments.
-- [`examples/litellm-gateway/`](https://github.com/tuliplabs-ai/sdk-python/tree/main/examples/litellm-gateway)
+- [`examples/litellm-gateway/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/litellm-gateway)
   — working `config.yaml`, `docker-compose.yml`, and `helm-values.yaml`.
 - [LiteLLM AI Gateway quickstart](https://docs.litellm.ai/docs/proxy/quick_start)
 - [LiteLLM `config.yaml` reference](https://docs.litellm.ai/docs/proxy/configs)

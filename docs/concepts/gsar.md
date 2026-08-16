@@ -141,21 +141,21 @@ production you'd map your tool taxonomy onto these.
 
 ## Source and tests
 
-- [`src/tulip/reasoning/gsar.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/gsar.py)
+- [`src/tulip/reasoning/gsar.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/gsar.py)
   — Pydantic types, `gsar_score`, `decide`, defaults from Appendix B.
-- [`src/tulip/reasoning/gsar_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/gsar_judge.py)
+- [`src/tulip/reasoning/gsar_judge.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/gsar_judge.py)
   — `BaseGSARJudge` Protocol, `JudgeOutput` schema (Appendix C),
   `StructuredOutputGSARJudge` reference implementation.
-- [`src/tulip/reasoning/gsar_evaluator.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/gsar_evaluator.py)
+- [`src/tulip/reasoning/gsar_evaluator.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/gsar_evaluator.py)
   — Algorithm-1 outer loop with `K_max` budget.
-- [`tests/unit/test_gsar.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/tests/unit/test_gsar.py)
+- [`tests/unit/test_gsar.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/tests/unit/test_gsar.py)
   — property tests verifying P1–P6 + the Appendix-E worked example.
-- [`tests/unit/test_gsar_judge.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/tests/unit/test_gsar_judge.py)
+- [`tests/unit/test_gsar_judge.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/tests/unit/test_gsar_judge.py)
   — schema validation + structured-output fallback chain.
-- [`tests/unit/test_gsar_evaluator.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/tests/unit/test_gsar_evaluator.py)
+- [`tests/unit/test_gsar_evaluator.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/tests/unit/test_gsar_evaluator.py)
   — outer loop, abstain handling, budget exhaustion.
-- [`tests/integration/test_gsar_live.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/tests/integration/test_gsar_live.py)
+- [`tests/integration/test_gsar_live.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/tests/integration/test_gsar_live.py)
   — live LLM judge driving the full loop.
-- [`examples/notebook_37_gsar_typed_grounding.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_37_gsar_typed_grounding.py)
+- [`examples/notebook_37_gsar_typed_grounding.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_37_gsar_typed_grounding.py)
   — a runnable walkthrough of the four parts.
 - Paper: [arXiv:2604.23366 (2026)](https://arxiv.org/abs/2604.23366).

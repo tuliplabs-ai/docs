@@ -435,7 +435,7 @@ See [SSE event catalogue](sse-events.md) for full payload field descriptions
 
 ## See also
 
-- Notebook: [`examples/notebook_58_cognitive_router.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_58_cognitive_router.py)
+- Notebook: [`examples/notebook_58_cognitive_router.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_58_cognitive_router.py)
 - [SSE event catalogue](sse-events.md) — `router.*` event payloads.
 - [Observability](observability.md) — `run_context`, `EventBus`, EventBusHook.
 - API reference: `tulip.router` (`GoalFrame`, `Protocol`,

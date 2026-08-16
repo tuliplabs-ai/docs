@@ -119,31 +119,31 @@ a design review.
 
 ## Notebooks
 
-- [`notebook_16_basic_graph.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_16_basic_graph.py)
+- [`notebook_16_basic_graph.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_16_basic_graph.py)
   — your first StateGraph.
-- [`notebook_17_conditional_routing.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_17_conditional_routing.py)
+- [`notebook_17_conditional_routing.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_17_conditional_routing.py)
   — `add_conditional_edges`.
-- [`notebook_18_state_reducers.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_18_state_reducers.py)
+- [`notebook_18_state_reducers.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_18_state_reducers.py)
   — custom state reducers.
-- [`notebook_22_graph_advanced.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_22_graph_advanced.py)
+- [`notebook_22_graph_advanced.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_22_graph_advanced.py)
   — `RetryPolicy`, `CachePolicy`, subgraphs, Mermaid output.
-- [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_30_map_reduce_code_review.py)
+- [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_30_map_reduce_code_review.py)
   — `Send` fan-out / reduce in a graph.
-- [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_31_supervisor_critic_loop.py)
+- [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_31_supervisor_critic_loop.py)
   — `allow_cycles=True` + `max_iterations` for refine-until-confidence.
-- [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py)
+- [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_63_incident_response.py)
   — triage → parallel investigators → severity gate → page-the-human.
-- [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
+- [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)
   — stacked `interrupt()` gates with tier routing.
-- [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py)
+- [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_65_contract_review.py)
   — parallel reviewers + `Command(goto=...)` to short-circuit a loop.
 
 ## Source
 
-[`multiagent/graph.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/multiagent/graph.py)
+[`multiagent/graph.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/multiagent/graph.py)
 — `StateGraph`, `Node`, `Edge`, `ConditionalEdge`, `RetryPolicy`,
 `CachePolicy`. `Send` lives in
-[`core/send.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/send.py).
+[`core/send.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/send.py).
 
 ## See also
 

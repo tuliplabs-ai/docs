@@ -183,7 +183,7 @@ async for event in agent.run("..."):
 
 ## Source
 
-[`AnthropicModel` in `src/tulip/models/native/anthropic.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/models/native/anthropic.py)
+[`AnthropicModel` in `src/tulip/models/native/anthropic.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/models/native/anthropic.py)
 
 ## See also
 

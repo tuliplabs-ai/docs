@@ -223,14 +223,14 @@ for (;;) {
 
 ## Notebooks
 
-- [`notebook_11_agent_streaming.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_11_agent_streaming.py) — your first event consumer.
-- [`notebook_13_sse_streaming.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_13_sse_streaming.py) — full SSE wiring against `AgentServer`.
+- [`notebook_11_agent_streaming.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_11_agent_streaming.py) — your first event consumer.
+- [`notebook_13_sse_streaming.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_13_sse_streaming.py) — full SSE wiring against `AgentServer`.
 
 ## Source
 
-- [`tulip.core.events`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/events.py) — every event class.
-- [`Agent.run`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/agent/agent.py) — the iterator that emits them.
-- [`AgentServer`](https://github.com/tuliplabs-ai/sdk-python/tree/main/src/tulip/server) — the SSE wrapper.
+- [`tulip.core.events`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/events.py) — every event class.
+- [`Agent.run`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/agent/agent.py) — the iterator that emits them.
+- [`AgentServer`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/server) — the SSE wrapper.
 
 ## See also
 

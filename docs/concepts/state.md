@@ -125,8 +125,8 @@ doesn't use them. See `tulip.core.reducers` for the source.
 
 ## Source
 
-- [`tulip.core.state`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/state.py) — `AgentState`, `ToolExecution`, `ReasoningStep`.
-- [`tulip.core.reducers`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/reducers.py) — graph-level merge helpers.
+- [`tulip.core.state`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/state.py) — `AgentState`, `ToolExecution`, `ReasoningStep`.
+- [`tulip.core.reducers`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/reducers.py) — graph-level merge helpers.
 
 ## See also
 

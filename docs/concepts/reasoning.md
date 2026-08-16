@@ -156,11 +156,11 @@ the causal chain is built after the fact from the run's events.
 
 ## Source and notebook
 
-- [`notebook_36_reasoning_patterns.py`](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_36_reasoning_patterns.py) — all three add-ons end-to-end.
-- [`tulip.reasoning.reflexion`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/reflexion.py)
-- [`tulip.reasoning.grounding`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/grounding.py)
-- [`tulip.reasoning.causal`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/reasoning/causal.py)
-- [`ReflectNode`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/loop/nodes.py) in the ReAct loop — where reflection plugs in.
+- [`notebook_36_reasoning_patterns.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_36_reasoning_patterns.py) — all three add-ons end-to-end.
+- [`tulip.reasoning.reflexion`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/reflexion.py)
+- [`tulip.reasoning.grounding`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/grounding.py)
+- [`tulip.reasoning.causal`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/causal.py)
+- [`ReflectNode`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py) in the ReAct loop — where reflection plugs in.
 
 Reflexion: [Shinn et al., 2023](https://arxiv.org/abs/2303.11366).
 Typed grounding: see [GSAR](gsar.md) for the

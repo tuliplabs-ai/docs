@@ -34,7 +34,7 @@ jobs:
       - name: Check out the SDK (for the API reference and snippets)
         uses: actions/checkout@v4
         with:
-          repository: tuliplabs-ai/sdk-python
+          repository: tuliplabs-ai/tulip-agents
           path: .sdk
           fetch-depth: 0 # full history — needed to resolve the latest tag
           ssh-key: ${{ secrets.SDK_DEPLOY_KEY }}

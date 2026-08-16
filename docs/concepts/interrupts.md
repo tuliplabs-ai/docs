@@ -56,7 +56,7 @@ yields an `InterruptEvent(question=..., options=..., interrupt_id=...)`,
 then pauses. Your app surfaces the question to a human and threads the
 answer back via `agent.resume(...)`. You can also expose your own
 pause-for-input by calling
-[`interrupt(...)`](https://github.com/tuliplabs-ai/sdk-python/blob/main/src/tulip/core/interrupt.py)
+[`interrupt(...)`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/interrupt.py)
 from inside a tool body — `ask_user` is just the built-in wrapper.
 
 ## Three ways the human responds
@@ -162,15 +162,15 @@ debugging, or branch off a new thread from the partial conversation.
 - [Hooks](hooks.md) — write custom hooks that raise to abort the run.
 - [Conversation Management](conversation-management.md) — how
   `thread_id` resumption works.
-- [Human in the loop](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_19_human_in_the_loop.py)
+- [Human in the loop](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_19_human_in_the_loop.py)
   — a full runnable example.
-- [Multi-agent + HITL](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_33_multiagent_human_in_loop.py)
+- [Multi-agent + HITL](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_33_multiagent_human_in_loop.py)
   — three HITL (human-in-the-loop) patterns in one file (approval gate, human-as-tool,
   long-pause snapshot/resume).
-- [Incident response](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_63_incident_response.py)
+- [Incident response](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_63_incident_response.py)
   — `interrupt()` as the page-the-human gate after severity
   classification.
-- [Vendor security review](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_64_procurement_approval.py)
+- [Vendor security review](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)
   — three stacked `interrupt()` gates on the top tier.
-- [Contract review](https://github.com/tuliplabs-ai/sdk-python/blob/main/examples/notebook_65_contract_review.py)
+- [Contract review](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_65_contract_review.py)
   — `interrupt()` for human counsel inside a refinement loop.
