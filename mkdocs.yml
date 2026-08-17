@@ -177,7 +177,6 @@ nav:
     - A2A protocol: concepts/multi-agent/a2a.md
     - DeepAgent: concepts/deepagent.md
     - Production-readiness: concepts/multi-agent/production.md
-  - Cognitive Router: concepts/router.md
   - GSAR grounding: concepts/gsar.md
   - The control layer: concepts/security-context.md
   - Writing a policy that holds: concepts/policy-authoring.md
@@ -232,7 +231,6 @@ nav:
     - Supervisor + critic loop: notebooks/notebook_31_supervisor_critic_loop.md
     - Adversarial debate + judge: notebooks/notebook_32_debate_with_judge.md
     - Multi-agent + human-in-the-loop: notebooks/notebook_33_multiagent_human_in_loop.md
-    - Emergent routing: notebooks/notebook_34_emergent_routing.md
   - Reasoning & grounding:
     - Structured output: notebooks/notebook_35_structured_output.md
     - Reasoning patterns: notebooks/notebook_36_reasoning_patterns.md
@@ -253,7 +251,6 @@ nav:
     - Model providers: notebooks/notebook_56_model_providers.md
     - Multi-modal providers: notebooks/notebook_57_multimodal_providers.md
   - Routing & observability:
-    - Cognitive router: notebooks/notebook_58_cognitive_router.md
     - Observability basics: notebooks/notebook_59_observability_basics.md
     - Agent yield bridge + token usage: notebooks/notebook_60_agent_yield_bridge.md
     - EventBus subscriber patterns: notebooks/notebook_61_eventbus_subscribers.md
@@ -322,7 +319,6 @@ nav:
 - Reference:
   - Agent: api/agent.md
   - Multi-agent: api/multiagent.md
-  - Cognitive Router: api/router.md
   - DeepAgent: api/deepagent.md
   - ReAct loop: api/loop.md
   - Tools: api/tools.md

@@ -19,7 +19,7 @@ prompt.
 
 ## Control in three places
 
-In short: the [cognitive router (PRISM)](concepts/router.md) decides *which shape* runs,
+In short: the [agent loop](concepts/agent-loop.md) decides *what to do next*,
 [GSAR](concepts/gsar.md) decides *what gets asserted*, and the admission gate
 decides *what actions fire*. This page goes deep on the last one — the gate the
 model can't reach around, whatever it was talked into.

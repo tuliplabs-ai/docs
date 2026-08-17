@@ -2,16 +2,17 @@
 
 Multi-agent workflows are first-class in Tulip: eight shapes you compose
 in one process or scale across a mesh, every shape backed by the same
-`Agent` class, the same event stream, and the same primitives. Pick a
-shape directly, or let the **cognitive router** select and
-compile the right one from a natural-language task description.
+`Agent` class, the same event stream, and the same primitives. Compose a
+shape directly, or hand the loop [`shape_tools()`](../capabilities.md) and let
+it reach for one when the work calls for it.
 
 ![Multi-agent workflow shapes — Composition, Orchestrator + Specialists, Swarm, Handoff, StateGraph, Functional, A2A](../img/multi-agent-patterns.svg)
 
 !!! tip "Don't know which shape to use?"
-    [PRISM — the cognitive router](router.md) extracts a typed
-    `GoalFrame` from your task and selects a matching protocol from a
-    typed registry. Eight built-in protocols, zero topology hand-writing.
+    Don't choose up front. Give the agent
+    [`shape_tools()`](../capabilities.md) — `fan_out`, `debate`,
+    `plan_and_verify`, `code_until_tests_pass` — and let it pick once it has
+    read the request and tried something.
 
 ## What you can ship today
 
