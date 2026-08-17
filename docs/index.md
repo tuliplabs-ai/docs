@@ -70,8 +70,8 @@ A model can be brilliant and still be talked into the wrong action. That's a con
 problem, not an intelligence problem — so Tulip puts the control in code the model
 can't reach:
 
-- The **[router](concepts/router.md)** picks which shape runs — deterministically. The
-  model classifies the task; it never authors the topology.
+- The **[agent loop](concepts/agent-loop.md)** is where the work happens — reason, act,
+  observe, repeat — with reflexion, grounding, interrupts and budgets built in.
 - **[GSAR](concepts/gsar.md)** scores every claim against typed evidence — below threshold
   the agent regenerates or abstains, never guesses.
 - The **[admission gate](concepts/security-context.md)** clears every side-effecting call:
@@ -112,11 +112,11 @@ the wrong action isn't caught in a filter, it never runs.
     One `Agent` class — tools, memory, RAG, streaming — over vendor-neutral
     backends. Swap models with a string.
 
-- :material-routes:{ .lg .middle } **[Cognitive router](concepts/router.md)**
+- :material-routes:{ .lg .middle } **[Shapes as tools](concepts/multi-agent.md)**
 
     ---
-    A plain-language task compiles to the right shape — direct answer,
-    pipeline, fan-out, debate, or a gated action.
+    `fan_out`, `debate`, `plan_and_verify`, `code_until_tests_pass` — the loop
+    calls them when it has a reason to, not before it starts.
 
 - :material-graph:{ .lg .middle } **[Multi-agent workflows](concepts/multi-agent.md)**
 
@@ -181,7 +181,7 @@ matching docs page.
 | **A support / ops agent that acts** | [human-in-the-loop approvals](notebooks/notebook_19_human_in_the_loop.md) · [incident response](notebooks/notebook_63_incident_response.md) |
 | **An agent on your own data (RAG)** | [RAG basics](notebooks/notebook_38_rag_basics.md) · [RAG agents](notebooks/notebook_40_rag_agents.md) |
 | **A multi-agent workflow** | [swarm / war-room](notebooks/notebook_24_swarm_multiagent.md) · [supervisor + critic](notebooks/notebook_31_supervisor_critic_loop.md) |
-| **A task-routed agent** | [cognitive router](notebooks/notebook_58_cognitive_router.md) · [procurement approval](notebooks/notebook_64_procurement_approval.md) |
+| **An agent that acts on approval** | [procurement approval](notebooks/notebook_64_procurement_approval.md) · [human-in-the-loop](notebooks/notebook_19_human_in_the_loop.md) |
 | **A security / AI-safety agent** | [GSAR grounding](notebooks/notebook_37_gsar_typed_grounding.md) · [injection guardrails](notebooks/notebook_50_guardrails_security.md) |
 
 </div>

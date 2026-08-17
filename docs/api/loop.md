@@ -22,7 +22,7 @@
     | `LoopRunner` | `await agent.arun(prompt)` |
     | `BatchRunner` | [`EvalRunner`](evaluation.md) |
     | `StreamingCollector` | `async for event in agent.run(prompt)` |
-    | `ConditionalRouter` | [`StateGraph`](multiagent.md) conditional edges, or the [cognitive router](router.md) |
+    | `ConditionalRouter` | [`StateGraph`](multiagent.md) conditional edges |
     | `ThinkNode` / `ExecuteNode` / `ReflectNode` | internal to `Agent`; hook them with [hooks](hooks.md) |
 
 The low-level ReAct (reason + act) loop primitives, kept here for reference

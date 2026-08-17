@@ -9,7 +9,7 @@ typed events as it runs, and returns a typed `AgentResult` when it
 stops.
 
 The same class is what multi-agent shapes (orchestrators, swarms,
-handoff desks) and the [cognitive router](router.md) instantiate under
+handoff desks) instantiate under
 the hood — there's one agent abstraction, not five.
 
 ```python

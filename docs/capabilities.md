@@ -13,21 +13,16 @@ does, and where to find it.
       decision lands on a tamper-evident audit trail (each entry is chained to
       the one before it — editing any record breaks `verify()`). Policy →
       approval → admission → audit, enforced in code, not convention.
-    - **Multi-agent SDK** — describe a task; a
-      typed registry picks one of eight protocols and instantiates the
-      matching SDK primitive. The LLM fills a typed `GoalFrame`; routing is
-      rule-based. Eight protocols, from `direct_response` to `handoff_chain`
-      — the [full catalogue](#cognitive-router-risk-gated-dispatch) is below.
     - **Eight native multi-agent shapes** — Composition
       (Sequential / Parallel / Loop), Orchestrator + Specialists, Swarm,
       Handoff, StateGraph, and cross-process A2A — plus the Functional API
       (`@task` / `@entrypoint`) and DeepAgent (a research factory built on
       top).
-      Use them directly, or let the cognitive router dispatch to them. Every
+      Use them directly, or reach for them from the loop as tools. Every
       pattern shares the same `Agent` class and event stream.
     - **In-process observability** — opt-in `EventBus` with agent yield
       bridge. One `run_context()` streams 60+ canonical events from every
-      layer (agent, multi-agent, router, RAG, memory, A2A). Zero allocations
+      layer (agent, multi-agent, RAG, memory, A2A). Zero allocations
       when unused.
     - **Reasoning loop nodes** — Reflexion, Grounding, Causal as first-class
       Think → Execute → **Reflect** → Think nodes, not bolted-on libraries.
@@ -98,45 +93,32 @@ desk.register_specialists([fraud_check, risk_score, settlement])
 result = await desk.execute("Resolve the duplicate charge on order 8842 if risk agrees.")
 ```
 
-## Cognitive Router — risk-gated dispatch
+## Multi-agent shapes — as tools
 
-Every request carries risk. Reading an account balance is safe to
-auto-run; issuing a refund or rolling back a production deploy is not.
-The router reads the request into one typed `GoalFrame`, scores its
-`Risk`, then a `PolicyGate` **auto-runs low-risk reads and gates the
-costly writes for human approval** — the model never invents the plan or
-skips the gate.
-
-![NL request → GoalFrame extractor → ProtocolRegistry → PolicyGate → CognitiveCompiler → one of eight compiled SDK shapes](img/patterns/router.svg){ .diagram }
+A fan-out, a debate, a plan-then-verify pipeline and a bounded code loop.
+The agent calls them when it has a reason to, having already read the
+request and tried something — not before it starts.
 
 ```python
-from tulip.router import Complexity, GoalFrame, PolicyGate, Risk, TaskType
+from tulip import Agent
+from tulip.shapes import shape_tools
 
-# Auto-run reads; require a human before any refund or payout.
-gate = PolicyGate(max_risk=Risk.HIGH, require_approval_above=Risk.MEDIUM)
-
-frame = GoalFrame(primary_goal=TaskType.DIAGNOSE, domain="payments",
-                  complexity=Complexity.LOW, risk=Risk.LOW,
-                  required_capabilities=["read_transaction"])
-verdict = gate.check(frame, chosen)
-# LOW-risk balance read → verdict.allow; an issue_refund frame at HIGH
-# risk → verdict.require_approval, wrapped in the approval interrupt.
-
-result = await router.dispatch("Look into the duplicate charge on order 8842.")
+agent = Agent(
+    model="openai:gpt-5.5",
+    tools=[*my_tools, *shape_tools(model="openai:gpt-5.5")],
+)
 ```
 
-| Feature | What it does | Surface |
+| Tool | Shape | Reach for it when |
 |---|---|---|
-| **`Router`** | `dispatch(NL)` → extract GoalFrame → select protocol → compile → execute the task | `tulip.router.Router` · [Router](concepts/router.md) |
-| **`GoalFrame`** | Typed schema the LLM extractor fills — 13 `TaskType`s, `Risk` (gates the risky writes), `Complexity`, domain, capabilities | `tulip.router.GoalFrame` |
-| **`ProtocolRegistry`** | Typed filter (`handles ∋ goal`, `risk_max ≥ frame.risk`) + four-tier ranking (distance · canonical · cost · specificity) | `tulip.router.ProtocolRegistry` |
-| **`PolicyGate`** | `max_risk` hard-denies above the ceiling; `require_approval_above` sends refunds / deploys / deletions to a human | `tulip.router.PolicyGate` |
-| **`CognitiveCompiler`** | Instantiates real SDK primitives from frame + protocol; emits a `Runnable` adapter | `tulip.router.CognitiveCompiler` |
-| **`builtin_protocols()`** | 8 v1 protocols: `direct_response` · `plan_execute_validate` · `specialist_fanout` · `debate` · `codegen_test_validate` · `approval_gated_execution` · `a2a_delegate` · `handoff_chain` | `tulip.router.builtin_protocols` |
-| **`CapabilityIndex`** | Domain + risk overlay on `ToolRegistry` — no parallel storage | `tulip.router.CapabilityIndex` |
-| **`SkillIndex`** | Domain-tagged view of installed `Skill` packs; scoped catalog attached to every emitted Agent | `tulip.router.SkillIndex` |
-| Custom protocols | `Protocol(id=…, handles=[…], builder=fn)` registered via `ProtocolRegistry.register()` | `tulip.router.Protocol` |
-| Error types | `FrameExtractionError` · `NoMatchingProtocolError` · `PolicyDeniedError` | `tulip.router.runtime/protocol/policy` |
+| `fan_out(task, aspects)` | N agents in parallel | the question splits into strands that do not depend on each other |
+| `debate(question)` | two debaters + a judge | the trade-off is genuinely contested |
+| `plan_and_verify(task, criteria)` | planner → executor → validator | a missed step is expensive and worth a separate check |
+| `code_until_tests_pass(task)` | bounded loop, stops on `PASS` | correctness is checkable |
+
+They are ordinary tools, so [`admit()`](concepts/security-context.md) governs
+them exactly like any other tool call, and hooks reach every agent inside a
+shape.
 
 ## Security — a worked example domain
 

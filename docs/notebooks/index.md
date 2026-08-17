@@ -113,7 +113,6 @@ debate.
 | [Supervisor + critic loop][nb31] | Refinement loop that grounds a report before it ships |
 | [Adversarial debate + judge][nb32] | Incident vs noise, adjudicated to a typed `Verdict` |
 | [Multi-agent + human-in-the-loop][nb33] | Three HITL patterns in one file |
-| [Emergent routing][nb34] | Opt-in LLM-as-picker |
 
 ## Reasoning & grounding
 
@@ -170,15 +169,14 @@ evaluation harness that pins agent behaviour as regression tests.
 | [Model providers][nb56] | The provider matrix |
 | [Multi-modal providers][nb57] | Chargeback evidence: web fetch, ledger search, image, transcription |
 
-## Routing & observability
+## Observability
 
-Route work by risk (PRISM) and put every tool call, token, and decision on the
-EventBus — a replayable ticket timeline, a telemetry forwarder that spans
-concurrent rollouts, and an event catalogue generated from the code.
+Put every tool call, token, and decision on the EventBus — a replayable ticket
+timeline, a telemetry forwarder that spans concurrent rollouts, and an event
+catalogue generated from the code.
 
 | Example | What it shows |
 |---|---|
-| [Cognitive router (PRISM)][nb58] | Risk-tiered task routing |
 | [Observability basics][nb59] | Opt-in EventBus telemetry |
 | [Token usage bridge][nb60] | Yield bridge + cost accounting |
 | [EventBus subscribers][nb61] | Subscribe shapes; forward rollout telemetry |
@@ -258,7 +256,6 @@ incident response.
 [nb31]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_31_supervisor_critic_loop.py
 [nb32]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_32_debate_with_judge.py
 [nb33]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_33_multiagent_human_in_loop.py
-[nb34]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_34_emergent_routing.py
 [nb35]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_35_structured_output.py
 [nb36]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_36_reasoning_patterns.py
 [nb37]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_37_gsar_typed_grounding.py
@@ -276,7 +273,6 @@ incident response.
 [nb55]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_55_evaluation.py
 [nb56]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_56_model_providers.py
 [nb57]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_57_multimodal_providers.py
-[nb58]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_58_cognitive_router.py
 [nb59]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_59_observability_basics.py
 [nb60]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_60_agent_yield_bridge.py
 [nb61]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_61_eventbus_subscribers.py

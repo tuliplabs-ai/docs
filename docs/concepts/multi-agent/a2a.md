@@ -182,28 +182,22 @@ await client.cancel_task(task.id)
 `list_tasks()` calls the v1.0 `ListTasks` method and maps the response
 back into SDK `Task` objects, returning `(tasks, next_page_token)`.
 
-## Router delegation
+## Cross-process delegation
 
-The cognitive router's `a2a_delegate` protocol now delegates through
-`A2AClient.send_message()` first, so router-to-remote-agent calls use
-the v1.0 path by default. If the remote peer answers that `SendMessage`
-is not found, the runnable falls back to the legacy flat
+Delegation goes through `A2AClient.send_message()` first, so calls to a remote
+agent use the v1.0 path by default. If the remote peer answers that
+`SendMessage` is not found, the client falls back to the legacy flat
 `/a2a/invoke` convenience call.
 
 ```python
-from tulip.router import BuilderContext, CognitiveCompiler
+from tulip.a2a import A2AClient
 
-ctx = BuilderContext(
-    model=model,
-    capabilities=capability_index,
-    a2a_endpoint="https://research.example.com",
-)
-compiler = CognitiveCompiler(ctx)
+client = A2AClient(endpoint="https://research.example.com")
+reply = await client.send_message("Summarise the Q3 incident reports.")
 ```
 
-The remote agent still owns its tools and orchestration. The router
-passes a single user message, then unwraps the final text from the
-returned Task artifact for the normalized `RunnableResult`.
+The remote agent still owns its tools and orchestration. The caller passes a
+single user message and unwraps the final text from the returned Task artifact.
 
 ## Auth + TLS
 
