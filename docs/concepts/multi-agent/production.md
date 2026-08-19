@@ -195,7 +195,7 @@ graph = StateGraph(config=GraphConfig(
 ```
 
 Pick a [shape](../multi-agent.md) directly, or let
-[PRISM — the cognitive router](../router.md) select and compile the
+the loop reach for a shape tool and build the
 right one from a typed intent. Then wire the primitives above through
 it and ship it.
 

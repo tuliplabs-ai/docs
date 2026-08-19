@@ -74,10 +74,10 @@ call goes straight from your browser to your provider. We never see your key
 and never run your code on our servers.
 
 A browser tab has no threads, no local files, and only in-memory storage, so a
-few notebooks show a **run-locally** notice instead. Today that's four of the
-seventy-four: **A2A protocol** (starts a socket server), **Skills** and
-**Cognitive router** (load skill packages from disk), and **Multi-modal
-providers** (fetches generated-image bytes from a non-CORS host). Everything
+few notebooks show a **run-locally** notice instead. Today that's three of the
+seventy-two: **A2A protocol** (starts a socket server), **Skills** (loads skill
+packages from disk), and **Multi-modal providers** (fetches generated-image
+bytes from a non-CORS host). Everything
 else — agents, tools, memory, graphs, multi-agent, reasoning, guardrails, the
 approval gates, security workflows, and RAG — runs in the browser.
 
@@ -230,7 +230,6 @@ FastAPI pattern endpoints:
 | Map-reduce code review | Fan-out to 3 reviewers, reduce findings |
 | StateGraph critic loop | Writer → Critic cycle with `allow_cycles` |
 | **Long-term memory** | Two-session demo — see below |
-| **Cognitive routing** | Rule-based vs LLM-picker selection — see below |
 
 The rest are the full example notebooks. On the web they run in the
 browser (Pyodide); locally they run as Python subprocesses against your
@@ -280,48 +279,6 @@ The reply shows three sections: the Session 1 answer, the extracted
 memories (key/content pairs), and the Session 2 recall — so you can
 see exactly what the model chose to remember and how it surfaced in a
 fresh context.
-
-### Cognitive routing pattern
-
-Pick **Cognitive routing** in the sidebar and you'll see a
-**Selection mode** segmented control above the Run button:
-
-- **Rule-based** (default) — `ProtocolRegistry.select()` →
-  deterministic `_rank_key` tuple comparison. Auditable,
-  reproducible, free of model latency.
-- **LLM picker** (opt-in) — `LLMProtocolPicker` lets the model
-  pick the protocol from the filtered candidate set. PolicyGate,
-  capability binding, and the candidate filter all stay rule-based;
-  only the disambiguation step moves to the model.
-
-Hit Run and the workbench shows a chip with the dispatched
-`protocol_id` plus a `method` badge (`rule_based` /
-`single_candidate` / `llm_picked` / `rule_based_fallback`). When
-LLM-picker mode dispatched the run, the model's one-sentence
-rationale renders as a callout above the reply text — the same
-field the `router.protocol.selected` SSE event carries.
-
-Sample prompts that exercise different protocols:
-
-```
-What does the router do in the context of this SDK?
-→ direct_response
-```
-
-```
-Compare swarm vs orchestrator patterns for open-ended research.
-→ debate (LLM picker may differ from the rule-based ranker)
-```
-
-```
-Diagnose the checkout API latency spike: pull metrics, list alerts,
-correlate findings.
-→ specialist_fanout
-```
-
-See [emergent routing](notebooks/notebook_34_emergent_routing.md) for the
-full code path and [concepts/router.md](concepts/router.md#emergent-picker-opt-in-second-mode)
-for the architectural details.
 
 ## Cost
 
