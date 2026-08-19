@@ -93,33 +93,6 @@ desk.register_specialists([fraud_check, risk_score, settlement])
 result = await desk.execute("Resolve the duplicate charge on order 8842 if risk agrees.")
 ```
 
-## Multi-agent shapes — as tools
-
-A fan-out, a debate, a plan-then-verify pipeline and a bounded code loop.
-The agent calls them when it has a reason to, having already read the
-request and tried something — not before it starts.
-
-```python
-from tulip import Agent
-from tulip.shapes import shape_tools
-
-agent = Agent(
-    model="openai:gpt-5.5",
-    tools=[*my_tools, *shape_tools(model="openai:gpt-5.5")],
-)
-```
-
-| Tool | Shape | Reach for it when |
-|---|---|---|
-| `fan_out(task, aspects)` | N agents in parallel | the question splits into strands that do not depend on each other |
-| `debate(question)` | two debaters + a judge | the trade-off is genuinely contested |
-| `plan_and_verify(task, criteria)` | planner → executor → validator | a missed step is expensive and worth a separate check |
-| `code_until_tests_pass(task)` | bounded loop, stops on `PASS` | correctness is checkable |
-
-They are ordinary tools, so [`admit()`](concepts/security-context.md) governs
-them exactly like any other tool call, and hooks reach every agent inside a
-shape.
-
 ## Security — a worked example domain
 
 The most fully built domain package, and the proof the chain holds under
