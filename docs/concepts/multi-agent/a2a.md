@@ -190,10 +190,18 @@ agent use the v1.0 path by default. If the remote peer answers that
 `/a2a/invoke` convenience call.
 
 ```python
+import asyncio
+
 from tulip.a2a import A2AClient
 
-client = A2AClient(endpoint="https://research.example.com")
-reply = await client.send_message("Summarise the Q3 incident reports.")
+
+async def main():
+    client = A2AClient("https://research.example.com")
+    reply = await client.send_message("Summarise the Q3 incident reports.")
+    print(reply)
+
+
+asyncio.run(main())
 ```
 
 The remote agent still owns its tools and orchestration. The caller passes a
