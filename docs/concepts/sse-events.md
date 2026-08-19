@@ -100,20 +100,6 @@ emits.
 | `composition.loop.iteration.completed` | `iteration`, `output_length`, `duration_ms` |
 | `composition.loop.terminated` | `iterations_run`, `terminated_by` (`"condition"` \| `"max_loops"`) |
 
-### `router.*` — PRISM dispatch
-
-| Event | Payload |
-|---|---|
-| `router.frame.extracted` | `primary_goal`, `secondary_goals`, `domain`, `complexity`, `risk`, `requires_*`, `success_criteria` |
-| `router.frame.failed` | `error` |
-| `router.protocol.selected` | `protocol_id`, `cost`, `latency`, `reason` |
-| `router.protocol.no_match` | `frame_summary` |
-| `router.policy.verdict` | `allow`, `require_approval`, `reason` |
-| `router.runnable.compiled` | `protocol_id` |
-| `router.runnable.executing` | `protocol_id` |
-| `router.runnable.executed` | `protocol_id`, `output_length` |
-| `router.runnable.failed` | `protocol_id`, `error` |
-
 ### `rag.*` — retrieval
 
 | Event | Payload |

@@ -17,7 +17,6 @@ Prefix map::
     agent.*          ReAct loop (think, tool, model, tokens, reflect, …)
     multiagent.*     Orchestrator, Specialist, Handoff, StateGraph nodes
     composition.*    SequentialPipeline, ParallelPipeline, LoopAgent
-    router.*         PRISM dispatch (frame → protocol → policy → compiled)
     rag.*            Retriever query lifecycle
     memory.*         Checkpointing + conversation management
     a2a.*            Agent-to-Agent protocol (server + client)
