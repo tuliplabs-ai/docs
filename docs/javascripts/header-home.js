@@ -2,7 +2,7 @@
 // click → docs home. Uses event delegation on `document` so it keeps
 // working across mkdocs-material `navigation.instant` page swaps.
 //
-// `site_url` is the production apex (tuliplabs.ai), so the rendered logo
+// `site_url` is the production apex (tulipagents.ai), so the rendered logo
 // anchor is absolute to that origin. We honour it when we're actually
 // served from that origin, but fall back to the current origin's root
 // for local dev / previews — otherwise "home" would jump off to the
