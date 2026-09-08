@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" font-family="Fraunces, Georgia, serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 160" font-family="Fraunces, Georgia, serif">
   <g transform="translate(14,24) scale(1.12)">
   <path d="M50 86 C 30 78 17 58 19 34 C 34 42 47 60 50 86 Z" fill="#E86A98"/>
   <path d="M50 86 C 70 78 83 58 81 34 C 66 42 53 60 50 86 Z" fill="#E86A98"/>
   <path d="M50 86 C 44 60 44 38 50 18 C 56 38 56 60 50 86 Z" fill="#D6336C"/>
   </g>
-  <text x="150" y="108" font-size="86" font-weight="600" fill="#1B1620" letter-spacing="-3">tuliplabs</text>
+  <text x="150" y="108" font-size="86" font-weight="600" fill="#1B1620" letter-spacing="-3">tulip agents</text>
 </svg>

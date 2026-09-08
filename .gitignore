@@ -24,3 +24,6 @@ htmlcov/
 # Local symlinks to sibling repos (CI checks these out itself)
 .sdk
 .integrations
+
+# Stale local build snapshot (CI builds and deploys site/ itself)
+/publish/
