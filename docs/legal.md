@@ -20,7 +20,7 @@ tulip ships offensive-capable security tooling — red-team agents, model and ha
 
 tulip is released under the **Apache License, Version 2.0**.
 
-Copyright 2026 Tulip Labs.
+Copyright 2026 The Tulip Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this software except in compliance with the License. You may obtain a copy of the License at <https://www.apache.org/licenses/LICENSE-2.0>.
 

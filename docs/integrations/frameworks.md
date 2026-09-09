@@ -8,7 +8,7 @@ OpenAI Agents SDK, LlamaIndex, or Google ADK**, keep it — put Tulip's gate aro
 the *actions* it takes. The model and orchestration stay yours; the gate, the
 human-in-the-loop, and the tamper-evident audit trail come from Tulip.
 
-The [`tulip-frameworks`](https://github.com/tuliplabs-ai/tulip-frameworks) package
+The [`tulip-frameworks`](https://pypi.org/project/tulip-frameworks/) package
 ships a thin bridge per framework. You wrap a tool once and give the gated version to
 your agent in its place — same name, same schema. From then on, when the agent
 decides to act, the gate decides whether that action runs, is held for a human, or is
@@ -166,7 +166,7 @@ force them into one mould:
 |---|---|---|
 | an **agent framework** (LangChain, LangGraph, CrewAI, OpenAI Agents, LlamaIndex, ADK) | **Gate** its tools | `gate_*_tool` (above) |
 | a **model-call gateway** (LiteLLM, Portkey) | **Compose** — it routes the model call, Tulip gates the action | point your model at the gateway *and* wrap the action in `admit()`; they stack |
-| an **agent outside Python** (a TypeScript agent, an OpenClaw-style runtime, Vercel AI) | **Gate over the wire** — the gate is a language-neutral network call | the [`tulip-gateway`](index.md) `/v1/admit` endpoint, with the [`tulip-frameworks-js`](https://github.com/tuliplabs-ai/tulip-frameworks-js) TypeScript client |
+| an **agent outside Python** (a TypeScript agent, an OpenClaw-style runtime, Vercel AI) | **Gate over the wire** — the gate is a language-neutral network call | the [`tulip-gateway`](index.md) `/v1/admit` endpoint, reachable from any language that can make an HTTP call |
 | **another agent** you don't control (a chatbot, an endpoint) | **Assure** — red-team it | the core SDK's `Target` + [`red_team()`](../concepts/security.md) |
 
 A model-call gateway is **not** something you gate — it governs *which model, whose
