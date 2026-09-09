@@ -168,7 +168,6 @@ nav:
   - RAG: concepts/rag.md
   - Multi-agent:
     - Overview: concepts/multi-agent.md
-    - Cognitive router: concepts/router.md
     - Composition: concepts/multi-agent/composition.md
     - Orchestrator: concepts/multi-agent/orchestrator.md
     - Swarm: concepts/multi-agent/swarm.md
