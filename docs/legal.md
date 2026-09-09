@@ -2,13 +2,13 @@
 
 ## About &amp; disclaimer
 
-**tulip is developed 100% by tuliplabs, an independent research and software lab.** No third party contributed to its development. tulip is an open-source **agentic harness** — a control runtime for agents that take real actions — developed in the open, alongside tuliplabs' independent AI-security research.
+**tulip is developed 100% by the tulip maintainers, working independently.** No third party contributed to its development. tulip is an open-source **agentic harness** — a control runtime for agents that take real actions — developed in the open, alongside independent AI-security research.
 
 **Organizations and corporations are welcome to use the open-source tulip SDK at production grade, at no cost**, under the Apache License, Version 2.0.
 
 ### Disclaimer of warranty and liability
 
-The software is provided **"AS IS", without warranty of any kind**, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. **tuliplabs accepts no liability** for any claim, damages, or other consequence arising from the software or its use. **Use is entirely at your own risk.** You are **solely responsible** for ensuring that your use is lawful, authorized, and compliant with all applicable obligations — including security, privacy, export-control, and any policies that govern the systems and data you touch.
+The software is provided **"AS IS", without warranty of any kind**, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. **The maintainers accept no liability** for any claim, damages, or other consequence arising from the software or its use. **Use is entirely at your own risk.** You are **solely responsible** for ensuring that your use is lawful, authorized, and compliant with all applicable obligations — including security, privacy, export-control, and any policies that govern the systems and data you touch.
 
 ### Responsible use
 
@@ -20,7 +20,7 @@ tulip ships offensive-capable security tooling — red-team agents, model and ha
 
 tulip is released under the **Apache License, Version 2.0**.
 
-Copyright 2026 tuliplabs.
+Copyright 2026 The Tulip Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this software except in compliance with the License. You may obtain a copy of the License at <https://www.apache.org/licenses/LICENSE-2.0>.
 

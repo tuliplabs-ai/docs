@@ -136,8 +136,8 @@ trained on the task should not reproduce it.
     Clusiana-Admit-4B is a research model. It is not GA, there is no public
     endpoint, and the numbers below are from our own bench rather than from a
     product you can install today. If you want to evaluate it against your own
-    policies and tool catalog, write to
-    [clusiana@tuliplabs.ai](mailto:clusiana@tuliplabs.ai).
+    policies and tool catalog, open a
+    [discussion](https://github.com/tuliplabs-ai/tulip-agents/discussions).
 
     The [method](../concepts/policy-authoring.md) and the
     [eval scripts](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/research)

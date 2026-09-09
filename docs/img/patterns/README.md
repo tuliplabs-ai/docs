@@ -36,7 +36,7 @@ over the current SVGs from the stale source.
 
 ## Colour palette (matches the tulip brand)
 
-These come from the tuliplabs
+These come from the tulip
 brand sheet:
 
 | Use | Hex |

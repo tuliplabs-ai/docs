@@ -11,7 +11,7 @@ html {
 }
 
 /* ============================================================================
-   tulip docs — tuliplabs palette + tulip brand rules.
+   tulip docs — brand palette + brand rules.
 
    Brand (from docs/img/logo.svg):
      - Wordmark is always lowercase "tulip", never capitalized.
@@ -24,7 +24,7 @@ html {
                          colour #78716C.
      - Wordmark display: weight 700, letter-spacing -0.04em.
 
-   Palette: tuliplabs palette.
+   Palette: tulip palette.
    ========================================================================== */
 
 :root {
@@ -36,7 +36,7 @@ html {
   --tulip-table-stripe: rgba(244, 239, 236, 0.45);
   --tulip-code-inline: #4A434C;
 
-  /* tuliplabs palette */
+  /* tulip palette */
   --tl-text:        #1B1620;   /* dk1 */
   --tl-bg:          #FBF9F8;   /* lt2 — off-white */
   --tl-bg-soft:     #F4EFEC;   /* derived: tint of lt2 */
@@ -105,7 +105,7 @@ html {
 [data-md-color-scheme="slate"] {
   --md-hue: 200;
 
-  /* tuliplabs warm-dark palette — identical to the workbench dark theme
+  /* tulip warm-dark palette — identical to the workbench dark theme
      (workbench/web/src/styles/tulip.css [data-theme="dark"]).
      Same canvas, same red, same sage links. */
   --tulip-ink:        #F0EBE6;
@@ -1390,7 +1390,7 @@ form.md-header__option {
 }
 
 /* ===================================================================
-   tuliplabs brand — polished, cohesive (light + dark).
+   tulip brand — polished, cohesive (light + dark).
    Light: clean WHITE header showcasing the precise tulip mark.
    Dark:  deep header. Pink->rose gradient as a thin hairline + the
    logo + accents; tulip-rose links/CTAs.
@@ -1439,7 +1439,7 @@ form.md-header__option {
 .md-footer-meta .footer-brand__text { font-weight: 700; }
 
 /* ===================================================================
-   tuliplabs — "modern dev-brand" redesign (distinct from the stock
+   tulip — "modern dev-brand" redesign (distinct from the stock
    Material template): Fraunces display type (--tulip-display, declared
    in :root at the top of this file) and bordered hover-lift feature
    cards.
@@ -1506,203 +1506,6 @@ form.md-header__option {
 
 /* Header title is clickable → home (see header-home.js). */
 .md-header__title { cursor: pointer; }
-
-/* ---- Company-site link in the header (→ tuliplabs.ai) ------------------- */
-/* A deliberate pill button, not a bare hyperlink — sits with the PyPI/GitHub
-   cluster and reads as "visit the company site". Border/hover derive from the
-   header's own foreground colour so it works in light and dark. */
-/* (The header company pill is gone — the company link lives in the sidebar
-   card + footer strip below. Keeping the header to: search · badge · repo.) */
-
-/* ===================================================================
-   Sidebar — "About tuliplabs" card
-   =================================================================== */
-
-.tulip-company-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 0.6rem 1.1rem;
-  margin-top: auto;
-  text-decoration: none;
-  color: var(--md-default-fg-color);
-  border-top: 1px solid var(--md-default-fg-color--lightest);
-  transition: background-color 120ms ease;
-}
-.tulip-company-card:hover {
-  background: var(--md-accent-fg-color--transparent);
-}
-
-.tulip-company-card__mark {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-}
-.tulip-company-card__mark img {
-  width: 2.4rem;
-  height: 2.4rem;
-  display: block;
-}
-
-.tulip-company-card__body {
-  text-align: center;
-}
-.tulip-company-card__title {
-  display: block;
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--md-default-fg-color);
-  letter-spacing: -0.01em;
-}
-.tulip-company-card__title b {
-  font-weight: 700;
-  color: var(--tl-red);
-}
-.tulip-company-card__desc {
-  display: block;
-  font-size: 0.62rem;
-  color: var(--md-default-fg-color--light);
-  line-height: 1.35;
-  margin-top: 0.15rem;
-}
-
-.tulip-company-card__arrow {
-  width: 1.1rem;
-  height: 1.1rem;
-  flex: 0 0 auto;
-  color: var(--tl-red);
-  opacity: 0.7;
-  transition: transform 120ms ease, opacity 120ms ease;
-}
-.tulip-company-card:hover .tulip-company-card__arrow {
-  opacity: 1;
-  transform: translate(2px, -2px);
-}
-
-/* ===================================================================
-   Home page — Company banner (top sliver above hero)
-   =================================================================== */
-
-.tulip-company-banner {
-  display: none;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.65rem 1.6rem 0.65rem 0.9rem;
-  margin: -0.4rem 0 0.8rem;
-  background: var(--tl-bg-soft);
-  border: 1px solid var(--tl-rule);
-  border-radius: 4px;
-  font-size: 0.76rem;
-  color: var(--md-default-fg-color);
-  position: relative;
-}
-.tulip-company-banner__mark {
-  flex: 0 0 auto;
-  width: 1.5rem;
-  height: 1.5rem;
-  color: var(--tl-red);
-}
-.tulip-company-banner__mark svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.tulip-company-banner__text {
-  flex: 1 1 auto;
-}
-.tulip-company-banner__bq {
-  font-weight: 600;
-  color: var(--tl-red);
-}
-.tulip-company-banner__link {
-  color: var(--tl-link);
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 2px;
-  transition: color 100ms, text-decoration-color 100ms;
-}
-.tulip-company-banner__link:hover {
-  color: var(--tl-red);
-  text-decoration-color: currentColor;
-}
-.tulip-company-banner__close {
-  flex: 0 0 auto;
-  width: 1.2rem;
-  height: 1.2rem;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  color: var(--md-default-fg-color--light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
-  transition: background-color 80ms;
-}
-.tulip-company-banner__close:hover {
-  background: rgba(128, 128, 128, 0.1);
-}
-.tulip-company-banner__close svg {
-  width: 0.85rem;
-  height: 0.85rem;
-  display: block;
-}
-
-@media (max-width: 60em) {
-  .tulip-company-banner {
-    padding: 0.55rem 0.6rem 0.55rem 0.65rem;
-    gap: 0.4rem;
-  }
-  .tulip-company-banner__text {
-    font-size: 0.7rem;
-  }
-}
-
-/* ===================================================================
-   Footer — company link strip (row above copyright)
-   =================================================================== */
-
-.md-footer-company-strip {
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--tl-rule);
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-.md-footer-company-strip__text {
-  font-size: 0.72rem;
-  color: var(--md-footer-fg-color--light);
-  letter-spacing: 0.01em;
-}
-.md-footer-company-strip__text b {
-  font-weight: 600;
-  color: var(--md-footer-fg-color);
-}
-.md-footer-company-strip__link {
-  color: var(--tl-red);
-  font-weight: 600;
-  font-size: 0.74rem;
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 100ms;
-}
-.md-footer-company-strip__link:hover {
-  border-bottom-color: var(--tl-red);
-}
-
-[data-md-color-scheme="slate"] .md-footer-company-strip {
-  border-bottom-color: rgba(255,255,255,0.08);
-}
-[data-md-color-scheme="slate"] .md-footer-company-strip__text {
-  color: #b8b3ad;
-}
-[data-md-color-scheme="slate"] .md-footer-company-strip__text b {
-  color: var(--md-footer-fg-color);
-}
 
 /* ===================================================================
    Nav section labels — hover accent tint

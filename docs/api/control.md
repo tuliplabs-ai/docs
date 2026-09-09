@@ -57,7 +57,7 @@ agent = Agent(model=model, tools=[
 A refusal comes back to the model as a readable result naming the outcome and
 the reason, so the agent can explain the hold rather than the run ending in a
 traceback. It is the same shape the
-[`tulip-frameworks`](https://github.com/tuliplabs-ai/tulip-frameworks) bridges
+[`tulip-frameworks`](https://pypi.org/project/tulip-frameworks/) bridges
 return, so a policy reads the same whether the agent is Tulip-native or
 wrapped from LangChain, CrewAI or the OpenAI Agents SDK. Pass
 `on_refusal="raise"` for a caller that would rather stop.

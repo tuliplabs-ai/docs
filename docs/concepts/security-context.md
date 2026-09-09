@@ -68,7 +68,7 @@ offline, then flip individual domains to live vendors one at a time.
 ## Going live — inject a provider
 
 Live vendors live in the one-way-dependent
-[`tulip-integrations`](https://github.com/tuliplabs-ai/tulip-integrations) package.
+[integrations](../integrations/index.md) package.
 Core never imports a vendor; you wire them explicitly:
 
 ```python
@@ -94,7 +94,7 @@ offline sample** when none are present — so the same code is safe to run in CI
 
 A provider is just a class that satisfies the domain port. Writing your own is
 the same shape as the bundled ones — see
-[Adding an integration](https://github.com/tuliplabs-ai/tulip-integrations/blob/main/CONTRIBUTING.md).
+[the bundled providers](../integrations/index.md).
 
 ## A full investigation — grounded, verified, gated
 
