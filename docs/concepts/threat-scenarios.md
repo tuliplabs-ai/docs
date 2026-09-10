@@ -21,7 +21,7 @@ published top-10s; `AtlasTechnique` encodes a representative subset of MITRE
 ATLAS:
 
 ```bash
-# in a checkout of tuliplabs-ai/tulip-agents
+# in a checkout of tulip-agents
 python examples/scenarios/run_all.py          # run every gist, assert all pass
 python examples/scenarios/prompt_injection.py  # or run one
 ```

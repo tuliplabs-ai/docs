@@ -1,4 +1,4 @@
-# Copyright 2026 tuliplabs
+# Copyright 2026 The Tulip Authors
 # SPDX-License-Identifier: Apache-2.0
 """Put the repo root on sys.path so the hook + script modules import as
 ``hooks.cache_bust`` / ``scripts.gen_notebook_pages`` (namespace packages)."""
