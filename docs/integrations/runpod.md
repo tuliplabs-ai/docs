@@ -35,7 +35,7 @@ pip install "tulip-integrations[compute-runpod]"   # pulls the runpod SDK
 
 | | |
 |---|---|
-| **Env** | `RUNPOD_API_KEY` (+ `RUNPOD_PROBE_IMAGE`, your image; default `tuliplabs/timing-probe:latest`) |
+| **Env** | `RUNPOD_API_KEY` (+ `RUNPOD_PROBE_IMAGE`, your image; default `<your-registry>/timing-probe:latest`) |
 | **Install** | `tulip-integrations[compute-runpod]` — needs the `runpod` SDK |
 | **Import** | `from tulip_integrations.compute.runpod import runpod_probe` |
 | **Probe** | `runpod_probe(endpoint)` → timing feature vector |
