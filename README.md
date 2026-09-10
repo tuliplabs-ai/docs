@@ -59,7 +59,7 @@ python scripts/gen_notebook_pages.py
 
 ## License
 
-Documentation prose © 2026 Tulip Labs, released under
+Documentation prose © 2026 The Tulip Authors, released under
 [Apache-2.0](LICENSE) (see [`NOTICE`](NOTICE) for provenance). Code samples
 are offered under the same terms as the SDK.
 

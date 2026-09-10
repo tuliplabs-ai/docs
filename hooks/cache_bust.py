@@ -1,4 +1,4 @@
-# Copyright 2026 tuliplabs
+# Copyright 2026 The Tulip Authors
 # SPDX-License-Identifier: Apache-2.0
 """mkdocs hook: append a content hash to extra_css / extra_javascript URLs.
 

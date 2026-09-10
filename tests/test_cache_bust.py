@@ -1,4 +1,4 @@
-# Copyright 2026 tuliplabs
+# Copyright 2026 The Tulip Authors
 # SPDX-License-Identifier: Apache-2.0
 """Unit: the cache-bust mkdocs hook appends a content hash to local asset URLs."""
 
