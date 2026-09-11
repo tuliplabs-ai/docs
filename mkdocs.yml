@@ -314,7 +314,6 @@ nav:
 - Research:
   - Overview: research/index.md
   - Policy blindness: research/policy-blindness.md
-- Workbench: workbench.md
 - Reference:
   - Agent: api/agent.md
   - Multi-agent: api/multiagent.md

@@ -105,8 +105,7 @@ html {
 [data-md-color-scheme="slate"] {
   --md-hue: 200;
 
-  /* tulip warm-dark palette — identical to the workbench dark theme
-     (workbench/web/src/styles/tulip.css [data-theme="dark"]).
+  /* tulip warm-dark palette (the same tokens the site uses in dark mode).
      Same canvas, same red, same sage links. */
   --tulip-ink:        #F0EBE6;
   --tulip-mute:       #95908a;
@@ -123,7 +122,7 @@ html {
   --tl-surface:       #1F1D1A;
   --tl-rule:          #36332E;
 
-  /* Warm rose-coral primary; lighter in dark for contrast (matches workbench) */
+  /* Warm rose-coral primary; lighter in dark for contrast */
   --tl-red:           #EC5A77;
   --tl-red-deep:      #D14A66;
   --tl-red-light:     #F2849A;
@@ -150,7 +149,7 @@ html {
   --md-default-fg-color--lightest: #4a4844;
 
   --md-typeset-color:           #F0EBE6;
-  --md-typeset-a-color:         #F4A6C2;   /* rose tint, matches workbench links */
+  --md-typeset-a-color:         #F4A6C2;   /* rose tint */
   --md-typeset-mark-color:      rgba(247, 162, 30, 0.28);
 
   --md-footer-bg-color:         #131211;
@@ -299,7 +298,7 @@ html {
 /* Compound `.tulip-hero p.tulip-product-name` (specificity 0,3,1) beats
    `.md-typeset .tulip-hero p` (0,2,1), so the eyebrow size actually wins
    inside the hero. Second selector covers usages outside the hero (e.g.
-   the workbench page) where `.tulip-hero p` isn't competing. */
+   a page without a hero) where `.tulip-hero p` isn't competing. */
 .md-typeset .tulip-hero p.tulip-product-name,
 .md-typeset p.tulip-product-name {
   font-size: 0.78rem !important;
@@ -1199,7 +1198,7 @@ form.md-header__option {
 }
 
 /* ---------------------------------------------------------------------------
- * Notebook index filter — workbench-style live search.
+ * Notebook index filter — live search.
  * --------------------------------------------------------------------------- */
 
 .notebook-filter {
@@ -1271,7 +1270,7 @@ form.md-header__option {
  *   wherever the table can compress; the overflow scrollbar only appears
  *   on the tables that would otherwise lose content.
  *
- *   Also: cap any in-content image (workbench gif, etc.) at the column
+ *   Also: cap any in-content image (gifs, screenshots) at the column
  *   width so it never blows past the viewport edge.
  * --------------------------------------------------------------------- */
 @media (max-width: 48em) {

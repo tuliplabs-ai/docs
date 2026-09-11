@@ -23,7 +23,7 @@ from the in-memory history buffer.
     retention, and route security decisions through the
     [`AuditTrail`](agentic-ai-security.md) for a tamper-evident record.
 
-This page is the **wire-format contract**. The workbench renderer, the
+This page is the **wire-format contract**. A browser renderer, the
 JSON log adapter, and any downstream OTEL bridge consume from it. If you
 add a new emission site, list it here.
 

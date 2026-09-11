@@ -7,7 +7,7 @@ emission point.
 
 Publishers (router, agent loop hooks, custom user code) call `emit()`
 or `bus.publish()`; subscribers consume via `bus.subscribe(run_id)`.
-The workbench's SSE endpoint at `/api/events/{run_id}` is the public
+An SSE endpoint such as `/api/events/{run_id}` is the natural public
 HTTP wrapper around `EventBus.subscribe`.
 
 For the agent's typed `TulipEvent` stream (the thing

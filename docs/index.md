@@ -25,11 +25,8 @@ the OpenAI Agents SDK.
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
-[Try it live ↗](https://play.tulipagents.ai){ .md-button }
 [GitHub](https://github.com/tuliplabs-ai/tulip-agents){ .md-button }
 </div>
-
-<p style="margin-top:0.6rem;font-size:0.85rem;color:var(--md-default-fg-color--light)">No install — the live workbench runs in your browser with your own model key.</p>
 
 ```bash
 pip install "tulip-agents[anthropic]"
@@ -202,7 +199,6 @@ pip install "tulip-agents[openai]"
 ```
 
 [Get started →](how-to/quickstart.md){ .md-button .md-button--primary }
-[Try it live ↗](https://play.tulipagents.ai){ .md-button }
 [Why Tulip →](why-tulip.md){ .md-button }
 
 ---

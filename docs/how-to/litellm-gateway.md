@@ -297,7 +297,7 @@ The platform-grade pieces it earns them:
 - **Cost optimisation that compounds** — cache identical prompts,
   route cheap requests to cheap models, identify top-spend prompts
   and rewrite them. All require centralised visibility.
-- **Polyglot consumers** — Python Tulip, JS workbench, Go / Ruby /
+- **Polyglot consumers** — Python Tulip, JS clients, Go / Ruby /
   Java services all talk the same OpenAI-shaped HTTP.
 
 ### Deployment-shape table
@@ -308,7 +308,7 @@ The platform-grade pieces it earns them:
 | Gateway pod + Postgres + Redis + obs backends | Platform / SRE team | Kubernetes, one deployment per env |
 | Gateway `config.yaml` (model catalog, fallbacks, callbacks, guardrails) | Platform team | GitOps repo, change-controlled |
 | Virtual keys + per-team budgets | Platform team issues; security reviews | Postgres; admin UI for issuance |
-| Tulip agents / workbench / other consumers | Application teams | Their own services, talking to `litellm-gateway.<env>.svc.cluster.local:4000` |
+| Tulip agents / other consumers | Application teams | Their own services, talking to `litellm-gateway.<env>.svc.cluster.local:4000` |
 | Spend reports + audit + alerts | Finance + security | SQL on the gateway's Postgres; obs dashboards |
 
 The pattern lets the platform team **set policy once** and application

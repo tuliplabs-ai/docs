@@ -183,7 +183,7 @@ the agent before anything leaves, see [Safety](safety.md).
 
 ## In-process SSE (EventBus)
 
-For workbench streaming, real-time dashboards, or any use case where you need
+For browser streaming, real-time dashboards, or any use case where you need
 to watch the full inner cognition of a run without standing up an OTLP stack,
 the SDK ships a zero-dependency in-process pub/sub bus.
 
