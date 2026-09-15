@@ -19,9 +19,7 @@ in code the model can't reach.
 
 The breadth is why the rule holds. You can only choose the shape, check the claim, and
 gate the action if you own the loop all three happen in — so Tulip ships the whole loop.
-[See the framework surface](capabilities.md), or
-[govern the agents you already run](integrations/frameworks.md) in LangChain, CrewAI, or
-the OpenAI Agents SDK.
+[See the framework surface](capabilities.md).
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
@@ -140,31 +138,6 @@ the wrong action isn't caught in a filter, it never runs.
     `verify()` fails on any edit. Replay any run.
 
 </div>
-
-## Govern the agents you already run
-
-You don't rebuild anything. Wrap a tool once with
-[`tulip-frameworks`](integrations/frameworks.md) and drop it back in — same name, same
-schema — and every call now goes through the same gate and audit trail:
-
-```python
-from tulip.control import Action, AuditTrail
-from tulip_frameworks.langchain import gate_langchain_tool
-from tulip_frameworks.policy_presets import action_gate_policy
-
-safe_refund = gate_langchain_tool(
-    refund,  # your existing LangChain @tool, unchanged
-    action=lambda name, a: Action(
-        name=name, asset=a["order_id"],
-        kind="payment", environment="production",
-    ),
-    policy=action_gate_policy(),  # production → held for a human
-    trail=AuditTrail(),
-)
-```
-
-Bridges ship for LangChain, LangGraph, CrewAI, the OpenAI Agents SDK, LlamaIndex, and
-Google ADK.
 
 ## Build it across any domain
 

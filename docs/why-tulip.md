@@ -2,8 +2,7 @@
 
 Tulip is a **complete open-source agent framework** — tools, memory, multi-agent,
 RAG, streaming, all behind one `Agent` class — where control is native rather than
-an add-on you remember to wire. The same runtime also
-[governs agents you already run elsewhere](integrations/frameworks.md).
+an add-on you remember to wire.
 
 The breadth is what makes the control claim possible. Picking which shape runs,
 checking what gets asserted, and gating what actually fires are three different
@@ -96,4 +95,3 @@ evidence-before-action discipline that makes Tulip safe to let act anywhere.
 - [Quickstart](how-to/quickstart.md) — a working agent, then gate its action in step 3.5.
 - [The control layer](concepts/security-context.md) — the full policy + admission surface.
 - [GSAR grounding](concepts/gsar.md) — why an `Evidence` can't exist without evidence.
-- [Bring control to an existing agent](integrations/frameworks.md) — add Tulip's gate to an agent you built elsewhere.

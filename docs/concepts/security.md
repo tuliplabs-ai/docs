@@ -100,11 +100,11 @@ prompt level: it is a measurement problem. The model, engine, and
 accelerator serving an endpoint leave a signature in *timing* —
 time-to-first-token, inter-token cadence, throughput under contention.
 
-The measurement runs where the hardware is. Tulip dispatches probes to
-**dedicated GPU clusters** — RunPod and Lambda backends ship today, and
-the dispatch target is provider-agnostic so other GPU cloud providers can
-be wired in — provisioning a probe on real target-class accelerators, then
-turning the returned timing profile into a grounded finding. The grounding
+The measurement runs where the hardware is: a probe on target-class
+accelerators returns a timing profile, and that profile becomes a grounded
+finding. Core ships the dispatch contract and an offline reference
+(`dispatch_timing_probe_reference`); provisioning on a specific GPU cloud is
+an integration you write against it. The grounding
 contract is the same everywhere, and an under-observed probe abstains
 rather than asserting a fingerprint.
 
@@ -158,12 +158,9 @@ else:
     print("ABSTAINED — insufficient feature coverage:", finding.reason)
 ```
 
-### Measuring the timing — remote API and co-located GPU
+### Measuring the timing
 
-There are two real measurement channels, and you pick by how much access
-you have to the hardware.
-
-**Remote-API timing (no GPU).** The cheapest channel needs no privileged
+The measurement needs no privileged
 access and no co-located hardware: stream a completion from the target
 and time the token arrivals. Core ships this as
 `measure_endpoint_timing` — it's **live** (confirmed against
@@ -183,32 +180,13 @@ finding = fingerprint_to_finding(features, asset="api.example/v1")
 # Full coverage ships a FingerprintFinding; a thin vector abstains.
 ```
 
-**Co-located GPU probe (where the hardware is).** To measure *where the
-silicon is*, rent a GPU next to the target, run a probe image against the
-endpoint, and tear the pod down. That live lifecycle lives in
-`tulip-integrations` (`pip install "tulip-integrations[compute-runpod]"`),
-so the vendor SDK stays out of core. `dispatch_timing_probe` routes
-between providers; the RunPod path provisions a real H100 pod and
-terminates it in a `finally` (≈$0.02–0.03/run).
-
-```python
-from tulip_integrations.compute import dispatch_timing_probe, probe_to_finding
-
-# Provision a RunPod H100, probe the endpoint, tear the pod down (RUNPOD_API_KEY).
-features = dispatch_timing_probe("https://my-endpoint/v1", provider="runpod")
-finding = probe_to_finding("https://my-endpoint/v1", provider="runpod")
-print(finding.verdict.model, "/", finding.verdict.engine, "/", finding.verdict.hardware)
-```
-
-Either channel feeds the same **measure → classify → ground** loop, with
+The measurement feeds the **measure → classify → ground** loop, with
 the grounding bar enforced identically — an under-observed endpoint
-abstains rather than asserting an identity. See the
-[RunPod](../integrations/runpod.md) and [Lambda](../integrations/lambda.md)
-integration pages for the full lifecycle.
+abstains rather than asserting an identity.
 
 !!! note "Runs in CI without credentials"
-    With no key set, both `measure_endpoint_timing` and the GPU-probe
-    dispatch return a deterministic sample vector so the notebooks stay
+    With no key set, `measure_endpoint_timing` returns a deterministic
+    sample vector so the notebooks stay
     runnable in CI — never a substitute for the live measurement.
 
 The same shape powers a complete agent workflow in the notebooks

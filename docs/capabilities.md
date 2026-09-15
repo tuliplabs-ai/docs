@@ -117,7 +117,6 @@ whatever the domain.
 | **Cloud posture (read-only)** | Spec-driven AWS auditing — `describe_aws` introspects botocore models; `use_aws` runs read-only calls, writes refused by construction | `tulip.security.aws` · [Cloud posture](concepts/cloud-posture.md) |
 | **Inference fingerprinting** | Timing side-channel model/hardware fingerprint → grounded `FingerprintFinding` or abstention | `fingerprint_to_finding` · [Grounded findings](concepts/security.md) |
 | **Governed agent** | An `Agent` with grounding + guardrails + audit trail on by default | `governed_agent(...)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
-| **Vendor integrations** | Inject real vendors per domain — Splunk, CrowdStrike, Cortex XSOAR, Okta, Auth0, Entra, Slack, VirusTotal, Wiz | `tulip-integrations` · [Integrations](integrations/index.md) |
 
 ```python
 # A finding only exists above the GSAR bar — else it abstains. No public

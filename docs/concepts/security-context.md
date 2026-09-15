@@ -67,34 +67,26 @@ offline, then flip individual domains to live vendors one at a time.
 
 ## Going live — inject a provider
 
-Live vendors live in the one-way-dependent
-[integrations](../integrations/index.md) package.
-Core never imports a vendor; you wire them explicitly:
+Core never imports a vendor. A live provider is a class you write that satisfies
+the domain port, and you inject it explicitly:
 
 ```python
 from tulip.security import SecurityContext
-from tulip_integrations.identity.auth0 import Auth0Identity
-from tulip_integrations.threat_intel.virustotal import VirusTotalIntel
 
-# Identity + threat-intel go live; logs/endpoint/cloud stay on the offline reference.
-ctx = SecurityContext(identity=Auth0Identity(), threat_intel=VirusTotalIntel())
+
+class MyIdentity:  # satisfies the identity port
+    ...
+
+
+# Identity goes live; logs, endpoint, threat-intel and cloud stay on the offline reference.
+ctx = SecurityContext(identity=MyIdentity())
 ```
 
-Each provider resolves its credentials from the environment and **falls back to the
-offline sample** when none are present — so the same code is safe to run in CI.
-
-| Domain | Provider | Vendor | Status |
-|---|---|---|---|
-| `identity` | `tulip_integrations.identity.auth0.Auth0Identity` | Auth0 | **live-verified** |
-| `identity` | `tulip_integrations.identity.okta.OktaIdentity` | Okta | reference template |
-| `threat_intel` | `tulip_integrations.threat_intel.virustotal.VirusTotalIntel` | VirusTotal | **live-verified** |
-| `endpoint` | `tulip_integrations.edr.crowdstrike.CrowdStrikeEndpoint` | CrowdStrike | reference template |
-| `logs` | `tulip_integrations.siem.splunk.SplunkLogs` | Splunk | reference template |
-| `cloud` | core `tulip.security.aws` (`pip install tulip-agents[aws]`) | AWS | in core |
-
-A provider is just a class that satisfies the domain port. Writing your own is
-the same shape as the bundled ones — see
-[the bundled providers](../integrations/index.md).
+Keep an offline path: resolve credentials from the environment and fall back to a
+deterministic sample when none are present, so the same code runs in CI. Cloud
+posture is the one live provider in core: `tulip.security.aws`
+(`pip install tulip-agents[aws]`). [Build an integration](../how-to/build-an-integration.md)
+walks through writing one.
 
 ## A full investigation — grounded, verified, gated
 
@@ -107,27 +99,27 @@ gated. `SecurityContext` puts the trust spine right in the path:
 import asyncio
 from tulip.control import Action, verify
 from tulip.security import Evidence, SecurityContext, Severity
-from tulip_integrations.identity.auth0 import Auth0Identity
 
 
 async def main():
-    # Real identity provider. ctx.actions defaults to ControlPolicy(), which sends
-    # production account-disables to a human.
-    ctx = SecurityContext(identity=Auth0Identity())
+    # Offline reference providers; inject your own per domain to go live.
+    # ctx.actions defaults to ControlPolicy(), which sends production
+    # account-disables to a human.
+    ctx = SecurityContext()
 
-    # 1. INVESTIGATE — by domain, against the real Auth0 tenant.
-    risk = await ctx.identity.risk("mallory@corp.com")
+    # 1. INVESTIGATE — by domain.
+    risk = await ctx.identity.risk("mallory@example.com")
     # -> {'user': ..., 'risk': 'high', 'impossible_travel': True}
 
     # 2. FORM A FINDING, then VERIFY it. An independent skeptic challenges the
     #    evidence and re-scores confidence — a thin claim is refuted, not acted on.
     finding = Evidence(
         title="Account compromise: impossible-travel sign-ins",
-        description="High-risk Auth0 user with impossible travel between two sign-ins.",
+        description="High-risk user with impossible travel between two sign-ins.",
         severity=Severity.HIGH,
-        asset="mallory@corp.com",
+        asset="mallory@example.com",
         remediation="Disable the account and force a credential reset.",
-        evidence_refs=["auth0:logs:mallory@corp.com"],
+        evidence_refs=["identity:logs:mallory@example.com"],
         gsar_score=0.86,
     )
     verdict = await verify(finding)
@@ -136,7 +128,7 @@ async def main():
 
     # 3. PROPOSE CONTAINMENT — gated by policy through ctx.actions.
     decision = ctx.actions.request_approval(
-        Action(name="disable_user", asset="mallory@corp.com", environment="production"),
+        Action(name="disable_user", asset="mallory@example.com", environment="production"),
         finding=finding,
         verdict=verdict,
     )
@@ -146,7 +138,7 @@ async def main():
     # 4. ON APPROVAL, ACT. NB: in the current build `disable` returns a simulated
     #    offline-sample receipt — it does not yet lock the account out.
     if decision.allowed:
-        await ctx.identity.disable("mallory@corp.com")
+        await ctx.identity.disable("mallory@example.com")
 
 
 asyncio.run(main())
@@ -156,8 +148,8 @@ asyncio.run(main())
 held, or denied, and a held action waits for a person before anything fires.
 
 > **One investigation, six domains, zero vendor names** in the logic. Swap
-> `Auth0Identity` for `OktaIdentity`, or `VirusTotalIntel` for another feed, and
-> steps 1–4 are untouched. That is the platform bet: program against domains —
+> the reference identity provider for your own, or the threat-intel feed for
+> another, and steps 1–4 are untouched. That is the platform bet: program against domains —
 > security is one of them — and
 > the trust spine — [grounding](gsar.md), verification, policy, and a hash-chained
 > audit trail — applies no matter whose API is behind the port.
@@ -187,8 +179,8 @@ from tulip.control import Action, AdmissionError, verify
 verdict = await verify(finding)
 try:
     await ctx.actions.execute(
-        Action(name="disable_user", asset="mallory@corp.com", environment="production"),
-        lambda: ctx.identity.disable("mallory@corp.com"),   # the side effect
+        Action(name="disable_user", asset="mallory@example.com", environment="production"),
+        lambda: ctx.identity.disable("mallory@example.com"),   # the side effect
         finding=finding,
         verdict=verdict,
     )
@@ -228,21 +220,8 @@ Action(
 )
 ```
 
-When agents run on the gateway rather than in-process, the same labels come from
-the tool's registry definition, so a policy author and a tool author can be
-different people:
-
-```yaml
-# a tool definition in the registry
-name: refund_customer
-action:
-  environment: production
-  kind: payment
-  tags: [irreversible]
-```
-
-A tool that declares no `environment` inherits the deployment's
-(`TULIP_GATEWAY_ENVIRONMENT`); if that is unset too, the action is `unknown`.
+A tool that declares no `environment` gets `unknown`, which fails safe rather
+than open.
 
 ## From facade to agent — `ctx.toolset()`
 
@@ -262,9 +241,8 @@ domain capabilities are available to the model as callable tools.
 ## The one-way dependency
 
 Core (`tulip-agents`) defines the ports and ships the offline reference providers;
-it **never imports a vendor**. Vendors live in `tulip-integrations`, which depends
-on core — the LangChain-community → langchain-core relationship. You inject
-providers explicitly, so there is no hidden vendor coupling and the offline path is
+it **never imports a vendor**. A vendor provider lives in your own package, which
+depends on core. You inject providers explicitly, so there is no hidden vendor coupling and the offline path is
 always intact.
 
 See also: [Agentic AI-security](agentic-ai-security.md) ·

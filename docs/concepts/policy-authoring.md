@@ -210,5 +210,4 @@ same discipline as writing the exclusions down, enforced by CI.
 ## See also
 
 - [The control layer](security-context.md) — how `admit()` and `approve()` fit together
-- [Bring control to an existing agent](../integrations/frameworks.md) — gating tools you did not write
 - [GSAR grounding](gsar.md) — the same "prove it, don't assert it" discipline applied to claims
