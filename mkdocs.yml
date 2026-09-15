@@ -160,6 +160,9 @@ nav:
     - OpenAI: concepts/providers/openai.md
     - Anthropic: concepts/providers/anthropic.md
     - OpenAI-compatible: concepts/providers/openai-compatible.md
+    - Azure OpenAI: concepts/providers/azure.md
+    - Amazon Bedrock: concepts/providers/bedrock.md
+    - Resilience: concepts/providers/resilience.md
   - Reasoning: concepts/reasoning.md
   - Memory:
     - Checkpointers & Store: concepts/checkpointers.md
@@ -205,6 +208,7 @@ nav:
     - Basic agent: notebooks/notebook_06_basic_agent.md
     - Agent with tools: notebooks/notebook_07_agent_with_tools.md
     - Conversation memory: notebooks/notebook_08_agent_memory.md
+    - A chat loop: notebooks/notebook_09_chat_loop.md
     - Streaming events: notebooks/notebook_11_agent_streaming.md
     - Lifecycle hooks: notebooks/notebook_12_agent_hooks.md
     - SSE streaming: notebooks/notebook_13_sse_streaming.md
