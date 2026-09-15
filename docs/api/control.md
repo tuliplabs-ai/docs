@@ -56,11 +56,7 @@ agent = Agent(model=model, tools=[
 
 A refusal comes back to the model as a readable result naming the outcome and
 the reason, so the agent can explain the hold rather than the run ending in a
-traceback. It is the same shape the
-[`tulip-frameworks`](https://pypi.org/project/tulip-frameworks/) bridges
-return, so a policy reads the same whether the agent is Tulip-native or
-wrapped from LangChain, CrewAI or the OpenAI Agents SDK. Pass
-`on_refusal="raise"` for a caller that would rather stop.
+traceback. Pass `on_refusal="raise"` for a caller that would rather stop.
 
 Gating a **sandboxed** tool composes rather than replacing it: the gate
 decides, and only an admitted call reaches the sandbox.
@@ -84,9 +80,7 @@ A **denial** deliberately gets no id. It is final, and offering one would invite
 the agent to wait for a decision that is not coming.
 
 `ApprovalBridge` is a structural `Protocol` with no import-time dependency, so
-the same broker object satisfies this and the bridge of the same name in
-`tulip-frameworks` — neither package has to import the other, and a gateway
-approval broker matches it in shape.
+any approval queue with `submit` and `state` methods satisfies it.
 
 ::: tulip.control.gate.ApprovalBridge
 

@@ -111,10 +111,8 @@ wrong.
 ## Security context — the ports
 
 `SecurityContext` is the seam between the SDK and your estate. Each port is a
-protocol, so the offline reference adapters that ship here and the vendor
-adapters in
-[integrations](../integrations/index.md)
-are interchangeable, and neither is privileged.
+protocol, so the offline reference adapters that ship here and the adapters you
+write are interchangeable, and neither is privileged.
 
 ::: tulip.security.context.SecurityContext
 ::: tulip.security.context.LogSource

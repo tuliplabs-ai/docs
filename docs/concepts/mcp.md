@@ -222,6 +222,16 @@ Same `MCPClient` API on the consumer side, same `TulipMCPServer` on
 the producer side, same tool definitions. The transport is an
 implementation detail.
 
+## Governed MCP — hand the capability, not the authority
+
+Exposing a tool over MCP gives a remote agent — a Claude or GPT client, a separate
+orchestrator — the ability to call it. What keeps that safe: **the admission gate
+lives inside the action, not the transport.** Build the tool so its body routes the
+write through `admit()` / `ctx.actions.execute`, and a remote agent gets the
+*capability* to ask without the *authority* to skip your `ControlPolicy` — the
+write still clears policy (and, in production, a human) and still lands in your
+audit trail.
+
 ## Common gotchas
 
 | Symptom | Likely cause |

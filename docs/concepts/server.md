@@ -205,10 +205,7 @@ def request_human_approval(reason: str, action: str) -> str:
     frame (details land in the server log under that id) — it does **not**
     park a resumable case. To drive human-in-the-loop over HTTP today,
     handle `InterruptEvent` in your own wrapper around `Agent.run` /
-    `Agent.resume` and add your own resume route. The
-    [`tulip-gateway`](../integrations/index.md)
-    ships exactly this as a service — a language-neutral `/v1/admit`
-    endpoint with durable approvals and approve→resume.
+    `Agent.resume` and add your own resume route.
 
 ## Case persistence
 
