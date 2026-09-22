@@ -47,6 +47,6 @@ Pin a specific model:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_56_model_providers.py"
-```
+````

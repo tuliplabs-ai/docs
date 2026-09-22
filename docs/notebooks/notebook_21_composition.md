@@ -27,6 +27,6 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_21_composition.py
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_21_composition.py"
-```
+````

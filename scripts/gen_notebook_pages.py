@@ -83,9 +83,12 @@ def main() -> None:
             f"# Notebook {num:02d}: {title}\n\n"
             f"{body}\n\n"
             f"## Source\n\n"
-            f"```python\n"
+            # Four backticks, not three: an example whose docstring contains a
+            # fenced block would otherwise close this fence early and spill the
+            # rest of the file into the page as prose.
+            f"````python\n"
             f'--8<-- "examples/{py.name}"\n'
-            f"```\n",
+            f"````\n",
             encoding="utf-8",
         )
         pages.append((num, slug, title))

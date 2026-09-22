@@ -46,6 +46,6 @@ See <https://modelcontextprotocol.io> for the MCP specification.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_45_mcp_integration.py"
-```
+````

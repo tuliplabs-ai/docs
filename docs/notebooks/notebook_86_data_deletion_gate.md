@@ -105,6 +105,6 @@ OK: the export, the human hold, and the approved erasure are all on the record.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_86_data_deletion_gate.py"
-```
+````

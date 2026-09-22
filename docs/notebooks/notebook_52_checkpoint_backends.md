@@ -32,6 +32,6 @@ continuity is just the checkpointer contract in a loop.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_52_checkpoint_backends.py"
-```
+````

@@ -29,6 +29,6 @@ credentials to send prompts to a live model.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_06_basic_agent.py"
-```
+````

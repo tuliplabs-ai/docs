@@ -68,6 +68,6 @@ Multi-backend ports (in-memory + OpenSearch) live in
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_29_deepagent.py"
-```
+````

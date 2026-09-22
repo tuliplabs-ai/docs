@@ -44,6 +44,6 @@ The default provider is the bundled mock model. Set `TULIP_MODEL_PROVIDER`
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_33_multiagent_human_in_loop.py"
-```
+````

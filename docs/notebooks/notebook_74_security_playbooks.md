@@ -19,6 +19,6 @@ Run it:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_74_security_playbooks.py"
-```
+````

@@ -63,6 +63,6 @@ analyst noise and false-positive rate.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_79_soc_alert_triage.py"
-```
+````

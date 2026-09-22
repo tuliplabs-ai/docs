@@ -22,6 +22,6 @@ See also: [Agentic AI-security](../concepts/agentic-ai-security.md) ·
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_78_verify_findings.py"
-```
+````

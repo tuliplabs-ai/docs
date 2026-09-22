@@ -36,6 +36,6 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_69_research_workflow.py
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_69_research_workflow.py"
-```
+````

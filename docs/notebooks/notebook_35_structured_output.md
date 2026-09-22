@@ -38,6 +38,6 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_35_structured_output.py
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_35_structured_output.py"
-```
+````

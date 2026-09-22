@@ -70,6 +70,6 @@ OK: small refund paid, large refund held, both on the audit trail.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_83_payment_refund_gate.py"
-```
+````

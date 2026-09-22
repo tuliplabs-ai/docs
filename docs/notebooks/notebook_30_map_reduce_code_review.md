@@ -38,6 +38,6 @@ live model. Set
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_30_map_reduce_code_review.py"
-```
+````

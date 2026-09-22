@@ -38,6 +38,6 @@ live model. Set
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_24_swarm_multiagent.py"
-```
+````

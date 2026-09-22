@@ -35,6 +35,6 @@ Set TULIP_MODEL_PROVIDER=mock for an offline run.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_09_chat_loop.py"
-```
+````

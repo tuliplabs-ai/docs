@@ -28,6 +28,6 @@ if you want a uniform offline setup across notebooks.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_13_sse_streaming.py"
-```
+````

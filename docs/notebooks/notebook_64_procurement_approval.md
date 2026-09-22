@@ -47,6 +47,6 @@ Pin a strong-enough model for the structured ConcessionDecision schema:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_64_procurement_approval.py"
-```
+````

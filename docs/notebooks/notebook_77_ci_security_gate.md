@@ -24,6 +24,6 @@ Run it:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_77_ci_security_gate.py"
-```
+````

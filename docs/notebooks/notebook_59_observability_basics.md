@@ -44,6 +44,6 @@ Offline:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_59_observability_basics.py"
-```
+````

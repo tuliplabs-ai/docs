@@ -24,6 +24,6 @@ Run it:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_80_model_fingerprint.py"
-```
+````

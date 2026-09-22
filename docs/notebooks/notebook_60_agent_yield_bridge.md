@@ -42,6 +42,6 @@ Offline:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_60_agent_yield_bridge.py"
-```
+````

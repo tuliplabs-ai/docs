@@ -38,6 +38,6 @@ Offline:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_62_event_catalogue.py"
-```
+````

@@ -20,6 +20,6 @@ See also: [SecurityContext](../concepts/security-context.md).
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_82_investigate_with_ctx.py"
-```
+````

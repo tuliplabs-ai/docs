@@ -36,6 +36,6 @@ Prerequisite: the agent-streaming notebook.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_12_agent_hooks.py"
-```
+````

@@ -35,6 +35,6 @@ Prerequisites:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_73_cloud_posture_agent.py"
-```
+````
