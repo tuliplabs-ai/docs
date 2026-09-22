@@ -1,5 +1,5 @@
 site_name: tulip agents
-site_description: "An open-source Python agent framework: typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one Agent class — with a policy gate, approvals, and an audit trail you can put in front of the actions that change real systems."
+site_description: "tulip is an open-source Python agent framework: typed tools, streamed events, memory, RAG, multi-agent shapes and any OpenAI-compatible provider, with a policy checked in your own process before a tool changes something real."
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/tulip-agents
 repo_name: tulip-agents
