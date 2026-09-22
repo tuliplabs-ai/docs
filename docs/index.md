@@ -7,6 +7,7 @@ description: Build Python agents with typed tools, memory, RAG, streaming, and e
 ---
 
 <div class="tulip-hero" markdown>
+<div class="tulip-hero__motif" aria-hidden="true"></div>
 <div class="tulip-hero__copy" markdown>
 
 <p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span><span class="tpn-tag">open-source Python agent framework</span></p>
@@ -54,6 +55,9 @@ print(result.message)
 </div>
 </div>
 
+<div class="tl-band tl-band--tint" markdown>
+<div class="tl-band__inner" markdown>
+
 ## Everything an agent needs, in one API
 
 <div class="grid cards tulip-feature-cards" markdown>
@@ -96,6 +100,12 @@ print(result.message)
 
 </div>
 
+</div>
+</div>
+
+<div class="tl-band tl-band--deep" markdown>
+<div class="tl-band__inner" markdown>
+
 ## What makes it different: the agent has to earn the action
 
 Anything can call a function. The hard part of shipping an agent is the moment
@@ -110,17 +120,20 @@ supported by evidence at all.
 Pick a proposed action. Nothing below calls a model or touches a cluster —
 the deploy is an in-memory simulation, so the whole thing runs offline.
 
+<!-- Indentation here is one space per level on purpose: this block now sits
+     inside a `markdown` band wrapper, and any line indented four spaces or
+     more would be taken for an indented code block. -->
 <div class="action-demo" data-action-demo>
-  <div class="action-demo__tabs" role="tablist" aria-label="Actions the agent proposed">
-    <button type="button" role="tab" id="demo-tab-staging" aria-controls="demo-panel" data-demo-scenario="staging">Deploy to staging</button>
-    <button type="button" role="tab" id="demo-tab-production" aria-controls="demo-panel" data-demo-scenario="production">Deploy to production</button>
-    <button type="button" role="tab" id="demo-tab-prohibited" aria-controls="demo-panel" data-demo-scenario="prohibited">Deploy a prohibited change</button>
-    <button type="button" role="tab" id="demo-tab-unsupported" aria-controls="demo-panel" data-demo-scenario="unsupported">Act on an unsupported claim</button>
-  </div>
-  <div class="action-demo__workspace">
-    <div class="action-demo__code" aria-label="Python policy used by the demo">
-      <div class="action-demo__bar"><span>control.py</span><span>tested example</span></div>
-      <pre><code><span>policy = ControlPolicy(</span>
+ <div class="action-demo__tabs" role="tablist" aria-label="Actions the agent proposed">
+  <button type="button" role="tab" id="demo-tab-staging" aria-controls="demo-panel" data-demo-scenario="staging">Deploy to staging</button>
+  <button type="button" role="tab" id="demo-tab-production" aria-controls="demo-panel" data-demo-scenario="production">Deploy to production</button>
+  <button type="button" role="tab" id="demo-tab-prohibited" aria-controls="demo-panel" data-demo-scenario="prohibited">Deploy a prohibited change</button>
+  <button type="button" role="tab" id="demo-tab-unsupported" aria-controls="demo-panel" data-demo-scenario="unsupported">Act on an unsupported claim</button>
+ </div>
+ <div class="action-demo__workspace">
+  <div class="action-demo__code" aria-label="Python policy used by the demo">
+   <div class="action-demo__bar"><span>control.py</span><span>tested example</span></div>
+   <pre><code><span>policy = ControlPolicy(</span>
 <span data-code-line="blast">    max_blast_radius=4,</span>
 <span data-code-line="human">    require_human_for={"production"},</span>
 <span data-code-line="deny">    deny_for={"prohibited"},</span>
@@ -129,18 +142,18 @@ the deploy is an in-memory simulation, so the whole thing runs offline.
 <span data-code-line="ground">decision = decide(gsar_score(partition))</span>
 <span>await admit(action, deploy,</span>
 <span>            policy=policy, trail=trail)</span></code></pre>
-    </div>
-    <div class="action-demo__result" id="demo-panel" role="tabpanel" aria-labelledby="demo-tab-staging" aria-live="polite">
-      <span class="action-demo__status" data-demo-status>✓ Allowed</span>
-      <p data-demo-summary>The staging rollout passes policy and the simulated deploy function runs.</p>
-      <dl>
-        <dt>Evidence</dt><dd data-demo-evidence>CI passed · image checkout-api:1.8.2 · staging</dd>
-        <dt>Decision returned</dt><dd><code data-demo-decision>allow</code></dd>
-        <dt>Audit record</dt><dd data-demo-audit>deploy checkout-api · allow · policy checks passed</dd>
-      </dl>
-    </div>
   </div>
-  <p class="action-demo__note">Deterministic offline simulation · no external operation is performed</p>
+  <div class="action-demo__result" id="demo-panel" role="tabpanel" aria-labelledby="demo-tab-staging" aria-live="polite">
+   <span class="action-demo__status" data-demo-status>✓ Allowed</span>
+   <p data-demo-summary>The staging rollout passes policy and the simulated deploy function runs.</p>
+   <dl>
+   <dt>Evidence</dt><dd data-demo-evidence>CI passed · image checkout-api:1.8.2 · staging</dd>
+   <dt>Decision returned</dt><dd><code data-demo-decision>allow</code></dd>
+   <dt>Audit record</dt><dd data-demo-audit>deploy checkout-api · allow · policy checks passed</dd>
+   </dl>
+  </div>
+ </div>
+ <p class="action-demo__note">Deterministic offline simulation · no external operation is performed</p>
 </div>
 
 <div class="execution-flow" role="img" aria-label="Evidence is checked, a proposed action passes through policy and optional approval, the side effect is conditionally executed, and the decision is recorded">
@@ -155,6 +168,9 @@ the deploy is an in-memory simulation, so the whole thing runs offline.
 [Read the executable source](https://github.com/tuliplabs-ai/docs/blob/main/examples/homepage_control_demo.py)
 of everything above.
 
+</div>
+</div>
+
 ## What the runtime enforces, and what you configure
 
 The controls are specific rather than absolute, and it matters which is which.
@@ -167,6 +183,9 @@ across differently shaped calls that mean the same real operation.
 
 Read the [guarantees and boundaries](why-tulip.md) before putting Tulip behind
 a high-stakes workflow.
+
+<div class="tl-band tl-band--tint" markdown>
+<div class="tl-band__inner" markdown>
 
 ## Build your first agent
 
@@ -186,6 +205,9 @@ Requires Python 3.11 or newer. This site was built and tested against
 | A run without credentials | [Offline examples](notebooks/index.md) |
 
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
+
+</div>
+</div>
 
 ## Limits and research
 
