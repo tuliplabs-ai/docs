@@ -5,9 +5,26 @@ back a typed `AgentResult`.
 
 ## `Agent` class
 
+```text
+Agent(
+    model: str | ModelProtocol | None = None,
+    tools: list[Tool] | None = None,
+    system_prompt: str | None = None,
+    reflexion: ReflexionConfig | bool | None = None,
+    grounding: GroundingConfig | bool | None = None,
+    max_iterations: int = 20,
+    conversation_manager: ConversationManager | None = None,
+    checkpointer: Checkpointer | None = None,
+    hooks: list[HookProvider] | None = None,
+    config: AgentConfig | None = None,
+    **kwargs,
+)
+```
+
 ::: tulip.agent.agent.Agent
     options:
       show_root_heading: true
+      show_signature: false
       members_order: source
 
 ## AgentConfig

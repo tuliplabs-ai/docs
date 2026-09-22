@@ -1,30 +1,40 @@
 # Deploy
 
-`AgentServer` is a drop-in FastAPI wrapper. It deploys anywhere FastAPI
-runs. This guide covers the most common targets: a container, Kubernetes,
-serverless, and a plain VM. In every case the agent authenticates to its
-model provider with an API key supplied via an environment variable — no
-cloud-specific identity wiring required.
+`AgentServer` is a FastAPI wrapper that deploys anywhere FastAPI runs. The
+runnable path below uses OpenAI consistently from application code through the
+container and Kubernetes configuration.
+
+| Field | Value |
+|---|---|
+| Status | Supported server API; deployment manifests are starting points |
+| Tested SDK line | `tulip-agents` 2.15.x |
+| Execution mode | Live model provider |
+| Requirements | Python 3.11+, `tulip-agents[openai,server]` |
+| Secrets | `OPENAI_API_KEY` for the provider; `TULIP_SERVER_API_KEY` for callers |
+
+Those two credentials serve different trust boundaries. The OpenAI key lets
+the application call its model provider. The Tulip server key is the bearer
+token clients send to `/invoke`, `/stream`, and thread routes.
 
 ## The shape you ship
 
 ```python
 # server.py
+import os
+
 from tulip.agent import Agent
 from tulip.server import AgentServer
-from tulip.memory.backends import S3Backend
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[...],
-    system_prompt="...",
-    checkpointer=S3Backend(bucket="tulip-threads"),  # or RedisBackend(...)
+    model="openai:gpt-4o-mini",
+    tools=[],
+    system_prompt="Answer concisely.",
 )
 
 server = AgentServer(
     agent=agent,
     title="Booking concierge",
-    api_key="...",   # require this bearer token on every route except /health
+    api_key=os.environ["TULIP_SERVER_API_KEY"],
 )
 
 # Module-level ASGI app, so a process manager can serve it directly:
@@ -44,9 +54,9 @@ You get out of the box:
 - `GET / DELETE /threads/{id}` — conversation persistence.
 - `GET /health` — liveness probe.
 
-Provider keys are read from the environment (`OPENAI_API_KEY`,
-`ANTHROPIC_API_KEY`). Inject them as secrets, never bake them into the
-image.
+Provider keys are read from the environment. Inject both secrets at runtime;
+never bake either into the image. Add a durable checkpointer before relying on
+thread continuity across restarts or replicas.
 
 ## Container — the universal target
 
@@ -60,6 +70,7 @@ docker push    registry.example.com/tulip-concierge:0.1.0
 
 docker run -p 8080:8080 \
   -e OPENAI_API_KEY=sk-... \
+  -e TULIP_SERVER_API_KEY=replace-with-a-long-random-token \
   registry.example.com/tulip-concierge:0.1.0
 ```
 
@@ -97,6 +108,8 @@ spec:
         env:
         - name: OPENAI_API_KEY
           valueFrom: { secretKeyRef: { name: tulip-secrets, key: openai-api-key } }
+        - name: TULIP_SERVER_API_KEY
+          valueFrom: { secretKeyRef: { name: tulip-secrets, key: server-api-key } }
         readinessProbe:
           httpGet: { path: /health, port: 8080 }
         resources:
@@ -139,7 +152,7 @@ After=network.target
 Type=simple
 User=app
 WorkingDirectory=/home/app/concierge
-Environment=OPENAI_API_KEY=sk-...
+EnvironmentFile=/etc/concierge.env
 ExecStart=/home/app/.local/bin/uvicorn server:app --host 0.0.0.0 --port 8080
 Restart=always
 
@@ -149,6 +162,9 @@ EOF
 
 sudo systemctl enable --now concierge
 ```
+
+Create `/etc/concierge.env` with permissions readable only by the service
+account and define both `OPENAI_API_KEY` and `TULIP_SERVER_API_KEY` there.
 
 ## Sessions — `thread_id` for chat UIs
 

@@ -37,7 +37,7 @@ number of steps.
 
 - `reflexion=True` — self-evaluates every turn; rewrites the plan when
   the last step was wrong.
-- `grounding=True` — scores every claim against the tool-call evidence
+- `grounding=True` — asks a configured judge to score the answer against the tool-call evidence
   trail; below-threshold claims get dropped or sent back for re-research.
 - `output_schema=` — the model provider's strict structured-output mode
   enforces the Pydantic schema before the result reaches the caller.

@@ -2,6 +2,8 @@
 hide:
   - navigation
   - toc
+title: Tulip agents — policy-controlled AI agents
+description: Build AI agents whose consequential actions pass through a policy gate, can wait for human approval, and leave a verifiable decision record.
 ---
 
 <div class="tulip-hero" markdown>
@@ -9,25 +11,19 @@ hide:
 
 <p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span><span class="tpn-tag">the agent framework where control is native</span></p>
 
-# Agents that act. <span class="accent">Safe by construction.</span>
+# Agents that act. <span class="accent">Policy before execution.</span>
 
-Tulip is a **complete open-source agent framework** — one `Agent` class, tools, durable
-memory, RAG, eight multi-agent shapes, streaming, typed events — with one hard rule:
-**the model never holds the trigger.** The agent decides to act — issue the refund, ship
-the deploy, change the account — and the action runs only after your policy clears it,
-in code the model can't reach.
-
-The breadth is why the rule holds. You can only choose the shape, check the claim, and
-gate the action if you own the loop all three happen in — so Tulip ships the whole loop.
-[See the framework surface](capabilities.md).
+Build open-source AI agents with tools, memory, RAG, streaming, and multi-agent
+workflows. Route consequential actions through a policy gate that can allow,
+hold, or deny them before their side effects run.
 
 <div class="tulip-hero__cta" markdown>
-[Get started](how-to/quickstart.md){ .md-button .md-button--primary }
-[GitHub](https://github.com/tuliplabs-ai/tulip-agents){ .md-button }
+[Run your first agent](how-to/quickstart.md){ .md-button .md-button--primary }
+[See a controlled action](how-to/first-controlled-action.md){ .md-button }
 </div>
 
 ```bash
-pip install "tulip-agents[anthropic]"
+pip install "tulip-agents[openai]"
 ```
 
 </div>
@@ -35,145 +31,124 @@ pip install "tulip-agents[anthropic]"
 <div class="tulip-hero__code" markdown>
 
 ```python
-from tulip import Agent, tool
-
-@tool
-def search_flights(
-    origin: str, dest: str, date: str
-) -> list[dict]:
-    "Find flights between two cities."
-    return flights.search(origin, dest, date)
-
-# A model is a string; a tool is a function.
-agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[search_flights],
-    system_prompt="You are a travel agent.",
+policy = ControlPolicy(
+    require_verification_score=0,
+    max_blast_radius=1,
+    require_human_for={"high_value"},
+    deny_for={"prohibited"},
 )
 
-print(agent.run_sync(
-    "Cheapest flight Lisbon to Berlin Friday?"
-).text)
+await admit(action, issue_refund,
+            policy=policy, trail=trail)
+```
+
+```text
+$12.50 refund    → ALLOW → paid
+$4,000 refund    → HOLD  → not run
+prohibited call  → DENY  → not run
+
+audit trail: 3 decisions · chain valid
 ```
 
 </div>
 </div>
 
-## Control in the core
+## See control happen
 
-A model can be brilliant and still be talked into the wrong action. That's a control
-problem, not an intelligence problem — so Tulip puts the control in code the model
-can't reach:
+The model proposes an action. Your application classifies it as an `Action`.
+The runtime evaluates that action against your `ControlPolicy` before invoking
+the function that produces the side effect.
 
-- The **[agent loop](concepts/agent-loop.md)** is where the work happens — reason, act,
-  observe, repeat — with reflexion, grounding, interrupts and budgets built in.
-- **[GSAR](concepts/gsar.md)** scores every claim against typed evidence — below threshold
-  the agent regenerates or abstains, never guesses.
-- The **[admission gate](concepts/security-context.md)** clears every side-effecting call:
-  `admit()` allows it, holds it for a human, or denies it — and records the decision
-  either way, on a trail where editing any entry breaks `verify()`.
+<div class="execution-flow" role="img" aria-label="An agent proposes an action, the policy gate allows, holds, or denies it, and every decision is recorded in the audit trail">
+  <div class="execution-flow__node"><strong>Agent</strong><span>proposes an action</span></div>
+  <div class="execution-flow__arrow" aria-hidden="true">→</div>
+  <div class="execution-flow__node execution-flow__node--gate"><strong>Policy gate</strong><span>evaluates declared labels</span></div>
+  <div class="execution-flow__arrow" aria-hidden="true">→</div>
+  <div class="execution-flow__outcomes">
+    <span class="flow-allow">allow · run</span>
+    <span class="flow-hold">hold · wait</span>
+    <span class="flow-deny">deny · stop</span>
+  </div>
+  <div class="execution-flow__audit"><strong>Audit trail</strong><span>records every decision</span></div>
+</div>
 
-```python
-from tulip.control import (
-    Action, AuditTrail, ControlPolicy, admit, AdmissionError,
-)
+[Run the complete offline refund example →](notebooks/notebook_83_payment_refund_gate.md)
 
-policy = ControlPolicy(require_human_for={"production"})
-trail = AuditTrail()
-
-async def safe_refund(order_id: str, usd: float):
-    try:  # the gate runs before money moves
-        return await admit(
-            Action(name="refund", asset=order_id,
-                   kind="payment", environment="production"),
-            lambda: payments.refund(order_id, usd),
-            policy=policy, trail=trail,
-        )
-    except AdmissionError:
-        return "Held for a human — not run."
-```
-
-A prompt rule is advisory — the model can be argued out of it. The gate is structural —
-the wrong action isn't caught in a filter, it never runs.
-[How this compares to prompt rules and guardrails →](why-tulip.md)
-
-## What you get
+## Three controls, with different boundaries
 
 <div class="grid cards tulip-feature-cards" markdown>
 
-- :material-robot-happy:{ .lg .middle } **[A real agent framework](capabilities.md)**
+- :material-shield-lock:{ .lg .middle } **[Control execution](concepts/control-layer.md)**
 
     ---
-    One `Agent` class — tools, memory, RAG, streaming — over vendor-neutral
-    backends. Swap models with a string.
+    Calls routed through `admit()` run only on an `allow` decision. You define
+    the policy and must route every consequential path through the gate.
 
-- :material-routes:{ .lg .middle } **[Shapes as tools](concepts/multi-agent.md)**
-
-    ---
-    `fan_out`, `debate`, `plan_and_verify`, `code_until_tests_pass` — the loop
-    calls them when it has a reason to, not before it starts.
-
-- :material-graph:{ .lg .middle } **[Multi-agent workflows](concepts/multi-agent.md)**
+- :material-shield-search:{ .lg .middle } **[Check evidence](concepts/gsar.md)**
 
     ---
-    Sequential, parallel, loop, graph, orchestrator, swarm, handoff, and
-    cross-process A2A — one `Agent` class, one event stream.
+    GSAR partitions claims and scores their evidence. A configured judge can
+    support revision, replanning, or abstention; its assessment is not proof
+    that a claim is true.
 
-- :material-shield-search:{ .lg .middle } **[Grounded by construction](concepts/gsar.md)**
-
-    ---
-    `ground_finding()` emits a typed result only above the GSAR threshold —
-    else an auditable `Abstention`, never a guess.
-
-- :material-shield-lock:{ .lg .middle } **[Gate + human-in-the-loop](concepts/security-context.md)**
+- :material-eye:{ .lg .middle } **[Inspect decisions](concepts/observability.md)**
 
     ---
-    `require_human_for` pauses the actions that matter and resumes on a
-    human's decision. Approvals survive restarts.
-
-- :material-eye:{ .lg .middle } **[Audit trail by default](concepts/observability.md)**
-
-    ---
-    Every call, verdict, and approval is a typed, hash-chained event —
-    `verify()` fails on any edit. Replay any run.
+    Admission decisions can be written to a hash-chained `AuditTrail`.
+    `verify()` detects changes to that chain; durable storage is your
+    deployment responsibility.
 
 </div>
 
-## Build it across any domain
+## What Tulip includes
 
-Every example is a single self-contained file under [`examples/`][gh-examples] with a
-matching docs page.
+One `Agent` API covers tools, durable state, RAG, typed event streaming,
+provider-neutral models, and eight coordination shapes. These framework
+features are useful on their own; the control layer is explicit and opt-in so
+you can see exactly which actions it protects.
 
-<div class="tulip-domain-table" markdown>
-
-| You're building… | Start here |
+| Need | Start here |
 |---|---|
-| **A support / ops agent that acts** | [human-in-the-loop approvals](notebooks/notebook_19_human_in_the_loop.md) · [incident response](notebooks/notebook_63_incident_response.md) |
-| **An agent on your own data (RAG)** | [RAG basics](notebooks/notebook_38_rag_basics.md) · [RAG agents](notebooks/notebook_40_rag_agents.md) |
-| **A multi-agent workflow** | [swarm / war-room](notebooks/notebook_24_swarm_multiagent.md) · [supervisor + critic](notebooks/notebook_31_supervisor_critic_loop.md) |
-| **An agent that acts on approval** | [procurement approval](notebooks/notebook_64_procurement_approval.md) · [human-in-the-loop](notebooks/notebook_19_human_in_the_loop.md) |
-| **A security / AI-safety agent** | [GSAR grounding](notebooks/notebook_37_gsar_typed_grounding.md) · [injection guardrails](notebooks/notebook_50_guardrails_security.md) |
+| A first working agent | [Five-minute first agent](how-to/quickstart.md) |
+| Allow, hold, and deny an action | [First controlled action](how-to/first-controlled-action.md) |
+| Understand the runtime | [Architecture](concepts/control-layer.md) |
+| Run without credentials | [Offline examples](notebooks/index.md) |
+| Build a multi-agent workflow | [Coordination patterns](concepts/multi-agent.md) |
+| Evaluate the evidence | [GSAR grounding](concepts/gsar.md) |
 
-</div>
+## What is enforced—and what you configure
 
-Full catalog → [Notebooks index](notebooks/index.md) · [Capabilities matrix](capabilities.md) · [API reference](api/agent.md)
+| Layer | Runtime does | You must do | Still judgment-dependent |
+|---|---|---|---|
+| Admission | Calls `perform` only after `allow`; records a decision when a trail is supplied | Classify actions accurately, cover every side-effecting path, configure policy and durable approvals | Whether your labels and rules cover the real-world risk |
+| Grounding | Applies configured scoring and thresholds to a judge's typed partition | Enable GSAR, supply evidence, choose thresholds and failure behavior | Claim extraction, evidence classification, and judge reliability |
+| Idempotency | Deduplicates identical tool calls in its documented run/checkpoint scope | Mark tools, preserve checkpoints, and use downstream idempotency keys | Whether two differently shaped calls mean the same real-world operation |
 
-[gh-examples]: https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples
+Read the [guarantees and boundaries](why-tulip.md) before using Tulip for a
+high-stakes workflow.
 
-## When Tulip is overkill
+## Selected workflows
 
-If your agent only reads and summarizes, you may not need an admission gate yet — the
-control layer earns its keep the moment an action can **cost** something.
+| Workflow | Execution mode | What it demonstrates |
+|---|---|---|
+| [Payment refund gate](notebooks/notebook_83_payment_refund_gate.md) | Offline simulation | A small refund proceeds and a large refund waits |
+| [Infrastructure deploy gate](notebooks/notebook_84_infra_deploy_gate.md) | Offline simulation | Staging proceeds while production requires a person |
+| [Data deletion gate](notebooks/notebook_86_data_deletion_gate.md) | Offline simulation | Export and erasure receive different policy outcomes |
+| [Policy-blindness research](research/policy-blindness.md) | Reproducible evaluation | Why a sound gate still depends on complete classification |
 
 ## Start building
 
+Requires Python 3.11 or newer. The current documentation targets
+`tulip-agents` 2.15.x.
+
 ```bash
-pip install "tulip-agents[openai]"
+python -m pip install "tulip-agents[openai]>=2.15,<2.16"
 ```
 
-[Get started →](how-to/quickstart.md){ .md-button .md-button--primary }
-[Why Tulip →](why-tulip.md){ .md-button }
+[Run your first agent →](how-to/quickstart.md){ .md-button .md-button--primary }
+[Browse examples →](notebooks/index.md){ .md-button }
 
 ---
 
-**The open-source agentic harness — control the action, prove what it did. Safe by construction. Apache-2.0.**
+Apache-2.0 · [Maintainers and project history](about.md) ·
+[Compatibility policy](compatibility.md)

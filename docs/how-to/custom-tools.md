@@ -39,7 +39,7 @@ effect you never want duplicated, mark it idempotent:
 ```python
 @tool(idempotent=True)
 def transfer_points(from_user: str, to_partner: str, amount: int) -> dict:
-    """Transfer points — must be charged exactly once per (user, partner, amount)."""
+    """Transfer points; repeated identical calls reuse the result in this run."""
     return loyalty.transfer(from_user, to_partner, amount)
 ```
 

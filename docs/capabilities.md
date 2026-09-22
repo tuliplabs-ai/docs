@@ -3,14 +3,28 @@
 Everything Tulip ships, what it
 does, and where to find it.
 
+## Status at a glance
+
+| Capability group | Status | Execution mode and requirements | Important limitation |
+|---|---|---|---|
+| Agent loop, tools, control policy, events | Supported | Core install; provider required only for model calls | Controls apply only where configured and wired |
+| OpenAI and Anthropic model adapters | Supported | Live; provider extra and credential required | Availability and model behavior are provider-dependent |
+| Checkpointer and vector-store adapters | Supported interfaces | Live infrastructure for non-memory backends; matching extra/config required | Operate and test the backing service yourself |
+| `SecurityContext` reference adapters | Offline simulation | No credentials | Vendor write templates return simulated receipts unless replaced and verified |
+| Research models and reported datasets | Research-only | See each research page | Clusiana and the full policy-blindness corpus are not publicly available |
+
+These docs target `tulip-agents` 2.15.x on Python 3.11–3.14. See the
+[compatibility policy](compatibility.md) for label definitions and upgrade
+guidance.
+
 ![The trust chain — grounding → verification → policy → approval → admission → audit, each step enforced in code, not convention](img/patterns/trust-chain.svg){ .diagram }
 
 !!! sdk-distinctive "Distinctive to the SDK"
     - **The control runtime — let an agent act, on your terms.** A
       side-effecting action (a refund, a production deploy, a GDPR deletion)
       runs only after it clears a `ControlPolicy` you write: `approve()`
-      weighs it, `admit()` runs it *only if* the policy allows, and every
-      decision lands on a tamper-evident audit trail (each entry is chained to
+      weighs it, `admit()` runs it *only if* the policy allows, and a supplied
+      `AuditTrail` records each decision (each entry is chained to
       the one before it — editing any record breaks `verify()`). Policy →
       approval → admission → audit, enforced in code, not convention.
     - **Eight native multi-agent shapes** — Composition
@@ -33,7 +47,9 @@ does, and where to find it.
       a typed `Evidence` only above the threshold, else it **abstains**, and
       `verify()` challenges it before it drives an action.
     - **Termination algebra** — `MaxIterations(10) | TextMention("DONE") & ConfidenceMet(0.9)` is real Python (`__or__` / `__and__` overloads). Greppable, unit-testable, serialisable.
-    - **Idempotent tools** — `@tool(idempotent=True)` dedupes on `(name, args)` inside the Execute node. No double-charge, double-book, double-page — even on model retry or checkpoint resume.
+    - **Idempotent tools** — `@tool(idempotent=True)` dedupes identical
+      `(name, args)` calls inside the documented run/checkpoint scope. External
+      systems still need stable idempotency keys for crash recovery.
     - **OpenAI, Anthropic, and OpenAI-compatible providers** — OpenAI and
       Anthropic through their official SDKs (OpenAI over the
       `chat.completions` transport), plus any OpenAI-compatible endpoint,
@@ -45,7 +61,7 @@ does, and where to find it.
 |---|---|---|
 | **Agent** + `AgentConfig` + `AgentResult` | The Think → Execute → Reflect → Terminate loop | `tulip.agent` · [Agent loop](concepts/agent-loop.md) |
 | **Termination algebra** | Stop conditions for a write — `(ToolCalled("issue_refund") & ConfidenceMet(0.9)) \| TextMention(r"\bESCALATE\b") \| MaxIterations(10)` caps a refund run | `tulip.core.termination` · [Termination](concepts/termination.md) |
-| **Idempotent tools** | `@tool(idempotent=True)` dedupes repeat calls inside the loop — exactly-once side effects | `tulip.tools.decorator` · [Idempotency](concepts/idempotency.md) |
+| **Idempotent tools** | `@tool(idempotent=True)` reuses results for identical calls in the documented run/checkpoint scope | `tulip.tools.decorator` · [Idempotency](concepts/idempotency.md) |
 | **Reflexion** | Self-evaluation node in the ReAct cycle; rewrites the next turn when the last one was wrong | `Agent(reflexion=True)` · [Reasoning](concepts/reasoning.md) |
 | **Grounding** | LLM-as-judge claim verification against tool results; below-threshold triggers replanning | `Agent(grounding=True)` · [Reasoning](concepts/reasoning.md) |
 | **Causal chains** | Cause-effect graph builder with cycle/contradiction detection | `tulip.reasoning.causal.CausalChain` · [Reasoning](concepts/reasoning.md) |

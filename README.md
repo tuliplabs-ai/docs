@@ -5,8 +5,8 @@ documentation site for [Tulip](https://github.com/tuliplabs-ai/tulip-agents),
 the complete open-source agent framework where control is native.
 Everything you'd expect — tools, memory, multi-agent, RAG, streaming —
 behind one `Agent` class, with control wired through the core: the cognitive
-router (PRISM) picks which shape runs, GSAR (typed evidence-grounding)
-checks every claim or the agent abstains, and the admission gate clears
+router (PRISM) picks which shape runs, optional GSAR evaluates typed claim
+evidence against configured thresholds, and the admission gate clears routed
 consequential actions against a policy you write.
 
 Built with [MkDocs](https://www.mkdocs.org/) +

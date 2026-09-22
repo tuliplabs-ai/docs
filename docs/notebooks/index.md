@@ -1,9 +1,17 @@
-# Notebooks
+# Examples
 
-Every example is a runnable `.py` file that works end-to-end against the bundled
-`MockModel` — no credentials — and upgrades to a live provider (OpenAI /
-Anthropic) by setting one environment variable. Within each track they build on
-each other.
+Every example is a runnable `.py` file. Most use the bundled `MockModel` or a
+local stub, need no credentials, and print simulated results. Examples that
+contact a live provider say so on their page. A mock run demonstrates control
+flow; it is not evidence of live-model or vendor behavior.
+
+| Catalog status | Value |
+|---|---|
+| Tested SDK line | `tulip-agents` 2.15.x |
+| Python | 3.11–3.14 |
+| Default execution mode | Offline simulation unless the page says **Live** |
+| Credentials | None for offline examples; named on live-example pages |
+| Source format | Self-contained Python files under `examples/` |
 
 The examples span the high-stakes actions agents actually take: refunding a
 payment, deploying to production, changing a customer's account, deleting
@@ -18,7 +26,7 @@ scenarios; one dedicated track applies the same gate to security operations.
     type="search"
     id="notebook-filter-input"
     class="notebook-filter__input"
-    placeholder="Filter the notebooks (e.g. rag, hooks, red-team)…  press ⌘K"
+    placeholder="Filter examples (e.g. rag, hooks, red-team)…  press ⌘K"
     autocomplete="off"
     autocorrect="off"
     spellcheck="false" />
@@ -28,7 +36,8 @@ Run any example — each link below opens its file:
 
 ```bash
 git clone https://github.com/tuliplabs-ai/tulip-agents.git
-cd sdk-python && pip install -e .
+cd tulip-agents
+python -m pip install -e .
 python examples/<file>.py
 ```
 

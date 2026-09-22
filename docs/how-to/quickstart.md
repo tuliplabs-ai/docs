@@ -1,258 +1,117 @@
-# Quickstart
+---
+title: First agent — install and run Tulip in five minutes
+description: Install Tulip, run one complete Python agent, and verify the result before adding tools or policy controls.
+---
 
-A working Tulip agent in five minutes.
+# First agent
 
-## 1. Install
+This path does one thing: install Tulip and run a complete agent. It uses
+OpenAI consistently and ends after the first successful response. The next
+guide adds a policy-controlled action.
 
-```bash
-pip install "tulip-agents[openai]"
-```
+## Requirements
 
-This installs the SDK plus the OpenAI provider. For other
-providers add the corresponding extra:
+| Requirement | Tested here |
+|---|---|
+| Python | 3.11–3.14 |
+| Tulip | 2.15.x |
+| Provider | OpenAI |
+| Credential | `OPENAI_API_KEY` |
+| Execution mode | Live model call |
 
-```bash
-pip install "tulip-agents[openai]"        # OpenAI directly
-pip install "tulip-agents[anthropic]"     # Anthropic directly
-pip install "tulip-agents[sdk]"           # everything
-```
+For a credential-free run, skip to [try Tulip offline](#try-tulip-offline).
 
-## 2. Configure your provider
+## 1. Create an environment
 
-Set the API key for whichever provider you're using:
+=== "macOS / Linux"
 
-```bash
-export OPENAI_API_KEY=sk-...          # OpenAI
-export ANTHROPIC_API_KEY=sk-ant-...   # Anthropic
-```
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+    export OPENAI_API_KEY="your-key"
+    ```
 
-For OpenAI-compatible gateways or local servers, point `OpenAIModel` at
-the model's `base_url` instead. See
-[Models](../concepts/models.md) for the per-provider matrix. A provider
-key is required for real model output; the example notebooks can also run
-offline against the `MockModel` bundled with the examples.
+=== "Windows PowerShell"
 
-## 3. Your first agent
+    ```powershell
+    py -3.11 -m venv .venv
+    .venv\Scripts\Activate.ps1
+    python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+    $env:OPENAI_API_KEY = "your-key"
+    ```
 
-Save this as `support_agent.py`:
+## 2. Save one complete file
+
+Create `first_agent.py`:
 
 ```python
-from tulip.agent import Agent
-from tulip.tools.decorator import tool
+from tulip import Agent, tool
+
 
 @tool
 def lookup_order(order_id: str) -> dict:
-    """Look up an order: status, amount, and delivery events."""
-    return {"order_id": order_id, "status": "delivered", "amount_usd": 42.50,
-            "delivery_events": ["shipped", "delivered", "damage reported"]}
+    """Return the current status of an order."""
+    return {
+        "order_id": order_id,
+        "status": "delivered",
+        "amount_usd": 42.50,
+    }
 
-@tool
-def check_refund_eligibility(order_id: str) -> dict:
-    """Check an order against the refund policy."""
-    return {"order_id": order_id, "eligible": True,
-            "reason": "damage reported within the 30-day window"}
 
 agent = Agent(
-    model="openai:gpt-4o",
-    tools=[lookup_order, check_refund_eligibility],
-    system_prompt="You are a support agent handling refund requests. "
-                  "Cite the evidence behind every recommendation.",
+    model="openai:gpt-4o-mini",
+    tools=[lookup_order],
+    system_prompt="Answer support questions using the order lookup.",
 )
 
-result = agent.run_sync(
-    "Order ORD-7842 arrived damaged. Look it up and check whether "
-    "it qualifies for a refund."
-)
+result = agent.run_sync("What happened to order ORD-7842?")
 print(result.message)
 ```
 
-Run:
+## 3. Run it
 
 ```bash
-python support_agent.py
+python first_agent.py
 ```
 
-You should see something like:
+The wording varies because this is a live model call. A successful result
+should mention order `ORD-7842`, its `delivered` status, and usually the
+`$42.50` amount returned by the tool.
 
-```text
-ORD-7842 ($42.50) shows a damage report in its delivery events, and the
-policy check confirms it was reported within the 30-day window.
-Evidence: lookup_order + check_refund_eligibility. Verdict: eligible
-for refund — issuing it requires approval.
+You now have one complete success: the model chose a typed Python tool, Tulip
+executed it, and `AgentResult.message` returned the final answer.
+
+## Try Tulip offline
+
+The repository examples use deterministic test doubles and local stubs. Their
+printed results are simulations of control flow, not evidence of live-model
+quality or vendor behavior.
+
+```bash
+git clone https://github.com/tuliplabs-ai/tulip-agents.git
+cd tulip-agents
+python -m pip install -e .
+python examples/notebook_83_payment_refund_gate.py
 ```
 
-## 3.5 Gate the action
+That example needs no API key and demonstrates a local payment stub behind an
+admission policy.
 
-Finding the problem is the easy half. The moment an agent goes from
-*advising* to *acting* — isolating that host, refunding that customer,
-disabling that account — you need a gate it cannot talk its way past.
-That's the whole point of Tulip: wrap the action in `admit()` and it runs
-**only** after it clears policy, holds for a human when the blast radius
-warrants it, and lands on a tamper-evident audit trail either way.
+## Troubleshooting
 
-```python
-import asyncio
-
-from tulip.control import (
-    Action, admit, ControlPolicy, AuditTrail, AdmissionError)
-
-policy = ControlPolicy()    # conservative defaults: production → human
-trail = AuditTrail()        # tamper-evident and replayable — editing any record breaks verification
-
-# The check above said "eligible for refund". Don't just issue it — admit it.
-risky = Action(
-    name="issue_refund", asset="ORD-7842",
-    blast_radius=1, kind="payment", environment="production")
-
-async def do_refund():
-    ...  # your real payment call (Stripe, your billing service, etc.)
-
-async def main():
-    try:
-        await admit(risky, do_refund, policy=policy, trail=trail)
-    except AdmissionError as e:
-        print(e.decision.outcome)   # -> "require_human" — held; the refund did NOT run
-
-    # Either way it's on the record:
-    print(trail.verify())           # True — chain intact
-    print(trail.export_jsonl())     # one JSON event per line — ready for your log pipeline or audit store
-
-asyncio.run(main())
-```
-
-That `admit()` call is the difference between a library that *suggests*
-and a runtime that *enforces*. See [Why Tulip](../why-tulip.md) for the
-comparison, and the [Admission gate concept](../concepts/security.md) for
-the full policy surface.
-
-## 4. Stream the events
-
-For UIs and real-time logging, switch to async and consume the typed
-event stream:
-
-```python
-import asyncio
-from tulip.core.events import (
-    ThinkEvent, ToolStartEvent, ToolCompleteEvent, TerminateEvent,
-)
-
-async def main():
-    async for event in agent.run("Look up ORD-7842 and assess the refund request."):
-        match event:
-            case ThinkEvent(reasoning=r) if r:
-                print(f"💭 {r}")
-            case ToolStartEvent(tool_name=n, arguments=a):
-                print(f"🔧 {n}({a})")
-            case ToolCompleteEvent(result=r):
-                print(f"   ↳ {r}")
-            case TerminateEvent(final_message=m):
-                print(f"\n✅ {m}")
-
-asyncio.run(main())
-```
-
-See [Streaming](../concepts/streaming.md) for the full event taxonomy.
-
-## 5. Persist conversations across restarts
-
-For real applications you'll want state to survive a restart. Wire a
-checkpointer and a `thread_id`:
-
-```python
-from tulip.memory.backends.file import FileCheckpointer
-
-agent = Agent(
-    model="openai:gpt-4o",
-    tools=[...],
-    system_prompt="...",
-    checkpointer=FileCheckpointer(base_dir="./threads"),
-)
-
-# Day 1
-agent.run_sync("Open case C-4821 for the billing dispute.", thread_id="case-4821")
-
-# Day 2 — same thread_id, the case continues
-agent.run_sync("What did we establish so far?", thread_id="case-4821")
-```
-
-For vendor-neutral durability, swap to `S3Backend(bucket=..., prefix=...)`.
-See [Conversation Management](../concepts/conversation-management.md).
-
-## 6. Make it production-grade
-
-Add idempotency to side-effecting tools, Reflexion to catch wrong
-premises, and termination algebra to stop when the work is done:
-
-```python
-from tulip.memory.backends import S3Backend
-from tulip.core.termination import (
-    MaxIterations, ToolCalled, ConfidenceMet,
-)
-
-@tool(idempotent=True)
-def issue_refund(order_id: str, amount: float) -> dict:
-    return payments.refund(order_id, amount)
-
-agent = Agent(
-    model="openai:gpt-4o",
-    tools=[lookup_order, issue_refund],
-    system_prompt="...",
-    reflexion=True,
-    checkpointer=S3Backend(bucket="tulip-threads", prefix="..."),
-    termination=(
-        ToolCalled("issue_refund") & ConfidenceMet(0.9)
-    ) | MaxIterations(8),
-)
-```
-
-Each piece in detail:
-
-- **`@tool(idempotent=True)`** → [Idempotency](../concepts/idempotency.md)
-- **`reflexion=True`** → [Reasoning](../concepts/reasoning.md)
-- **`checkpointer=...`** → [Checkpointers](../concepts/checkpointers.md)
-- **`termination=...`** → [Termination](../concepts/termination.md)
-
-## 7. Multi-agent
-
-When one agent isn't enough — pick the coordination shape that fits
-the problem:
-
-| Shape | When |
+| Problem | Check |
 |---|---|
-| [Composition](../concepts/multi-agent/composition.md) | linear chain, fan-out + merge |
-| [Orchestrator + Specialists](../concepts/multi-agent/orchestrator.md) | one router, parallel experts |
-| [Swarm](../concepts/multi-agent/swarm.md) | open-ended research, peer-to-peer |
-| [Handoff](../concepts/multi-agent/handoff.md) | escalation desks |
-| [StateGraph](../concepts/multi-agent/graph.md) | review-loops, retry-until-confidence |
-| [Functional API](../concepts/multi-agent/functional.md) | map/reduce over agents |
-| [A2A](../concepts/multi-agent/a2a.md) | cross-process meshes |
+| `python` is older than 3.11 | Run `python --version`; create the environment with a newer interpreter |
+| `ModuleNotFoundError: tulip` | Activate the same virtual environment where you installed the package |
+| Provider authentication error | Confirm `OPENAI_API_KEY` exists in the shell running the script |
+| Model not available to the account | Replace `gpt-4o-mini` with an OpenAI model your account can use |
+| Output does not exactly match this page | Expected: live model wording is nondeterministic; check the returned facts instead |
 
-## 8. Deploy
+## Continue
 
-`AgentServer` is a drop-in FastAPI app:
+[Put a policy gate around an action →](first-controlled-action.md){ .md-button .md-button--primary }
 
-```python
-from tulip.server import AgentServer
-
-server = AgentServer(agent=agent, api_key="change-me")
-server.run(host="0.0.0.0", port=8080)
-```
-
-`POST /invoke`, `POST /stream`, `GET /threads/{id}`, `GET /health`.
-Binding to a non-loopback host requires an `api_key` (or
-`allow_unauthenticated=True`); every route except `/health` then
-expects that bearer token. Deploys anywhere FastAPI runs — see
-[Deploy](deploy.md).
-
-## Where to next
-
-- **Read deeper.** [Agent Loop](../concepts/agent-loop.md) is the
-  architectural reference for how all of this fits together.
-- **Browse examples.** Progressive notebooks at
-  [`examples/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples).
-  Each is a single runnable file that adds one idea on top of the
-  previous. A security-flavored variant of this quickstart — SOC alert
-  triage with the same gate — lives in the
-  [security notebooks](../notebooks/notebook_79_soc_alert_triage.md).
-- **Steer it.** [Hooks](../concepts/hooks.md) give you logging,
-  telemetry, retry, guardrails, and steering as one-line additions.
+After that, explore [streaming](../concepts/streaming.md),
+[persistence](persist-conversations.md), [multi-agent patterns](../concepts/multi-agent.md),
+or [deployment](deploy.md) as separate topics.

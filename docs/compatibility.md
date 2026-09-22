@@ -1,0 +1,43 @@
+---
+title: Compatibility and release policy
+description: Supported Python versions, documentation versioning, API stability, deprecations, and integration status for Tulip.
+---
+
+# Compatibility and release policy
+
+## Current documented line
+
+| Surface | Policy |
+|---|---|
+| SDK | These docs target `tulip-agents` 2.15.x |
+| Python | 3.11, 3.12, 3.13, and 3.14 |
+| Documentation examples | Tested against the sibling SDK checkout in the documentation build |
+| Provider and infrastructure dependencies | Install through the documented optional extra; consult each guide for credentials and limitations |
+
+Pin a compatible minor line when following a tutorial exactly:
+
+```bash
+python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+```
+
+## Changes and deprecations
+
+Tulip uses semantic versioning as the intended public contract. Deprecations
+are announced in the [changelog](https://github.com/tuliplabs-ai/tulip-agents/blob/main/CHANGELOG.md)
+and [deprecation policy](https://github.com/tuliplabs-ai/tulip-agents/blob/main/DEPRECATION.md).
+Before upgrading a production deployment, read both and run your policy,
+approval, idempotency, and persistence tests against the new version.
+
+## Capability status labels
+
+| Label | Meaning |
+|---|---|
+| Supported | Public SDK surface covered by normal compatibility expectations |
+| Experimental | Usable but may change outside the normal deprecation window |
+| Template | Example adapter or skeleton requiring deployment-specific implementation and validation |
+| Offline simulation | Deterministic local behavior; no claim about a live external system |
+| Live | Contacts the named provider or infrastructure and needs its credentials/configuration |
+
+Examples should state their execution mode, requirements, tested SDK line, and
+limitations near the top. If a page is missing those details, treat it as
+documentation debt rather than an implied production guarantee.

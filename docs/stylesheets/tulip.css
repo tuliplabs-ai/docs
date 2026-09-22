@@ -1667,3 +1667,136 @@ form.md-header__option {
     z-index: 1;
   }
 }
+
+/* ===================================================================
+   Review pass — readable prose, execution diagram, and API wrapping.
+   =================================================================== */
+
+/* Keep long-form prose at a comfortable measure while allowing tables,
+   diagrams, and API documentation to use the full article column. */
+.md-typeset > p,
+.md-typeset > ul,
+.md-typeset > ol,
+.md-typeset > blockquote {
+  max-width: 48rem;
+}
+
+.md-typeset .execution-flow {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) auto minmax(9rem, 1.1fr) auto minmax(9rem, 1fr);
+  gap: 0.65rem;
+  align-items: center;
+  max-width: 58rem;
+  margin: 1.25rem 0 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--tl-rule);
+  border-radius: 0.65rem;
+  background: var(--tulip-surface);
+}
+.execution-flow__node,
+.execution-flow__audit,
+.execution-flow__outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.execution-flow__node,
+.execution-flow__audit {
+  padding: 0.75rem;
+  border: 1px solid var(--tl-rule);
+  border-radius: 0.45rem;
+  background: var(--tl-bg-soft);
+}
+.execution-flow__node span,
+.execution-flow__audit span {
+  color: var(--tulip-mute);
+  font-size: 0.72rem;
+}
+.execution-flow__node--gate {
+  border-color: var(--tl-red);
+}
+.execution-flow__arrow {
+  color: var(--tl-red);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.execution-flow__outcomes span {
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.3rem;
+  font-family: var(--tulip-mono);
+  font-size: 0.7rem;
+}
+.execution-flow__outcomes .flow-allow { background: color-mix(in srgb, #16a34a 16%, transparent); }
+.execution-flow__outcomes .flow-hold { background: color-mix(in srgb, #d97706 18%, transparent); }
+.execution-flow__outcomes .flow-deny { background: color-mix(in srgb, var(--tl-red) 16%, transparent); }
+.execution-flow__audit {
+  grid-column: 3 / 6;
+  border-style: dashed;
+}
+
+/* mkdocstrings signatures should wrap at tokens instead of forcing the API
+   article to scroll horizontally as one long line. */
+.md-typeset .doc-signature,
+.md-typeset .doc-signature code,
+.md-typeset .doc-signature .highlight,
+.md-typeset .doc-signature pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+.md-typeset .doc-signature pre {
+  overflow-x: visible;
+}
+/* Older released docstrings contain indented examples that the Google-style
+   parser exposes as paragraphs. Preserve their whitespace and present them as
+   code until those releases carry fenced examples themselves. */
+.md-typeset .doc details.usage > p,
+.md-typeset .doc details.example > p {
+  margin: 0.6rem 0;
+  padding: 0.75rem 0.9rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  font-family: var(--tulip-mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  background: var(--tl-bg-soft);
+  border-left: 3px solid var(--tl-red);
+}
+.md-typeset math[display="block"] {
+  margin: 1.4rem auto;
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  color: var(--tl-text);
+  font-size: 1.08rem;
+}
+
+/* Dark-theme contrast: raise secondary copy, syntax comments, and code-action
+   icons above the subdued palette used by decorative chrome. */
+[data-md-color-scheme="slate"] {
+  --tulip-mute: #b8b1aa;
+  --md-default-fg-color--lighter: #aaa39d;
+}
+[data-md-color-scheme="slate"] .highlight .c,
+[data-md-color-scheme="slate"] .highlight .c1,
+[data-md-color-scheme="slate"] .highlight .cm,
+[data-md-color-scheme="slate"] .highlight .cs {
+  color: #b8b1aa;
+}
+[data-md-color-scheme="slate"] .md-code__button,
+[data-md-color-scheme="slate"] .md-clipboard {
+  color: #e8e2da;
+  opacity: 0.82;
+}
+
+@media screen and (max-width: 60em) {
+  .md-typeset .execution-flow {
+    grid-template-columns: 1fr;
+  }
+  .execution-flow__arrow {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+  .execution-flow__audit {
+    grid-column: 1;
+  }
+}

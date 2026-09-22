@@ -1,12 +1,11 @@
 # Idempotency
 
-> The single most important word in production agents is **once**.
+> Tulip deduplicates identical tool calls within a documented execution scope.
 
-The model is *allowed* to retry. The side effect *isn't*. The model
-emits `issue_refund(order_id, amount)` twice — the customer is refunded
-once, always. Tulip makes that distinction a one-keyword decision on
-the tool, enforced inside the ReAct loop. This is an SDK-specific
-primitive — none of LangChain / LangGraph / CrewAI / Strands ship it.
+The model may retry. With `idempotent=True`, an identical call in the same
+agent run reuses the recorded result instead of invoking the tool body again.
+When supported execution state is restored from a checkpoint, that recorded
+result can also prevent a replay after resume.
 
 If you ever plan to run an agent that **refunds**, **deploys**,
 **pages**, **emails**, or **writes**, this is the most important
@@ -16,7 +15,7 @@ single page on the docs site.
 
 | Situation | `idempotent=True`? |
 |---|---|
-| Side-effecting tool with real-world cost (issue a refund, ship a deploy, page on-call) | **yes — always** |
+| Side-effecting tool with real-world cost (issue a refund, ship a deploy, page on-call) | Usually yes, plus a downstream idempotency key |
 | Database write you can't trivially roll back | **yes** |
 | External service that's already idempotent on its end | yes — the SDK dedupes the round-trip too |
 | Read-only order lookup | no — re-reads are cheap, leave it to the model |
@@ -70,9 +69,9 @@ def issue_refund(order_id: str, amount: float) -> dict:
     return billing.refund(order_id, amount)
 ```
 
-The customer is refunded once. Always. The same keyword covers a deploy
-(`deploy_service`), a page (`page_oncall`), and the security-operations
-variant (`isolate_host` — cut a compromised host off the network).
+Within the active run, an identical second call reuses the first result. The
+same mechanism applies to a deploy (`deploy_service`), a page (`page_oncall`),
+and the security-operations variant (`isolate_host`).
 
 ### Outbound side-effects
 
@@ -82,9 +81,8 @@ that touches a human or a downstream system. **One and done**.
 ### Database writes you can't roll back
 
 Insert into an audit table, append to a Kafka topic, sign a JWT —
-operations where retrying isn't free. Idempotent tools turn the
-"exactly once" problem into a "not-our-problem-after-the-first-call"
-guarantee.
+operations where retrying isn't free. Idempotent tools reduce duplicate calls
+inside the agent runtime; they do not create distributed exactly-once delivery.
 
 ### Replays after checkpoint resume
 
@@ -103,9 +101,24 @@ it.)
 | Failure | one fire per identical call | retry — if the body raises, the exception propagates as the cached "result" |
 | Boundary | per-agent | network — two different agents both calling `issue_refund(o, a)` each fire once |
 
-If you need cross-run idempotency, configure a checkpointer + an
-idempotent server-side endpoint. The combo gives you "the side
-effect runs at most once across all replays of all agents".
+If you need cross-run idempotency, configure a checkpointer and an idempotent
+server-side endpoint. Generate a stable operation key from the business
+operation (for example, `refund:ORD-4821:v1`) and send it to that endpoint on
+every attempt.
+
+## The external-success crash window
+
+There is an unavoidable boundary between two systems:
+
+1. the payment, deploy, or message succeeds in the external service;
+2. the process stops before Tulip durably records the returned receipt;
+3. the run resumes and cannot prove locally that the external call succeeded;
+4. the call may be attempted again.
+
+An in-memory cache cannot close that window. A checkpointer narrows it, but the
+downstream system must recognize the same stable idempotency key and return the
+original result rather than repeat the operation. Treat `idempotent=True` as
+agent-loop deduplication and downstream keys as distributed-operation safety.
 
 ## Practical recipe — refund approval
 
@@ -122,10 +135,10 @@ def page_oncall(case_id: str, summary: str) -> str:
     return pager.notify(team="support", subject=f"CASE {case_id}", body=summary)
 ```
 
-The agent can iterate ten times reasoning about whether to refund.
-The customer is refunded once. The duty manager gets paged once. The
-model can fail mid-run and a checkpointer-backed resume re-issues the
-same calls; the side effects still fire exactly once.
+The agent can iterate while reasoning about whether to refund. Repeated calls
+with identical raw arguments reuse the cached result in the supported scope.
+For a real payment or page, the tool body should also pass a stable
+idempotency key to the provider.
 
 ## Common gotchas
 
