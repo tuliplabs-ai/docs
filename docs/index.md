@@ -41,7 +41,7 @@ await admit(
 
 ```text
 staging       ✓ allow          deploy runs
-production    ⏸ require_human  waits
+production    … require_human  waits
 prohibited    × deny           stops
 unsupported   ↺ replan         revise claim
 ```

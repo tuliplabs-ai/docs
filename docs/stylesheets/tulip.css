@@ -42,8 +42,10 @@ html {
   --tl-bg-soft:     #F4F4F5;
   --tl-rule:        #E4E4E7;
 
-  --tl-red:         #BE185D;
-  --tl-red-deep:    #9D174D;
+  /* Legacy names, kept so the ~45 existing call sites keep working. They are
+     aliases now, not values — the design-system token is the single source. */
+  --tl-red:         var(--tl-accent);
+  --tl-red-deep:    var(--tl-accent-hover);
   --tl-red-light:   #DB2777;
 
   --tl-link:        #9D174D;
@@ -63,6 +65,72 @@ html {
   /* pink -> deep-rose brand gradient (hero accent word, footer wordmark,
      header hairline) */
   --tulip-grad: linear-gradient(135deg, #DB2777 0%, #9D174D 100%);
+
+  /* -------------------------------------------------------------------------
+     Design-system tokens. Source of truth: the "Tulip Agents Design System"
+     Figma file, where every variable carries this exact `var(--…)` name as its
+     code syntax. Change a value there and here together, or they drift.
+
+     The rule these tokens exist to enforce: BRAND COLOUR AND STATUS COLOUR ARE
+     SEPARATE. Pink means Tulip or an interactive element. Green, amber, red and
+     grey mean allow, hold, deny and abstain. A decision must never be pink, and
+     a button must never be green — otherwise the page teaches the reader a
+     colour code it then contradicts.
+     ------------------------------------------------------------------------- */
+
+  /* Brand. `--tl-brand-mark` is the logo pink; it measures 4.43:1 on the light
+     canvas, which is under the 4.5:1 body-text floor, so it is for the mark and
+     large display only. `--tl-accent` is the darker interactive pink (5.79:1)
+     and is what links, buttons and active states use. */
+  --tl-brand-mark:    #D6336C;
+  --tl-accent:        #BE185D;
+  --tl-accent-hover:  #9D174D;
+  --tl-accent-subtle: #FDF2F8;
+
+  /* Surface and text, beyond the four already declared above. */
+  --tl-surface:        #FFFFFF;
+  --tl-surface-raised: #FFFFFF;
+  --tl-text-soft:      #52525B;
+  --tl-text-mute:      #71717A;
+  --tl-text-inverse:   #FFFFFF;
+  --tl-on-accent:      #FFFFFF;
+  --tl-rule-subtle:    #F4F4F7;
+  --tl-rule-strong:    #D3D3DB;
+  --tl-focus:          #BE185D;
+
+  /* Status quad. Every one of these is paired with a word in the markup —
+     colour is reinforcement, never the only signal, so the page still works in
+     greyscale and for colour-blind readers. */
+  --tl-allow-fg:      #15803D;
+  --tl-allow-bg:      #ECFDF3;
+  --tl-allow-border:  #6EE7A8;
+  --tl-hold-fg:       #B45309;
+  --tl-hold-bg:       #FFFBEB;
+  --tl-hold-border:   #FCD34D;
+  --tl-deny-fg:       #B91C1C;
+  --tl-deny-bg:       #FEF2F2;
+  --tl-deny-border:   #FCA5A5;
+  --tl-abstain-fg:    #52525B;
+  --tl-abstain-bg:    #F4F4F7;
+  --tl-abstain-border:#D3D3DB;
+
+  /* 4px spacing scale and radius scale. */
+  --tl-space-3xs: 2px;
+  --tl-space-2xs: 4px;
+  --tl-space-xs:  8px;
+  --tl-space-sm:  12px;
+  --tl-space-md:  16px;
+  --tl-space-lg:  24px;
+  --tl-space-xl:  32px;
+  --tl-space-2xl: 48px;
+  --tl-space-3xl: 64px;
+
+  --tl-radius-xs:   4px;
+  --tl-radius-sm:   6px;
+  --tl-radius-md:   10px;
+  --tl-radius-lg:   14px;
+  --tl-radius-xl:   20px;
+  --tl-radius-pill: 999px;
 }
 
 /* ---------------------------------------------------------------------------
@@ -123,8 +191,8 @@ html {
   --tl-rule:          #343843;
 
   /* Warm rose-coral primary; lighter in dark for contrast */
-  --tl-red:           #F472B6;
-  --tl-red-deep:      #EC4899;
+  --tl-red:           var(--tl-accent);
+  --tl-red-deep:      var(--tl-accent-hover);
   --tl-red-light:     #F9A8D4;
   /* Warm rose becomes the link colour in dark */
   --tl-link:          #F9A8D4;
@@ -162,6 +230,37 @@ html {
 
   --md-shadow-z1: 0 0 0.2rem rgba(0,0,0,.4), 0 0.2rem 0.4rem rgba(0,0,0,.3);
   --md-shadow-z2: 0 0 0.2rem rgba(0,0,0,.5), 0 0.2rem 0.8rem rgba(0,0,0,.4);
+
+  /* Design-system tokens — dark mode. Mirrors the Figma Color collection's
+     Dark mode; the status foregrounds lighten and the fills deepen so each
+     pair keeps its contrast instead of inverting into mud. */
+  --tl-accent:        #F472B6;
+  --tl-accent-hover:  #EC4899;
+  --tl-accent-subtle: #4A0A26;
+
+  --tl-surface:        #1B1E26;
+  --tl-surface-raised: #252932;
+  --tl-text-soft:      #D3D3DB;
+  --tl-text-mute:      #A1A1AA;
+  --tl-text-inverse:   #18181B;
+  /* Dark-mode accent is a light pink, so text on it must be dark, not white. */
+  --tl-on-accent:      #111318;
+  --tl-rule-subtle:    #252932;
+  --tl-rule-strong:    #434A56;
+  --tl-focus:          #F472B6;
+
+  --tl-allow-fg:      #6EE7A8;
+  --tl-allow-bg:      #0B2E1B;
+  --tl-allow-border:  #15803D;
+  --tl-hold-fg:       #FCD34D;
+  --tl-hold-bg:       #3A2708;
+  --tl-hold-border:   #B45309;
+  --tl-deny-fg:       #FCA5A5;
+  --tl-deny-bg:       #3B1113;
+  --tl-deny-border:   #B91C1C;
+  --tl-abstain-fg:    #D3D3DB;
+  --tl-abstain-bg:    #252932;
+  --tl-abstain-border:#434A56;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1732,9 +1831,24 @@ form.md-header__option {
   font-family: var(--tulip-mono);
   font-size: 0.7rem;
 }
-.execution-flow__outcomes .flow-allow { background: color-mix(in srgb, #16a34a 16%, transparent); }
-.execution-flow__outcomes .flow-hold { background: color-mix(in srgb, #d97706 18%, transparent); }
-.execution-flow__outcomes .flow-deny { background: color-mix(in srgb, var(--tl-red) 16%, transparent); }
+/* Status tokens, not ad-hoc tints. `deny` previously reused var(--tl-red) —
+   the brand pink — which taught the reader that pink meant "denied" while the
+   buttons on the same page used pink to mean "do this". */
+.execution-flow__outcomes .flow-allow {
+  color: var(--tl-allow-fg);
+  background: var(--tl-allow-bg);
+  border: 1px solid var(--tl-allow-border);
+}
+.execution-flow__outcomes .flow-hold {
+  color: var(--tl-hold-fg);
+  background: var(--tl-hold-bg);
+  border: 1px solid var(--tl-hold-border);
+}
+.execution-flow__outcomes .flow-deny {
+  color: var(--tl-deny-fg);
+  background: var(--tl-deny-bg);
+  border: 1px solid var(--tl-deny-border);
+}
 .execution-flow__audit {
   grid-column: 3 / 6;
   border-style: dashed;
@@ -1864,26 +1978,47 @@ form.md-header__option {
   border-left: 3px solid transparent;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
+/* Brand pink is correct here: this marks "look at this line", an interactive
+   pointer, not a decision outcome. */
 .action-demo__code code > span.is-active {
-  border-left-color: var(--tl-red);
-  background: color-mix(in srgb, var(--tl-red) 12%, transparent);
+  border-left-color: var(--tl-accent);
+  background: color-mix(in srgb, var(--tl-accent) 12%, transparent);
 }
 .action-demo__result { padding: 1rem 1.1rem; }
 .action-demo__result p { min-height: 3.4em; margin: 0.7rem 0 0.9rem; }
 .action-demo__status {
   display: inline-flex;
-  padding: 0.28rem 0.5rem;
-  border-radius: 0.35rem;
+  padding: var(--tl-space-2xs) var(--tl-space-xs);
+  border-radius: var(--tl-radius-pill);
   font: 700 0.7rem/1.2 var(--tulip-mono);
 }
-.action-demo__status--allow { color: #166534; background: #DCFCE7; }
-.action-demo__status--hold { color: #92400E; background: #FEF3C7; }
-.action-demo__status--deny { color: #991B1B; background: #FEE2E2; }
-.action-demo__status--revise { color: #1E40AF; background: #DBEAFE; }
-[data-md-color-scheme="slate"] .action-demo__status--allow { color: #86EFAC; background: #14532D; }
-[data-md-color-scheme="slate"] .action-demo__status--hold { color: #FDE68A; background: #78350F; }
-[data-md-color-scheme="slate"] .action-demo__status--deny { color: #FCA5A5; background: #7F1D1D; }
-[data-md-color-scheme="slate"] .action-demo__status--revise { color: #BFDBFE; background: #1E3A8A; }
+/* The same status tokens the execution flow uses. These pills previously
+   carried a second, different set of greens and reds, so the same decision
+   was one colour in the diagram and another in the demo. The tokens flip with
+   the colour scheme, so no per-scheme duplicate rules are needed.
+
+   `revise` is the abstain case: the agent withheld rather than acted. It reads
+   neutral grey on purpose — it is not a failure, and it is not a denial. */
+.action-demo__status--allow {
+  color: var(--tl-allow-fg);
+  background: var(--tl-allow-bg);
+  border: 1px solid var(--tl-allow-border);
+}
+.action-demo__status--hold {
+  color: var(--tl-hold-fg);
+  background: var(--tl-hold-bg);
+  border: 1px solid var(--tl-hold-border);
+}
+.action-demo__status--deny {
+  color: var(--tl-deny-fg);
+  background: var(--tl-deny-bg);
+  border: 1px solid var(--tl-deny-border);
+}
+.action-demo__status--revise {
+  color: var(--tl-abstain-fg);
+  background: var(--tl-abstain-bg);
+  border: 1px solid var(--tl-abstain-border);
+}
 .action-demo__result dl { margin: 0; font-size: 0.72rem; }
 .action-demo__result dt {
   margin-top: 0.55rem;
