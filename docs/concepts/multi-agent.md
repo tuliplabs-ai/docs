@@ -146,7 +146,7 @@ class Verdict(BaseModel):
     confidence: float
     reasoning: str
 
-agent = Agent(config=AgentConfig(model="anthropic:claude-sonnet-4-6", output_schema=Verdict))
+agent = Agent(config=AgentConfig(model="openai:gpt-4o-mini", output_schema=Verdict))
 result = agent.run_sync("...")
 verdict: Verdict = result.parsed   # validated Pydantic instance, not free text
 ```

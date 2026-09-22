@@ -51,7 +51,7 @@ checkpointer = S3Backend(
 )
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",   # any model — see concepts/models.md
+    model="openai:gpt-4o-mini",   # any model — see concepts/models.md
     tools=[...],
     checkpointer=checkpointer,
 )
@@ -65,7 +65,7 @@ from tulip.memory.backends import postgresql_checkpointer
 checkpointer = postgresql_checkpointer(
     dsn="postgresql://tulip:tulip@db.example.com:5432/tulip",
 )
-agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[...], checkpointer=checkpointer)
+agent = Agent(model="openai:gpt-4o-mini", tools=[...], checkpointer=checkpointer)
 ```
 
 MySQL with the official async driver:
@@ -76,7 +76,7 @@ from tulip.memory.backends import mysql_checkpointer
 checkpointer = mysql_checkpointer(
     dsn="mysql://tulip:tulip@db.example.com:3306/tulip",
 )
-agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[...], checkpointer=checkpointer)
+agent = Agent(model="openai:gpt-4o-mini", tools=[...], checkpointer=checkpointer)
 ```
 
 ## 3. Use a stable thread_id

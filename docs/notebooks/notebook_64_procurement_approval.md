@@ -43,7 +43,7 @@ Offline:
 
 Pin a strong-enough model for the structured ConcessionDecision schema:
 
-    TULIP_MODEL_ID=openai.gpt-4.1 python examples/notebook_64_procurement_approval.py
+    TULIP_MODEL_PROVIDER=openai TULIP_MODEL_ID=gpt-4o python examples/notebook_64_procurement_approval.py
 
 ## Source
 
