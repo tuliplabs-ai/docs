@@ -7,7 +7,7 @@ flow; it is not evidence of live-model or vendor behavior.
 
 | Catalog status | Value |
 |---|---|
-| Tested SDK line | `tulip-agents` 2.15.x |
+| Tested SDK | `tulip-agents` {{ tulip_sdk_version }} |
 | Python | 3.11–3.14 |
 | Default execution mode | Offline simulation unless the page says **Live** |
 | Credentials | None for offline examples; named on live-example pages |

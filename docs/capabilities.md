@@ -13,7 +13,7 @@ does, and where to find it.
 | `SecurityContext` reference adapters | Offline simulation | No credentials | Vendor write templates return simulated receipts unless replaced and verified |
 | Published research and evaluation artifacts | Research-only | See each research page | Some source datasets and evaluated model artifacts are not publicly available |
 
-These docs target `tulip-agents` 2.15.x on Python 3.11–3.14. See the
+This build targets `tulip-agents` {{ tulip_sdk_version }} on Python 3.11–3.14. See the
 [compatibility policy](compatibility.md) for label definitions and upgrade
 guidance.
 

@@ -14,7 +14,7 @@ observe policy behavior without credentials or real money moving.
 |---|---|
 | Status | Supported core API |
 | Execution mode | Offline simulation |
-| Requirements | Python 3.11+, `tulip-agents` 2.15.x |
+| Requirements | Python 3.11+, build-tested SDK {{ tulip_sdk_version }} |
 | External credentials | None |
 | Limitation | The ledger is in memory; no payment provider is contacted |
 

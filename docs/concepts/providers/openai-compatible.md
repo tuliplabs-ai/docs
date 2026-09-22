@@ -26,7 +26,7 @@ catalog:
 === "OpenRouter"
 
     ```bash
-    python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+    python -m pip install "tulip-agents[openai]"
     export OPENROUTER_API_KEY="your-key"
     ```
 
@@ -40,7 +40,7 @@ catalog:
 === "Together.ai"
 
     ```bash
-    python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+    python -m pip install "tulip-agents[openai]"
     export TOGETHER_API_KEY="your-key"
     ```
 
@@ -57,28 +57,12 @@ after the colon through as the provider's model id. No OpenAI account or
 output, vision, context size, pricing, and availability remain properties of
 the selected model and provider.
 
-## The table
+## Provider routes in this build
 
-| Prefix | Provider | Endpoint | API key |
-|---|---|---|---|
-| `openai` | OpenAI | (default) | `OPENAI_API_KEY` |
-| `anthropic` | Anthropic | (default) | `ANTHROPIC_API_KEY` |
-| `ollama` | Ollama | `http://localhost:11434/v1` | `OLLAMA_API_KEY` _(optional)_ |
-| `vllm` | vLLM | `http://localhost:8000/v1` | `VLLM_API_KEY` _(optional)_ |
-| `lmstudio` | LM Studio | `http://localhost:1234/v1` | `LMSTUDIO_API_KEY` _(optional)_ |
-| `llamacpp` | llama.cpp server | `http://localhost:8080/v1` | `LLAMACPP_API_KEY` _(optional)_ |
-| `litellm` | LiteLLM gateway | `http://localhost:4000/v1` | `LITELLM_API_KEY` |
-| `groq` | Groq | `https://api.groq.com/openai/v1` | `GROQ_API_KEY` |
-| `together` | Together AI | `https://api.together.xyz/v1` | `TOGETHER_API_KEY` |
-| `openrouter` | OpenRouter | `https://openrouter.ai/api/v1` | `OPENROUTER_API_KEY` |
-| `deepseek` | DeepSeek | `https://api.deepseek.com/v1` | `DEEPSEEK_API_KEY` |
-| `mistral` | Mistral AI | `https://api.mistral.ai/v1` | `MISTRAL_API_KEY` |
-| `xai` | xAI (Grok) | `https://api.x.ai/v1` | `XAI_API_KEY` |
-| `fireworks` | Fireworks AI | `https://api.fireworks.ai/inference/v1` | `FIREWORKS_API_KEY` |
-| `cerebras` | Cerebras | `https://api.cerebras.ai/v1` | `CEREBRAS_API_KEY` |
-| `perplexity` | Perplexity | `https://api.perplexity.ai` | `PERPLEXITY_API_KEY` |
-| `nvidia` | NVIDIA NIM | `https://integrate.api.nvidia.com/v1` | `NVIDIA_API_KEY` |
-| `openai-compatible` | Any OpenAI-compatible endpoint | _(supply `base_url`)_ | `OPENAI_COMPATIBLE_API_KEY` _(optional)_ |
+This table is generated from the provider registry in SDK
+**{{ tulip_sdk_version }}** during the documentation build.
+
+{{ tulip_provider_table }}
 
 Anything not listed is still reachable without a code change — give the base
 URL explicitly:

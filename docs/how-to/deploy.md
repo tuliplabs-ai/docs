@@ -7,7 +7,7 @@ container and Kubernetes configuration.
 | Field | Value |
 |---|---|
 | Status | Supported server API; deployment manifests are starting points |
-| Tested SDK line | `tulip-agents` 2.15.x |
+| Tested SDK | `tulip-agents` {{ tulip_sdk_version }} |
 | Execution mode | Live model provider |
 | Requirements | Python 3.11+, `tulip-agents[openai,server]` |
 | Secrets | `OPENAI_API_KEY` for the provider; `TULIP_SERVER_API_KEY` for callers |

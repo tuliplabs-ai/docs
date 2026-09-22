@@ -14,7 +14,7 @@ guide adds a policy-controlled action.
 | Requirement | Tested here |
 |---|---|
 | Python | 3.11–3.14 |
-| Tulip | 2.15.x |
+| Tulip | Build-tested SDK {{ tulip_sdk_version }} |
 | Provider | OpenAI by default; OpenRouter and Together.ai alternatives below |
 | Credential | Provider-specific API key |
 | Execution mode | Live model call |
@@ -34,7 +34,7 @@ For a credential-free run, skip to [try Tulip offline](#try-tulip-offline).
     ```bash
     python3 -m venv .venv
     source .venv/bin/activate
-    python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+    python -m pip install "tulip-agents[openai]"
     export OPENAI_API_KEY="your-key"
     ```
 
@@ -43,7 +43,7 @@ For a credential-free run, skip to [try Tulip offline](#try-tulip-offline).
     ```powershell
     py -3.11 -m venv .venv
     .venv\Scripts\Activate.ps1
-    python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+    python -m pip install "tulip-agents[openai]"
     $env:OPENAI_API_KEY = "your-key"
     ```
 
