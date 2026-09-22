@@ -2,8 +2,8 @@
 hide:
   - navigation
   - toc
-title: Tulip Agents — controlled, evidence-backed actions
-description: Build Python agents that check evidence, apply policy before consequential actions, and leave an inspectable decision record.
+title: Tulip Agents — the open-source Python agent framework
+description: Build Python agents with typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one Agent class — and put a policy gate in front of the actions that change real systems.
 ---
 
 <div class="tulip-hero" markdown>
@@ -11,11 +11,12 @@ description: Build Python agents that check evidence, apply policy before conseq
 
 <p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span><span class="tpn-tag">open-source Python agent framework</span></p>
 
-# Build agents that take <span class="accent">controlled, evidence-backed actions.</span>
+# Build agents that <span class="accent">do real work.</span>
 
-Tulip helps Python agents move from suggesting work to changing systems.
-Check claims against evidence, apply policy before a consequential action runs,
-and inspect the decision record afterward.
+Typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one
+`Agent` class, on OpenAI, Anthropic, or any compatible provider. And when an
+agent needs to change a real system, the same runtime puts a policy gate in
+front of the side effect.
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
@@ -31,36 +32,90 @@ python -m pip install "tulip-agents[openai]"
 <div class="tulip-hero__code" markdown>
 
 ```python
-await admit(
-    action,
-    deploy,
-    policy=deployment_policy,
-    trail=audit_trail,
+from tulip import Agent, tool
+
+
+@tool
+def lookup_order(order_id: str) -> dict:
+    """Look up one order."""
+    return {"id": order_id, "status": "shipped"}
+
+
+agent = Agent(
+    model="openai:gpt-4o-mini",
+    tools=[lookup_order],
+    system_prompt="Answer order questions.",
 )
-```
 
-```text
-staging       ✓ allow          deploy runs
-production    … require_human  waits
-prohibited    × deny           stops
-unsupported   ↺ replan         revise claim
+result = agent.run_sync("Where is ORD-7842?")
+print(result.message)
 ```
 
 </div>
 </div>
 
-## One proposal. Four inspectable outcomes.
+## Everything an agent needs, in one API
 
-Choose a scenario. The demo uses Tulip's real policy and grounding decisions;
-the deployment itself is an in-memory simulation, so it runs without a model,
-credentials, or a cluster.
+<div class="grid cards tulip-feature-cards" markdown>
+
+- :material-function-variant:{ .lg .middle } **[Typed tools](concepts/tools.md)**
+
+    ---
+    Decorate a Python function with `@tool` and the signature becomes the
+    schema. Mark one `idempotent=True` and identical calls dedupe.
+
+- :material-database:{ .lg .middle } **[Memory, state, and RAG](concepts/rag.md)**
+
+    ---
+    Conversation memory, durable checkpoints you can resume after a crash,
+    and vector-store adapters for retrieval.
+
+- :material-radio-tower:{ .lg .middle } **[Typed event streaming](concepts/streaming.md)**
+
+    ---
+    One `run_context()` streams 60+ canonical events from every layer —
+    agent, multi-agent, RAG, memory — and allocates nothing when unused.
+
+- :material-graph-outline:{ .lg .middle } **[Eight multi-agent shapes](concepts/multi-agent.md)**
+
+    ---
+    Sequential, parallel, loop, orchestrator, swarm, handoff, state graph,
+    and cross-process A2A. Same `Agent` class, same event stream.
+
+- :material-cloud-outline:{ .lg .middle } **[Any provider](concepts/models.md)**
+
+    ---
+    OpenAI and Anthropic direct, plus OpenRouter, Together.ai, Bedrock, Azure,
+    and self-hosted compatible endpoints, routed by model prefix.
+
+- :material-brain:{ .lg .middle } **[Reasoning you can stop](concepts/reasoning.md)**
+
+    ---
+    Reflexion, grounding, and causal nodes in the loop — with a termination
+    algebra that is real, testable Python.
+
+</div>
+
+## What makes it different: the agent has to earn the action
+
+Anything can call a function. The hard part of shipping an agent is the moment
+it stops suggesting and starts changing a system — a refund, a deploy, a
+deletion. Tulip routes that call through
+[`admit()`](concepts/control-layer.md), which runs it only on an allow
+decision, can hold it for a named human, and records what happened in a
+hash-chained [audit trail](concepts/observability.md). Separately,
+[GSAR](concepts/gsar.md) scores whether the claim driving the action is
+supported by evidence at all.
+
+Pick a proposed action. Nothing below calls a model or touches a cluster —
+the deploy is an in-memory simulation, so the whole thing runs offline.
 
 <div class="action-demo" data-action-demo>
-  <div class="action-demo__tabs" role="tablist" aria-label="Deployment scenarios">
-    <button type="button" role="tab" data-demo-scenario="staging">Staging</button>
-    <button type="button" role="tab" data-demo-scenario="production">Production</button>
-    <button type="button" role="tab" data-demo-scenario="prohibited">Prohibited</button>
-    <button type="button" role="tab" data-demo-scenario="unsupported">Unsupported diagnosis</button>
+  <div class="action-demo__tabs" role="tablist" aria-label="Actions the agent proposed">
+    <button type="button" role="tab" data-demo-scenario="staging">Deploy to staging</button>
+    <button type="button" role="tab" data-demo-scenario="production">Deploy to production</button>
+    <button type="button" role="tab" data-demo-scenario="prohibited">Deploy a prohibited change</button>
+    <button type="button" role="tab" data-demo-scenario="unsupported">Act on an unsupported claim</button>
   </div>
   <div class="action-demo__workspace">
     <div class="action-demo__code" aria-label="Python policy used by the demo">
@@ -76,46 +131,17 @@ credentials, or a cluster.
 <span>            policy=policy, trail=trail)</span></code></pre>
     </div>
     <div class="action-demo__result" aria-live="polite">
-      <span class="action-demo__status" data-demo-status>✓ Executes</span>
+      <span class="action-demo__status" data-demo-status>✓ Allowed</span>
       <p data-demo-summary>The staging rollout passes policy and the simulated deploy function runs.</p>
       <dl>
         <dt>Evidence</dt><dd data-demo-evidence>CI passed · image checkout-api:1.8.2 · staging</dd>
-        <dt>Decision</dt><dd><code data-demo-decision>allow</code></dd>
+        <dt>Decision returned</dt><dd><code data-demo-decision>allow</code></dd>
         <dt>Audit record</dt><dd data-demo-audit>deploy checkout-api · allow · policy checks passed</dd>
       </dl>
     </div>
   </div>
   <p class="action-demo__note">Deterministic offline simulation · no external operation is performed</p>
 </div>
-
-[Open the executable source](https://github.com/tuliplabs-ai/docs/blob/main/examples/homepage_control_demo.py)
-or [run the infrastructure example](notebooks/notebook_84_infra_deploy_gate.md).
-
-## Believe the conclusion. Control the action. Explain the run.
-
-<div class="grid cards tulip-feature-cards" markdown>
-
-- :material-shield-search:{ .lg .middle } **[Check evidence](concepts/gsar.md)**
-
-    ---
-    Partition claims by evidence support. A configured judge can trigger
-    revision, replanning, or abstention; its assessment is not proof of truth.
-
-- :material-shield-lock:{ .lg .middle } **[Control execution](concepts/control-layer.md)**
-
-    ---
-    Calls routed through `admit()` run only after an allow decision. Your
-    application defines the labels, policy, and controlled paths.
-
-- :material-eye:{ .lg .middle } **[Inspect decisions](concepts/observability.md)**
-
-    ---
-    Record evidence, policy outcome, approval, and result. A hash-chained
-    `AuditTrail` detects later changes; durable storage remains your job.
-
-</div>
-
-## One workflow, end to end
 
 <div class="execution-flow" role="img" aria-label="Evidence is checked, a proposed action passes through policy and optional approval, the side effect is conditionally executed, and the decision is recorded">
   <div class="execution-flow__node"><strong>Evidence</strong><span>support or challenge claims</span></div>
@@ -126,20 +152,30 @@ or [run the infrastructure example](notebooks/notebook_84_infra_deploy_gate.md).
   <div class="execution-flow__audit"><strong>Decision record</strong><span>evidence · policy · approval · result</span></div>
 </div>
 
-The same pattern fits refunds, infrastructure, support operations, security,
-and internal workflows. Start with the [offline deployment gate](notebooks/notebook_84_infra_deploy_gate.md),
-then read the [runtime architecture](concepts/control-layer.md).
+[Read the executable source](https://github.com/tuliplabs-ai/docs/blob/main/examples/homepage_control_demo.py)
+of everything above.
 
-## A full agent framework behind the control path
+## What the runtime enforces, and what you configure
 
-Use one `Agent` API for typed tools, streaming, durable state, RAG, structured
-output, and multi-agent workflows. Run models through OpenAI, Anthropic,
-OpenRouter, Together.ai, Amazon Bedrock, Azure OpenAI, or maintained
-OpenAI-compatible routes.
+The controls are specific rather than absolute, and it matters which is which.
+`admit()` calls your function only after an allow decision and records that
+decision when you supply a trail — but you classify the actions and route every
+consequential path through the gate. Grounding applies your thresholds to a
+judge's typed partition; claim extraction and judge reliability remain
+judgment. Idempotency dedupes matching calls inside its documented scope, not
+across differently shaped calls that mean the same real operation.
+
+Read the [guarantees and boundaries](why-tulip.md) before putting Tulip behind
+a high-stakes workflow.
+
+## Build your first agent
+
+Requires Python 3.11 or newer. This site was built and tested against
+`tulip-agents` **{{ tulip_sdk_version }}**.
 
 | Build | Start here |
 |---|---|
-| A first working agent | [Create an agent](how-to/quickstart.md) |
+| A first working agent | [Get started](how-to/quickstart.md) |
 | A typed Python tool | [Add tools](concepts/tools.md) |
 | A controlled side effect | [Control an action](how-to/first-controlled-action.md) |
 | A paused workflow | [Request approval](concepts/interrupts.md) |
@@ -147,31 +183,16 @@ OpenAI-compatible routes.
 | Durable work | [Persist and resume](how-to/persist-conversations.md) |
 | Coordinated agents | [Compose multiple agents](concepts/multi-agent.md) |
 | Another model host | [Model providers](concepts/models.md) |
+| A run without credentials | [Offline examples](notebooks/index.md) |
 
-## Evidence, boundaries, and research
+[Get started](how-to/quickstart.md){ .md-button .md-button--primary }
 
-Tulip's controls are specific rather than absolute. Admission protects action
-paths routed through the gate. Grounding depends on supplied evidence and judge
-quality. Idempotency deduplicates matching calls only within its documented
-scope. See [guarantees and boundaries](why-tulip.md) before using Tulip for a
-high-stakes workflow.
+## Limits and research
 
 The [policy-blindness study](research/policy-blindness.md) reports where model
-judges failed, distinguishes row-weighted from deduplicated results, and
-preserves the evaluated configuration. Research artifacts are evidence about
-those experiments, not product guarantees.
-
-## Start building
-
-Requires Python 3.11 or newer. This site was built and tested against
-`tulip-agents` **{{ tulip_sdk_version }}**.
-
-```bash
-python -m pip install "tulip-agents[openai]"
-```
-
-[Get started →](how-to/quickstart.md){ .md-button .md-button--primary }
-[Browse examples →](notebooks/index.md){ .md-button }
+judges failed, separates row-weighted from deduplicated results, and preserves
+the evaluated configuration. Research artifacts are evidence about those
+experiments, not product guarantees.
 
 ---
 

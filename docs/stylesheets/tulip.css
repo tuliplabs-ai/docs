@@ -1921,13 +1921,13 @@ form.md-header__option {
 }
 .action-demo__tabs {
   display: flex;
-  gap: 0.35rem;
-  padding: 0.7rem;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  gap: var(--tl-space-2xs);
+  padding: var(--tl-space-sm);
   border-bottom: 1px solid var(--tl-rule);
 }
 .action-demo__tabs button {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   padding: 0.4rem 0.68rem;
   border: 1px solid transparent;
   border-radius: 0.45rem;
@@ -1943,9 +1943,10 @@ form.md-header__option {
   outline: none;
 }
 .action-demo__tabs button[aria-selected="true"] {
-  border-color: color-mix(in srgb, var(--tl-red) 45%, var(--tl-rule));
-  color: var(--tl-link);
-  background: color-mix(in srgb, var(--tl-red) 9%, transparent);
+  border-color: var(--tl-accent);
+  color: var(--tl-accent);
+  background: var(--tl-accent-subtle);
+  font-weight: 700;
 }
 .action-demo__workspace {
   display: grid;
@@ -2014,7 +2015,7 @@ form.md-header__option {
   background: var(--tl-deny-bg);
   border: 1px solid var(--tl-deny-border);
 }
-.action-demo__status--revise {
+.action-demo__status--abstain {
   color: var(--tl-abstain-fg);
   background: var(--tl-abstain-bg);
   border: 1px solid var(--tl-abstain-border);

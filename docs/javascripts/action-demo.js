@@ -2,13 +2,13 @@
 (function () {
   const scenarios = {
     staging: {
-      status: "✓ Executes", tone: "allow",
+      status: "✓ Allowed", tone: "allow",
       summary: "The staging rollout passes policy and the simulated deploy function runs.",
       evidence: "CI passed · image checkout-api:1.8.2 · staging", decision: "allow",
       audit: "deploy checkout-api · allow · policy checks passed", line: "blast"
     },
     production: {
-      status: "… Waits for approval", tone: "hold",
+      status: "… Held for approval", tone: "hold",
       summary: "The production label triggers a human hold. No deploy function runs.",
       evidence: "CI passed · image checkout-api:1.8.2 · production", decision: "require_human",
       audit: "deploy checkout-api · require_human · production policy", line: "human"
@@ -20,7 +20,7 @@
       audit: "deploy checkout-api · deny · label denied by policy", line: "deny"
     },
     unsupported: {
-      status: "↺ Revises", tone: "revise",
+      status: "↺ Abstained", tone: "abstain",
       summary: "The unsupported causal claim scores below the GSAR threshold, so no deploy is proposed.",
       evidence: "Claim: database saturation · evidence refs: none", decision: "replan",
       audit: "grounding decision · replan · unsupported claim", line: "ground"
