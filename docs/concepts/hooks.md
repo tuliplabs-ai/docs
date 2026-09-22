@@ -98,7 +98,7 @@ the *real* side effect lives in the host process, not in the tool body.
 
 ```python
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, issue_refund],
     hooks=[AuditHook()],
 )
@@ -123,7 +123,7 @@ from tulip.hooks.builtin import (
 )
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[...],
     hooks=[
         StructuredLoggingHook(),       # JSON logs at every phase

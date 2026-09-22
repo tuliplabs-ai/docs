@@ -7,7 +7,7 @@ time**:
 
 ```python
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, fetch_customer_history, shipping_status],
     tool_execution="concurrent",   # default — fan out
     # tool_execution="sequential", # opt-in — one at a time

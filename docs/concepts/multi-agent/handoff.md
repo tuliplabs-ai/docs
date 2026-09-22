@@ -68,7 +68,7 @@ from tulip.multiagent import (
 
 # HandoffAgent calls model.complete() directly, so pass a model client,
 # not a "provider:model" string.
-model = get_model("anthropic:claude-sonnet-4-6")
+model = get_model("{{ tulip_example_model }}")
 
 triage = create_handoff_agent(
     name="L1 Support",

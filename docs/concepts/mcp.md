@@ -65,7 +65,7 @@ from tulip.agent import Agent
 mcp_tools = ti.to_tulip_tools(await ti.list_tools())
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[*mcp_tools],           # MCP tools become SDK tools
     system_prompt="Triage the alert. Enrich every indicator before you act.",
 )
@@ -137,7 +137,7 @@ it) over MCP. Build the agent with the tools you want to publish:
 from tulip.agent import Agent
 from tulip.integrations.fastmcp import TulipMCPServer
 
-agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[lookup_order, issue_refund])
+agent = Agent(model="{{ tulip_example_model }}", tools=[lookup_order, issue_refund])
 server = TulipMCPServer(agent=agent, name="billing-tools")
 ```
 
@@ -210,7 +210,7 @@ billing = MCPClient(server_command=[...])     # consumer side
 await billing.connect()
 
 agent_a = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[*billing.to_tulip_tools(await billing.list_tools()), lookup_order, issue_refund],
 )
 

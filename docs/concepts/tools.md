@@ -43,7 +43,7 @@ mark optional parameters.
 ### 2. Pass to the agent
 
 ```python
-agent = Agent(model="openai:gpt-4o-mini", tools=[lookup_order])
+agent = Agent(model="{{ tulip_example_model }}", tools=[lookup_order])
 ```
 
 That's the wiring. The model now sees `lookup_order` in its tool list and

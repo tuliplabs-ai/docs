@@ -39,7 +39,7 @@ refund_escalation = Playbook(
 )
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, lookup_customer, check_refund_policy, issue_refund],
     hooks=[PlaybookEnforcerHook(playbook=refund_escalation)],
 )
@@ -153,7 +153,7 @@ from tulip.playbooks.hook import PlaybookEnforcerHook
 
 enforcer_hook = PlaybookEnforcerHook(playbook=nist_ir)
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[query_siem, enrich_indicator, isolate_host],
     hooks=[enforcer_hook],
 )

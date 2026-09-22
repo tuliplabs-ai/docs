@@ -399,7 +399,7 @@ def issue_refund(order_id: str, request_id: str) -> dict:
     return billing.refund(order_id, request_id)
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, issue_refund],
     system_prompt="You are a customer-support agent.",
     reflexion=True,                    # turn Reflect on

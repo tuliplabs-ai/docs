@@ -26,7 +26,7 @@ For production agents you usually want explicit policy:
 from tulip.hooks.builtin.retry import ModelRetryHook
 from tulip.agent import Agent
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[...],
     hooks=[
         ModelRetryHook(

@@ -51,7 +51,7 @@ from tulip.memory.backends.file import FileCheckpointer
 from tulip.server import AgentServer
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, check_refund_policy, issue_refund],
     system_prompt="You are a refund agent. Cite order evidence; escalate without it.",
     reflexion=True,

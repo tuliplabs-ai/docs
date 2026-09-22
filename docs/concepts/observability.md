@@ -28,7 +28,7 @@ from tulip.agent import Agent
 from tulip.hooks.builtin import StructuredLoggingHook
 
 agent = Agent(
-    model="openai:gpt-4o-mini",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, check_refund_policy, issue_refund],
     hooks=[StructuredLoggingHook(level=logging.INFO)],
 )
@@ -113,7 +113,7 @@ before it, so `verify()` fails on any edit.
 from tulip.hooks.builtin import TelemetryHook
 
 agent = Agent(
-    model="openai:gpt-4o-mini",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, issue_refund],
     hooks=[
         TelemetryHook(
@@ -280,7 +280,7 @@ from tulip.observability import EventBusHook, get_event_bus
 from tulip.agent import Agent
 run_id = "my-run-1"
 agent = Agent(
-    model="openai:gpt-4o-mini",
+    model="{{ tulip_example_model }}",
     tools=[query_metrics, get_deploy_status],
     hooks=[EventBusHook(run_id=run_id)],
 )

@@ -12,7 +12,7 @@ from tulip.agent import Agent
 from tulip.memory.backends import S3Backend
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[...],
     checkpointer=S3Backend(
         bucket="tulip-threads",

@@ -49,7 +49,7 @@ from tulip.agent import Agent
 from tulip.core.termination import MaxIterations
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, issue_refund],
     termination=MaxIterations(8),
 )

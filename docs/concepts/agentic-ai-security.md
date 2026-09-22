@@ -119,7 +119,7 @@ alongside that trail.
 ```python
 from tulip.control import governed_agent
 
-secured = governed_agent(model="openai:gpt-4o", tools=[...])
+secured = governed_agent(model="{{ tulip_example_model }}", tools=[...])
 result = secured.run_sync("...")
 assert secured.audit_trail.verify()   # the chain is intact (tamper-evident)
 ```
