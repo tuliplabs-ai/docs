@@ -5,13 +5,16 @@ edges decide what runs next, and state flows through. Cycles
 (retry-until-confidence), conditional branches, and subgraphs are
 all first-class.
 
-![StateGraph pattern — START → research → verify claims → assess → confidence gate → END, with a conditional loop-back to dig deeper when confidence < 0.85](../../img/patterns/graph.svg){ .diagram }
+{{ tulip_diagram graph }}
 
 ## What it is
 
 - **`StateGraph(state_schema=...)`** — a builder that takes an optional
   Pydantic `BaseModel` declaring the state fields and their reducers.
-- **`add_node(name, agent_or_callable)`** — a unit of work.
+- **`add_node(name, fn)`** — a unit of work: a function, sync or
+  async, that takes the state dict and returns the fields it updates
+  as a dict. A `StateGraph` passed here runs as a subgraph. An `Agent`
+  is not callable, so call `await agent.arun(...)` inside the function.
 - **`add_edge(src, dst)`** — unconditional transition.
 - **`add_conditional_edges(src, fn)`** — `fn(state) → next_node_name`
   picks the next node dynamically.
@@ -56,6 +59,7 @@ class ResearchState(BaseModel):
 
 graph = StateGraph(state_schema=ResearchState)
 
+# Each node is a function that takes the state dict and returns the fields it updates.
 graph.add_node("plan", plan_agent)
 graph.add_node("investigate", investigate_agent)
 graph.add_node("report", report_agent)
@@ -110,7 +114,8 @@ graph.add_edge("plan", "fan_out")
 graph.add_edge("fan_out", "merge")
 ```
 
-The fan-out happens when a **node** returns `Send`s; whatever a
+The fan-out happens when a **node** returns a `Send` or a list of
+them; the executor does not fan out a returned `SendBatch`. Whatever a
 router passed to `add_conditional_edges` returns is read as node
 names. Each `Send` names its own target, so `review_one` needs no
 incoming edge: the targets run in parallel, each with the current
@@ -125,7 +130,11 @@ graph.compile().get_mermaid()
 ```
 
 …returns a Mermaid flowchart string you can paste into the docs or
-a design review.
+a design review. It draws a conditional edge only from the `targets`
+map and `default` you passed to `add_conditional_edges`. A router
+passed on its own, like the one in the example above, draws no edge,
+so that graph's review loop is missing from the output. Pass a
+`targets` map to have the branches drawn.
 
 ## Notebooks
 
@@ -136,11 +145,12 @@ a design review.
 - [`notebook_18_state_reducers.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_18_state_reducers.py)
   — custom state reducers.
 - [`notebook_22_graph_advanced.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_22_graph_advanced.py)
-  — `RetryPolicy`, `CachePolicy`, subgraphs, Mermaid output.
+  — `RetryPolicy`, `CachePolicy`, Mermaid output, streaming with `emit_custom`.
 - [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_30_map_reduce_code_review.py)
   — `Send` fan-out / reduce in a graph.
 - [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_31_supervisor_critic_loop.py)
-  — `allow_cycles=True` + `max_iterations` for refine-until-confidence.
+  — a draft → review loop on `add_conditional_edges`, capped at two
+  revisions by a counter in state.
 - [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_63_incident_response.py)
   — triage → parallel investigators → severity gate → page-the-human.
 - [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)

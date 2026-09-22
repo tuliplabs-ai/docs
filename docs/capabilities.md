@@ -17,7 +17,7 @@ This build targets `tulip-agents` {{ tulip_sdk_version }} on Python 3.11–3.14.
 [compatibility policy](compatibility.md) for label definitions and upgrade
 guidance.
 
-![The trust chain — grounding → verification → policy → approval → admission → audit, each step enforced in code, not convention](img/patterns/trust-chain.svg){ .diagram }
+{{ tulip_diagram trust-chain }}
 
 !!! sdk-distinctive "Distinctive to the SDK"
     - **The control runtime — let an agent act, on your terms.** A
@@ -33,8 +33,7 @@ guidance.
       Handoff, StateGraph, and cross-process A2A — plus the Functional API
       (`@task` / `@entrypoint`) and DeepAgent (a research factory built on
       top).
-      Use them directly, or reach for them from the loop as tools. Every
-      pattern shares the same `Agent` class and event stream.
+      Use them directly, or reach for them from the loop as tools.
     - **In-process observability** — opt-in `EventBus` with agent yield
       bridge. One `run_context()` streams {{ tulip_event_count }} canonical events from every
       layer (agent, multi-agent, RAG, memory, A2A). Zero allocations
@@ -79,37 +78,41 @@ guidance.
 
 Every pattern maps to a real workflow across domains — payments, infra,
 support, data, security. The shape *is* the discipline: who runs in
-parallel, who hands off, who must agree before a refund clears, a host is
-isolated, or a record is deleted.
+parallel and who hands off. No shape gates whether a refund clears, a host
+is isolated, or a record is deleted — route that side effect through
+`admit()`.
 
-![Orchestrator pattern — a coordinator dispatches research, data, and writer specialists in parallel and merges their results into one answer](img/patterns/orchestrator.svg){ .diagram }
+{{ tulip_diagram orchestrator }}
 
 | Shape | Maps to | Surface |
 |---|---|---|
-| **Composition** | Payments: sequential fraud-check → risk-score → settle; parallel enrichment fan-out over a transaction's signals | `tulip.multiagent.composition` · [Composition](concepts/multi-agent/composition.md) |
-| **Orchestrator** | Security: one coordinator dispatches triage → forensics → containment specialists | `tulip.multiagent.orchestrator` · [Orchestrator](concepts/multi-agent/orchestrator.md) |
-| **Swarm** | Data & privacy: peers must agree a GDPR deletion is complete before it's signed off | `tulip.multiagent.swarm` · [Swarm](concepts/multi-agent/swarm.md) |
+| **Composition** | Payments: sequential fraud-check → risk-score → settle; parallel enrichment fan-out over a transaction's signals | `tulip.agent.composition` · [Composition](concepts/multi-agent/composition.md) |
+| **Orchestrator** | Security: one coordinator dispatches the triage, forensics and containment specialists it picks, in parallel, then correlates their findings | `tulip.multiagent.orchestrator` · [Orchestrator](concepts/multi-agent/orchestrator.md) |
+| **Swarm** | Data & privacy: peers claim the tasks of a GDPR deletion from a shared queue and post their findings to a shared context | `tulip.multiagent.swarm` · [Swarm](concepts/multi-agent/swarm.md) |
 | **Handoff** | Customer support: tier-1 hands the ticket + full history to tier-2, with context preserved | `tulip.multiagent.handoff` · [Handoff](concepts/multi-agent/handoff.md) |
 | **StateGraph** | Infra: re-run a DB migration until the schema is healthy, conditional rollback edges | `tulip.multiagent.graph` · [StateGraph](concepts/multi-agent/graph.md) |
 | **Functional API** | Cloud: map a config audit over N instances, reduce to one posture verdict | `tulip.multiagent.functional` · [Functional](concepts/multi-agent/functional.md) |
 | **A2A** | Cross-process handoff to a remote payouts, IR, or threat-intel service | `tulip.a2a` · [A2A](concepts/multi-agent/a2a.md) |
 
 ```python
-# Orchestrator fraud-check → risk-score → settle. Settlement owns the
-# write tools; issue_refund stays gated until the other two agree.
+# Orchestrator over fraud-check, risk-score and settlement: the desk's model
+# picks which run, the picked ones run in parallel, then the desk correlates
+# and summarizes. Specialists never see each other's work, and their tool
+# calls are not executed — send the refund itself through admit().
+from tulip.models import get_model
 from tulip.multiagent import Orchestrator, Specialist
 
+model = get_model("{{ tulip_example_model }}")
 settlement = Specialist(
     name="settlement",
     specialist_type="settlement",
-    description="Settles disputes. Only after fraud-check + risk agree.",
-    system_prompt="Settle a dispute only once fraud-check and risk concur.",
-    tools=[issue_refund, flag_transaction],  # idempotent writes
-    model="anthropic:claude-sonnet-4-6",
+    description="Recommends how to settle a dispute.",
+    system_prompt="Recommend a settlement, citing the evidence in the task.",
+    model=model,
 )
-desk = Orchestrator(model="anthropic:claude-sonnet-4-6")
+desk = Orchestrator(model=model)
 desk.register_specialists([fraud_check, risk_score, settlement])
-result = await desk.execute("Resolve the duplicate charge on order 8842 if risk agrees.")
+result = await desk.execute("Recommend how to resolve the duplicate charge on order 8842.")
 ```
 
 ## Security — a worked example domain
@@ -126,7 +129,7 @@ that never passes through it, or classify your actions for you — an action lef
 labelled `environment="staging"` never matches a policy that holds production,
 so see [Guarantees and boundaries](why-tulip.md).
 
-![A candidate finding plus typed, weighted evidence pass through ground_finding — only claims above the GSAR threshold become an Evidence; the rest abstain with a recorded reason](img/patterns/grounded-findings.svg){ .diagram }
+{{ tulip_diagram grounded-findings }}
 
 | Feature | What it does | Surface |
 |---|---|---|
@@ -188,7 +191,7 @@ await ctx.actions.execute(
 
 ## Reasoning
 
-![GSAR partitions each claim grounded / ungrounded / contradicted / complementary, then decides proceed / regenerate / replan / abstain](img/patterns/gsar-decision.svg){ .diagram }
+{{ tulip_diagram gsar-decision }}
 
 | Feature | What it does | Surface |
 |---|---|---|

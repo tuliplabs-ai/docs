@@ -43,15 +43,7 @@ reproducible.
 
 ## Where the risk actually lives
 
-```mermaid
-flowchart LR
-  M[model proposes a tool call] --> C
-  C[classify: what kind of thing is this?] --> G
-  G{"admit()"} -->|allow| P[the action runs]
-  G -->|hold| H[waits for a named person]
-  G -->|deny| X[refused]
-  G --> A[(audit trail)]
-```
+{{ tulip_diagram policy-blindness-1 }}
 
 The right-hand side is deterministic, a few hundred lines, and exhaustively
 testable. Everyone reviews it.
@@ -92,14 +84,7 @@ Every marker was a *destruction* verb, and running a command destroys nothing.
 The subtler version: you hold an action and leave an unheld route to the same
 outcome.
 
-```mermaid
-flowchart TD
-  A[agent wants payment from a customer] --> B[send_invoice]
-  A --> C[generate_invoice_qr_code]
-  B --> D[held: outbound communication]
-  C --> E[allowed: 'just rendering a code']
-  E --> F[a scannable, payable artifact for an invoice never sent]
-```
+{{ tulip_diagram policy-blindness-2 }}
 
 Both reach "the customer can pay this." Only one was classified.
 

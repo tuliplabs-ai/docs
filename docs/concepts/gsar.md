@@ -31,7 +31,7 @@ failure mode is a real cost. Use vanilla `grounding=True` for
 everything else; binary verdicts are cheaper and good enough most
 of the time.
 
-![GSAR partitions a synthesis into grounded, ungrounded, contradicted and complementary claims, scores them, and decides proceed, regenerate, or replan](../img/patterns/gsar-decision.svg){ .diagram }
+{{ tulip_diagram gsar-decision }}
 
 ## What it adds
 

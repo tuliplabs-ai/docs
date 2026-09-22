@@ -314,17 +314,7 @@ the workflow runs the full ReAct phase first, then evaluates the summary
 post-hoc with an LLM-as-judge, and replans at the graph level when the
 grounding score is too low.
 
-```
-START
-  ↓
-execute          ← Agent(reflexion=True) tool loop; collects evidence
-  ↓
-summarize        ← distill evidence into a summary (optionally structured)
-  ↓
-grounding_eval   ← GroundingEvaluator scores summary claims vs evidence
-  ├── score ≥ threshold ──► END
-  └── score < threshold ──► replan ──► execute   (up to max_replans)
-```
+{{ tulip_diagram deepagent-workflow }}
 
 ```python
 from tulip.deepagent.workflow import create_research_workflow

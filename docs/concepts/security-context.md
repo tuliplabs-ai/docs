@@ -11,7 +11,7 @@ machinery on this page — `admit()`, the policy, the labels — is the product'
 general control layer, the same one every domain uses; security is the worked
 example.
 
-![SecurityContext exposes six domain ports — logs, endpoint, identity, cloud, threat_intel, actions — each resolving to an offline reference or an injected live vendor](../img/patterns/security-context.svg){ .diagram }
+{{ tulip_diagram security-context }}
 
 ```python
 import asyncio

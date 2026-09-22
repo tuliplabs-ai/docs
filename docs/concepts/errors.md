@@ -1,9 +1,9 @@
 # Errors
 
-Every exception raised from inside Tulip subclasses a single root — `TulipError`. One handler catches
-any SDK-originated failure; a stable `kind` attribute on each subclass
-keeps your structured logs and metrics dashboards portable across
-releases.
+Every exception class in `tulip.core.errors` subclasses a single root — `TulipError`. One handler catches
+the whole hierarchy; a stable `kind` attribute on each class
+keeps your structured logs and metrics dashboards independent of
+class names.
 
 ```python
 from tulip.core.errors import TulipError
@@ -22,37 +22,25 @@ except TulipError as exc:
 
 | Situation | Catch |
 |---|---|
-| Anything from the SDK — single sweep handler at your service boundary | `TulipError` |
-| A specific tool blew up; want to retry / skip / re-route | `ToolError` (or one of its three subtypes) |
-| Provider auth or quota issue; want to escalate or back off | `ModelError` (or `ModelAuthError` / `ModelThrottledError`) |
-| Checkpoint resume failed; thread is corrupt or missing | `CheckpointError` |
-| Vector store / embeddings call failed | `RAGError` |
-| Bad config or invalid input at the public-API boundary | `ConfigError` / `ValidationError` |
+| Anything from this hierarchy — single sweep handler at your service boundary | `TulipError` |
+| `GSARConfig.fail_on_low_score` is set and the GSAR decision for a `run_sync` / `arun` result is not `proceed` | `GSARValidationError` (carries `.decision` and `.score`) |
+| Every credential in a `CredentialPoolModel` is cooling down | `ModelAuthError` (its `kind` is `model_pool_exhausted`) |
+| A safety check rejected input — `safe_resolve` (path), `validate_url` (URL), or `MCPClient.connect()` (server URL or launch package) | `ValidationError` |
+| Provider auth, quota or rate-limit failure | The provider SDK's own exception — it is not wrapped. [`classify`](providers/resilience.md#classifying-an-error) maps it to a `FailoverReason` |
+| A tool raised | Nothing — the loop returns the error to the model as the tool's result; `result.metrics.tool_errors` counts them |
 
-Outside this hierarchy, nothing the SDK emits will leak through —
-unwrapped third-party exceptions are wrapped at the boundary.
+`TulipError` does not cover everything a run can throw. Provider
+exceptions pass through unwrapped, much of the SDK raises built-in
+exceptions such as `ValueError`, and several modules define their own
+exceptions outside this hierarchy — so a boundary handler that must see
+every failure catches `Exception` after `TulipError`. The SDK does not
+itself raise the tool, checkpoint and RAG families, `ConfigError`, or the
+other model errors; they are public, so your own model adapters and
+checkpointers can raise them under the same root.
 
 ## Hierarchy
 
-```
-TulipError                       kind="tulip_error"
-├── ToolError                    kind="tool_error"
-│   ├── ToolNotFoundError        kind="tool_not_found"
-│   ├── ToolValidationError      kind="tool_validation"
-│   └── ToolExecutionError       kind="tool_execution"
-├── ModelError                   kind="model_error"
-│   ├── ModelAuthError           kind="model_auth"
-│   ├── ModelThrottledError      kind="model_throttled"
-│   └── ModelResponseError       kind="model_response"
-├── CheckpointError              kind="checkpoint_error"
-│   ├── CheckpointNotFoundError  kind="checkpoint_not_found"
-│   └── CheckpointSerializationError  kind="checkpoint_serialization"
-├── RAGError                     kind="rag_error"
-│   ├── EmbeddingError           kind="embedding_error"
-│   └── VectorStoreError         kind="vector_store_error"
-├── ValidationError              kind="validation_error"   (public-API input)
-└── ConfigError                  kind="config_error"       (invalid/missing config)
-```
+{{ tulip_diagram error-hierarchy }}
 
 Class names may evolve; `kind` strings are part of the stable contract.
 Key your dashboards on `kind`.
@@ -85,27 +73,33 @@ except TulipError as exc:
     raise
 ```
 
-Use `kind` instead of the class name — the string never changes; the
-class name might.
+Use `kind` instead of the class name — it is the documented stable key,
+and it can be finer than the class: a `ModelAuthError` from an exhausted
+credential pool carries `kind="model_pool_exhausted"`.
 
 ### Differentiated retry policy
 
+Provider errors are not `TulipError`s, so route them on what
+[`classify`](providers/resilience.md#classifying-an-error) says rather
+than on their class:
+
 ```python
-from tulip.core.errors import (
-    ModelThrottledError, ModelAuthError, ToolExecutionError, TulipError,
-)
+import time
+
+from tulip.core.errors import GSARValidationError, TulipError
+from tulip.models.failover import FailoverReason, classify
 
 for attempt in range(3):
     try:
         return agent.run_sync(prompt)
-    except ModelThrottledError:
-        time.sleep(2 ** attempt)         # 429 — exponential back-off
-    except ModelAuthError:
-        raise                            # auth issues never recover with retry
-    except ToolExecutionError:
-        return fallback_path(prompt)     # tool went south — degrade gracefully
+    except GSARValidationError:
+        return fallback_path(prompt)     # answer not grounded — degrade gracefully
     except TulipError:
-        raise                            # everything else: no retry
+        raise                            # everything else from the hierarchy: no retry
+    except Exception as exc:             # provider errors arrive unwrapped
+        if classify(exc).reason is not FailoverReason.RATE_LIMIT:
+            raise                        # anything but a rate limit: no retry
+        time.sleep(2 ** attempt)         # rate limit — exponential back-off
 ```
 
 ### Chained causes
@@ -132,17 +126,17 @@ log adapters — you don't lose context.
 
 | Symptom | Likely cause |
 |---|---|
-| Catching `Exception` instead of `TulipError` | You'll silently swallow `KeyboardInterrupt` and provider SDK bugs. Catch the concrete SDK base. |
-| `ModelThrottledError` retries forever | Cap the loop with a max attempt count or a deadline; don't rely on the provider giving up. |
-| `ToolValidationError` keeps firing for the same call | The model isn't reading the schema error. Tighten the system prompt or reduce the tool's surface. |
+| A provider error slips past `except TulipError` | Provider exceptions are not wrapped. Catch them after `TulipError` and route them with `classify`. |
+| Rate-limit retries run forever | Cap the loop with a max attempt count or a deadline; don't rely on the provider giving up. |
+| The same tool call keeps failing | The error goes back to the model as the tool's result, and the model isn't acting on it. Tighten the system prompt or reduce the tool's surface. |
 | Cause chain lost in logs | Use `logger.exception(...)`, not `logger.error(str(exc))`. |
 
 ## Source
 
-- [`tulip.core.errors`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/errors.py) — every exception class.
+- [`tulip.core.errors`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/errors.py) — every class in the hierarchy.
 
 ## See also
 
 - [Retry](retry.md) — the opt-in `ModelRetryHook` (retries empty model responses).
-- [Hooks](hooks.md) — `AfterToolCallEvent` carries any exception raised by the body.
-- [Tools](tools.md) — when `ToolValidationError` and `ToolExecutionError` fire.
+- [Hooks](hooks.md) — `AfterToolCallEvent` carries the error message when a tool body raises.
+- [Tools](tools.md) — how a tool that raises becomes an error result for the model.

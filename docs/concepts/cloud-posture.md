@@ -11,7 +11,7 @@ observed. Here an ungrounded claim *cannot* become a grounded `Evidence` finding
 so the report is trustworthy by construction, and the agent is read-only by
 construction, so the auditor can't become the incident.
 
-![The SOC analyst gathers read-only AWS API facts as evidence, then ground_report ships findings that cite an API fact and abstains on inference-only claims](../img/patterns/cloud-posture.svg){ .diagram }
+{{ tulip_diagram cloud-posture }}
 
 ## Two spec-driven tools
 

@@ -177,3 +177,60 @@ def test_page_links_are_pinned_during_the_build(tmp_path) -> None:
         config={"extra": {"sdk_version": "2.16.0", "sdk_checkout": str(tmp_path)}},
     )
     assert "/blob/v2.16.0/" in rendered
+
+
+# ── diagrams ─────────────────────────────────────────────────────────────────
+SVG = """<?xml version="1.0" encoding="UTF-8"?>
+<!-- authoring note -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" role="img" aria-labelledby="t d">
+  <title id="t">Loop</title>
+
+  <desc id="d">Think then act</desc>
+  <defs><marker id="ah"><path d="M0,0"/></marker></defs>
+  <path class="edge" marker-end="url(#ah)" d="M0,0"/>
+  <use href="#ah"/>
+</svg>
+"""
+
+
+def _diagram_dir(tmp_path, name="loop", body=SVG):
+    (tmp_path / "diagrams").mkdir(exist_ok=True)
+    (tmp_path / "diagrams" / f"{name}.svg").write_text(body)
+    return tmp_path
+
+
+def test_a_diagram_is_inlined_as_a_themed_figure(tmp_path) -> None:
+    out = build_metadata.render_diagram("loop", _diagram_dir(tmp_path))
+    assert out.strip().startswith('<figure class="tl-dia">')
+    assert "<?xml" not in out and "authoring note" not in out
+    assert "\n\n" not in out.strip(), "a blank line would end the raw HTML block"
+
+
+def test_diagram_ids_are_namespaced_with_every_reference(tmp_path) -> None:
+    out = build_metadata.render_diagram("loop", _diagram_dir(tmp_path))
+    assert 'id="loop--t"' in out and 'id="loop--ah"' in out
+    assert "url(#loop--ah)" in out and 'href="#loop--ah"' in out
+    assert 'aria-labelledby="loop--t loop--d"' in out
+
+
+def test_two_diagrams_on_one_page_do_not_share_ids(tmp_path) -> None:
+    docs = _diagram_dir(tmp_path)
+    _diagram_dir(tmp_path, "gate")
+    rendered = build_metadata.on_page_markdown(
+        "{{ tulip_diagram loop }}\n\n{{ tulip_diagram gate }}",
+        config={"extra": {"sdk_version": "dev"}, "docs_dir": str(docs)},
+    )
+    assert 'id="loop--ah"' in rendered and 'id="gate--ah"' in rendered
+
+
+def test_a_missing_diagram_fails_the_build(tmp_path) -> None:
+    with pytest.raises(RuntimeError, match="does not exist"):
+        build_metadata.render_diagram("nope", tmp_path)
+
+
+def test_pages_without_diagrams_never_touch_the_disk(monkeypatch) -> None:
+    def unexpected(*_a, **_k):
+        raise AssertionError("no diagram token, no file read")
+
+    monkeypatch.setattr(build_metadata, "render_diagram", unexpected)
+    assert build_metadata.on_page_markdown("text", config={"extra": {"sdk_version": "dev"}}) == "text"

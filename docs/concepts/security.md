@@ -6,7 +6,7 @@ grounding threshold.** Below the bar, the agent abstains and records why.
 An ungrounded finding would be a false positive, so the API gives you no
 way to create one: every finding carries the evidence that earned it.
 
-![A candidate finding plus typed, weighted evidence claims pass through ground_finding; only those clearing the GSAR threshold become a Finding, the rest abstain with a recorded reason](../img/patterns/grounded-findings.svg){ .diagram }
+{{ tulip_diagram grounded-findings }}
 
 ## The grounding bridge
 

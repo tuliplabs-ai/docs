@@ -11,7 +11,7 @@ just name the threats. (For developers outside security: OWASP publishes
 community-standard top-10 risk lists for web and AI applications; MITRE ATLAS
 catalogues real-world attack techniques against AI systems.)
 
-![Each OWASP LLM, OWASP ASI and MITRE ATLAS ID maps to a runnable scenario gist — threat, agent, defense — that produces a grounded Finding or an Abstention](../img/patterns/threat-coverage.svg){ .diagram }
+{{ tulip_diagram threat-coverage }}
 
 Every gist is **runnable offline with no credentials**. Together they map
 *every* ID encoded in Tulip's three taxonomy enums (`OwaspLLM`, `OwaspASI`,

@@ -51,12 +51,16 @@ Storage layout inside the store:
 
 With the default prefix `("tulip_memory",)`:
 
-```
-("tulip_memory", "user")       →  "role":             {content: "Tier-2 support agent"}
-("tulip_memory", "feedback")   →  "refund_approval":  {content: "Refunds over $500 need manager approval. Why: ..."}
-("tulip_memory", "project")    →  "billing_rollout":  {content: "Driven by the new billing rollout, not backlog"}
-("tulip_memory", "reference")  →  "orders_api":       {content: "Orders tracked in the 'orders' service API"}
-```
+| Namespace | Key | `content` of the stored value |
+|---|---|---|
+| `("tulip_memory", "user")` | `"role"` | Tier-2 support agent |
+| `("tulip_memory", "feedback")` | `"refund_approval"` | Refunds over $500 need manager approval. Why: ... |
+| `("tulip_memory", "project")` | `"billing_rollout"` | Driven by the new billing rollout, not backlog |
+| `("tulip_memory", "reference")` | `"orders_api"` | Orders tracked in the 'orders' service API |
+
+The stored value is the whole record: `type`, `key`, `content` and
+`metadata`. `save()` stamps `metadata["updated_at"]` on every write, and
+`retrieve()` sorts by it, newest first.
 
 Each memory key acts as a stable identifier: re-extracting the same
 fact under the same key **updates** the record, not duplicates it.
