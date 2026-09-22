@@ -8,7 +8,7 @@
       audit: "deploy checkout-api · allow · policy checks passed", line: "blast"
     },
     production: {
-      status: "⏸ Waits for approval", tone: "hold",
+      status: "… Waits for approval", tone: "hold",
       summary: "The production label triggers a human hold. No deploy function runs.",
       evidence: "CI passed · image checkout-api:1.8.2 · production", decision: "require_human",
       audit: "deploy checkout-api · require_human · production policy", line: "human"
