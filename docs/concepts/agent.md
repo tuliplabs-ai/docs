@@ -63,14 +63,14 @@ Each iteration has three phases:
 The loop terminates with one of these `stop_reason` literals on
 `AgentResult`: `complete`, `terminal_tool`, `confidence_met`,
 `max_iterations`, `tool_loop`, `no_tools`, `grounding_failed`,
-`token_budget`, `time_budget`, `interrupted`, `error`, `cancelled`.
+`token_budget`, `cost_budget`, `time_budget`, `interrupted`, `error`, `cancelled`.
 Triggers:
 
 - The model produces a response with no tool calls (`complete` / `no_tools`).
 - A composable termination condition on `Agent(termination=...)` fires
-  (see [`tulip.core.termination`](https://github.com/tuliplabs-ai/tulip-agents/-/blob/main/src/tulip/core/termination.py)
+  (see [`tulip.core.termination`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/termination.py)
   for the eight built-in conditions).
-- `max_iterations`, `token_budget`, or `time_budget_seconds` is reached.
+- `max_iterations`, `token_budget`, `max_cost_usd`, or `time_budget_seconds` is reached.
 - A terminal tool name (in `terminal_tools`, default
   `{submit, done, finish, complete, task_complete}`) is invoked.
 - `agent.cancel()` is called from another thread.

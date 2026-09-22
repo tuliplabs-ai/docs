@@ -2,7 +2,7 @@
 hide:
   - navigation
   - toc
-title: Tulip Agents — the open-source Python agent framework
+title: tulip agents — the open-source Python agent framework
 description: Build Python agents with typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one Agent class — and put a policy gate in front of the actions that change real systems.
 ---
 
@@ -112,10 +112,10 @@ the deploy is an in-memory simulation, so the whole thing runs offline.
 
 <div class="action-demo" data-action-demo>
   <div class="action-demo__tabs" role="tablist" aria-label="Actions the agent proposed">
-    <button type="button" role="tab" data-demo-scenario="staging">Deploy to staging</button>
-    <button type="button" role="tab" data-demo-scenario="production">Deploy to production</button>
-    <button type="button" role="tab" data-demo-scenario="prohibited">Deploy a prohibited change</button>
-    <button type="button" role="tab" data-demo-scenario="unsupported">Act on an unsupported claim</button>
+    <button type="button" role="tab" id="demo-tab-staging" aria-controls="demo-panel" data-demo-scenario="staging">Deploy to staging</button>
+    <button type="button" role="tab" id="demo-tab-production" aria-controls="demo-panel" data-demo-scenario="production">Deploy to production</button>
+    <button type="button" role="tab" id="demo-tab-prohibited" aria-controls="demo-panel" data-demo-scenario="prohibited">Deploy a prohibited change</button>
+    <button type="button" role="tab" id="demo-tab-unsupported" aria-controls="demo-panel" data-demo-scenario="unsupported">Act on an unsupported claim</button>
   </div>
   <div class="action-demo__workspace">
     <div class="action-demo__code" aria-label="Python policy used by the demo">
@@ -130,7 +130,7 @@ the deploy is an in-memory simulation, so the whole thing runs offline.
 <span>await admit(action, deploy,</span>
 <span>            policy=policy, trail=trail)</span></code></pre>
     </div>
-    <div class="action-demo__result" aria-live="polite">
+    <div class="action-demo__result" id="demo-panel" role="tabpanel" aria-labelledby="demo-tab-staging" aria-live="polite">
       <span class="action-demo__status" data-demo-status>✓ Allowed</span>
       <p data-demo-summary>The staging rollout passes policy and the simulated deploy function runs.</p>
       <dl>

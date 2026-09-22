@@ -58,14 +58,41 @@ Provider keys are read from the environment. Inject both secrets at runtime;
 never bake either into the image. Add a durable checkpointer before relying on
 thread continuity across restarts or replicas.
 
+Serving `app` with uvicorn, as the container and VM examples below do, skips
+`AgentServer.run()` and with it the check that refuses a non-loopback host
+when no key is configured. A `server.app` built without a key only logs a
+warning, then serves every route without authentication. Keep `api_key` or
+`TULIP_SERVER_API_KEY` set to a non-empty value: the `os.environ[...]` lookup
+above fails at import when the variable is missing, but an empty value turns
+authentication off.
+
 ## Container — the universal target
 
-The repo ships a multi-stage [`Dockerfile`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/Dockerfile)
-(non-root user, `HEALTHCHECK` on `/health`). Build, push to any registry,
-and run anywhere that runs containers:
+The tulip-agents repo ships a multi-stage [`Dockerfile`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/Dockerfile)
+(non-root user, `HEALTHCHECK` on `/health`). It is the library base image:
+built from the tulip-agents repo root, it installs `tulip-agents` with the
+`openai`, `server`, and `checkpoints` extras but copies no application code,
+and its `CMD` names a placeholder `app:server.app` for you to replace. Build
+it once, then derive your own image that adds `server.py`:
 
 ```bash
-docker build -t registry.example.com/tulip-concierge:0.1.0 .
+# In a tulip-agents checkout, from the repo root, at the tested release
+git checkout v{{ tulip_sdk_version }}
+docker build -t registry.example.com/tulip-agents:{{ tulip_sdk_version }} .
+```
+
+```dockerfile
+# Dockerfile.app, next to your server.py
+FROM registry.example.com/tulip-agents:{{ tulip_sdk_version }}
+COPY server.py /app/server.py
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
+```
+
+`server:app` is the `app = server.app` callable from the top of this page.
+Build, push to any registry, and run anywhere that runs containers:
+
+```bash
+docker build -f Dockerfile.app -t registry.example.com/tulip-concierge:0.1.0 .
 docker push    registry.example.com/tulip-concierge:0.1.0
 
 docker run -p 8080:8080 \
@@ -82,9 +109,9 @@ Azure Container Apps, or any other container host.
 Best for low-frequency or bursty traffic. Wrap the FastAPI app in an
 adapter for your platform — [Mangum](https://mangum.io/) for
 AWS Lambda, or deploy the container image directly to a
-scale-to-zero container runtime (Cloud Run, Container Apps). `Agent` is
-constructed lazily, so cold starts stay cheap. Set the provider key as a
-function secret.
+scale-to-zero container runtime (Cloud Run, Container Apps). The adapter
+wraps `server.app`; the FastAPI app is built on first access to it. Set the
+provider key and `TULIP_SERVER_API_KEY` as function secrets.
 
 ## Kubernetes — for production
 

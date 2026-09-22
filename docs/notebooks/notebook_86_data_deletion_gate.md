@@ -28,7 +28,7 @@ which request it is processing; the erasure still only happens if the
     Data Protection Officer reviews the held request and signs off
        │
        ▼
-    admit() runs the erasure under the DPO's recorded authority
+    admit() re-admits the erasure under a signed-off policy
 
 Two plain fields on one ``ControlPolicy`` do the gating — no DSL, no rules
 engine. ``require_human_for={"irreversible"}`` means any action carrying the
@@ -51,10 +51,21 @@ Officer resolving the ticket. The erasure is then re-admitted under a policy tha
 no longer auto-holds irreversible actions — because a person is now the one
 authorizing this specific signed-off ticket — and lands on the *same* trail. So
 the record shows three events in order: the auto-allowed export, the held
-erasure, and the erasure that ran only after approval. ``trail.verify()`` confirms
-the SHA-256 chain was not altered after the fact; edit, delete, or reorder a
-record and it returns ``False``. That hash-chained trail is the artifact you hand
-a regulator to show the deletion happened with human authorization.
+erasure, and the erasure that ran only after approval. That third record is a
+plain ``allow`` and does not name the DPO. To put the approver on the trail,
+re-admit the held action under the original policy with
+``admit(..., approved_by="dpo:alice@corp")`` instead: the action runs, and its
+record keeps the hold outcome (``require_human``) and gains an ``approved_by``
+field.
+
+``trail.verify()`` confirms the SHA-256 chain is internally consistent: edit or
+reorder a record, or delete one from the middle, and it returns ``False``. On
+its own it cannot catch records dropped off the end, or a chain rewritten and
+re-hashed from an edited record onward; the bare call this script makes returns
+``True`` for both. Before you hand the exported trail to a regulator, keep
+``trail.head`` where the agent cannot reach it and pass it back as
+``verify(expected_head=...)``, and sign the trail — see
+[what `verify()` catches](../api/control.md#what-verify-catches-and-the-one-thing-it-cannot).
 
 ``perform`` here is a local stub: ``export`` reads from and ``erase`` pops from an
 in-memory dict instead of mutating Postgres, S3, or a search index, so the script
@@ -66,7 +77,7 @@ Run it (fully offline — no model, no provider, no network):
 
 ## Output
 
-Running it offline — no credentials, bundled mock model — prints a GDPR erasure, and the chain that proves it:
+Running it offline — no model and no credentials — prints a GDPR erasure, and the chain that proves it:
 
 ```text
 Notebook 86: A human signs off before an agent erases personal data

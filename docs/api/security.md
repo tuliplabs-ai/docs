@@ -1,7 +1,6 @@
 # Security
 
-`tulip.security` is the largest module in the SDK and the one the product is
-positioned on. It covers three separable jobs:
+`tulip.security` is the SDK's security domain. It covers three separable jobs:
 
 - **Red-teaming** an agent — send adversarial probes at a target and report
   what got through.
@@ -173,8 +172,14 @@ whole set at once.
 
 ### AWS
 
-`use_aws()` refuses anything outside `READONLY_PREFIXES` unless you say
-otherwise, so the default posture is read-only.
+`use_aws()` refuses any operation whose name does not start with one of the
+`READONLY_PREFIXES` verbs (Describe, List, Get, …). It raises `PermissionError`
+before any AWS call is made, and there is no override. The `use_aws_tool`
+wrapper returns that refusal to the agent as a JSON object with an `error` key.
+This name check is defence-in-depth: run under a read-only IAM identity (the
+default profile is `tulip-security-audit`, overridable with `TULIP_AWS_PROFILE`),
+because that IAM policy is what actually enforces read-only access. Writes
+belong behind `admit()` or a gated tool of your own.
 
 ::: tulip.security.aws.describe_aws
 ::: tulip.security.aws.describe_aws_tool

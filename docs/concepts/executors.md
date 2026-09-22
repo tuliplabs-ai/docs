@@ -58,12 +58,13 @@ agent.
 
 ## Idempotent dedup runs *before* dispatch
 
-Whichever mode you pick, dedup happens first. When Execute receives
-a list of tool calls, the **first** thing it does — before launching
-any coroutines — is hash each `(tool_name, arguments)` and walk
-`state.tool_executions` for matches. For tools tagged
-`@tool(idempotent=True)`, matched calls short-circuit to the cached
-receipt and never enter the executor at all.
+Whichever mode you pick, dedup happens before dispatch. When Execute
+receives a list of tool calls, before it launches any coroutines it
+checks each `(tool_name, arguments)` pair — after
+[`on_before_tool_call`](hooks.md) hooks have run, so the check uses the
+arguments as they reach the tool — and walks `state.tool_executions`
+for matches. For tools tagged `@tool(idempotent=True)`, matched calls
+short-circuit to the cached receipt and never enter the executor at all.
 
 So a model that re-emits `issue_refund(order_id="ord-4821", ...)` in
 iteration 5 — when the same call already fired in iteration 2 — gets

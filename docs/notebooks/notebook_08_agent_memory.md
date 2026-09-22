@@ -1,32 +1,38 @@
 # Agent Memory
 
-Give an agent a checkpointer and every conversation turn is persisted to
-a real store. Restart the process, attach a new agent to the same Redis
-and the same `thread_id`, and the support conversation resumes —
-messages, ticket notes, tool history, confidence score and all.
+Give an agent a checkpointer and every conversation turn is saved under
+its `thread_id`. Call the agent again with that `thread_id` — or attach a
+new agent to the same store with the same `thread_id` — and the
+conversation resumes: messages,
+tool history, confidence score and all. With a durable backend, that
+holds across a process restart too.
 
 What you'll learn:
 
-- Building a `RedisBackend` checkpointer.
-- Keying conversations with `thread_id` (one per customer ticket).
-- Writing a checkpoint after every iteration so a crash mid-tool-call
-  still recovers.
+- Building a `MemoryCheckpointer` and passing it to the agent.
+- Keying conversations with `thread_id` (one per conversation).
+- Writing a checkpoint after every iteration
+  (`checkpoint_every_n_iterations=1`), not only when a run finishes.
+- A second agent attaching to the same store and picking up the same
+  `thread_id`.
 - Loading the saved `AgentState` and inspecting it field by field.
-- Running many independent threads against a single Redis.
+- Running many independent threads against a single store.
 
-This notebook does not fall back to in-memory storage — Redis is the
-only backend exercised here.
+This notebook uses `MemoryCheckpointer`, an in-memory store, so it runs
+with no setup; its state lasts only as long as the process. For a
+conversation that survives a restart, swap in a durable checkpointer —
+`FileCheckpointer`, or `redis_checkpointer()` /
+`postgresql_checkpointer()` — see [Checkpointers](../concepts/checkpointers.md).
 
 Run it:
 
 ```
-export REDIS_URL=redis://localhost:6379/0
 python examples/notebook_08_agent_memory.py
 ```
 
-If that env var is unset the script prints a skip banner and exits
-0 — convenient for CI. The agent's model goes through whichever
-provider you configure via `TULIP_MODEL_PROVIDER` (openai / anthropic / for a live model). For offline runs set `TULIP_MODEL_PROVIDER=mock`.
+With `TULIP_MODEL_PROVIDER` unset it uses the bundled mock model, so it
+needs no credentials. The agent's model goes through whichever
+provider you configure via `TULIP_MODEL_PROVIDER` (`openai` / `anthropic`) for a live model; set `TULIP_MODEL_PROVIDER=mock` for offline runs.
 
 ## Source
 

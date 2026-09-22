@@ -35,7 +35,7 @@ for browsers.
 
 | You want… | Use… |
 |---|---|
-| Live token-by-token rendering in a UI | `async for event in agent.run(...)` |
+| Live token-by-token rendering in a UI | `async for event in agent.run(..., stream_tokens=True)` |
 | The final answer as a single value (tests, scripts, REPL) | `agent.run_sync(prompt).message` — no event handling |
 | Spans / metrics on every model + tool call | install [`TelemetryHook`](hooks.md#telemetryhook) |
 | To stream over HTTP to a browser | [`AgentServer`](server.md) re-emits as SSE |
@@ -64,7 +64,7 @@ from tulip.core.events import (
     TerminateEvent,
 )
 
-async for event in agent.run("Resolve the duplicate charge on ord-4821."):
+async for event in agent.run("Resolve the duplicate charge on ord-4821.", stream_tokens=True):
     match event:
         case ThinkEvent(reasoning=r) if r:
             print(f"💭 {r}")
@@ -88,8 +88,8 @@ branch your IDE underlines it; if you mistype a field name (e.g.
 
 | Event | When it fires | Useful for |
 |---|---|---|
-| `ThinkEvent` | The model emits reasoning (extended-thinking models like Claude 4 / o-series) | Render "thinking…" bubbles in a UI |
-| `ModelChunkEvent` | Each streamed text chunk from the model | Token-level live rendering |
+| `ThinkEvent` | Once per loop turn, on every provider, after the model responds — `reasoning` carries the assistant's text for that turn (on the last turn that is the final answer, which `TerminateEvent.final_message` repeats), or the provider's separate reasoning channel when there is one | Render the assistant's text as it arrives, or a "thinking…" bubble in a UI |
+| `ModelChunkEvent` | Each streamed text chunk from the model — only with `agent.run(..., stream_tokens=True)` | Token-level live rendering |
 | `ToolStartEvent` | The agent decided to call a tool | Show a "calling X" indicator |
 | `ToolCompleteEvent` | A tool returned (or raised — check `error`) | Show the result inline |
 | `ReflectEvent` | Reflexion emitted a self-evaluation | Show "I'm checking my work" |
@@ -142,7 +142,10 @@ and scripts where the trace doesn't matter.
 ## Practical recipe — render to a terminal UI
 
 ```python
-async for event in agent.run("Check ord-4821 for a duplicate charge and refund it if confirmed."):
+async for event in agent.run(
+    "Check ord-4821 for a duplicate charge and refund it if confirmed.",
+    stream_tokens=True,
+):
     match event:
         case ToolStartEvent(tool_name=n):
             print(f"\n🔧 {n}", end="", flush=True)

@@ -11,8 +11,13 @@ evidence) — behind a ``create_deepagent`` core. The agent proposes findings;
 abstains. The model gathers and proposes; Python decides what ships.
 
 This is the differentiator. A commodity "AWS agent" will confidently narrate
-misconfigurations it never actually observed. Here, an ungrounded claim cannot
-become an ``Evidence`` — it abstains — so the report is trustworthy by construction.
+misconfigurations it never actually observed. Here, a finding survives only if
+the analyst cited direct API observations for it; inferences alone abstain
+(``ground_report``). The control is on the *shape* of the evidence, not its
+truth — the agent marks each cited fact as observation or inference (the
+``grounded`` flag, which defaults to observation), and the ``ref`` string is
+carried for audit, not parsed — so pair this with the raw ``use_aws`` responses
+when you need the citation itself checked.
 
 Maps to OWASP ASI: Identity & Privilege Abuse (the root-access-key class of
 finding); the read-only-by-construction tooling is the control that keeps the

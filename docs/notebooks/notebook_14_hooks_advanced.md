@@ -2,8 +2,10 @@
 
 The agent-hooks notebook covered hook basics. This one focuses on the safety
 properties Tulip enforces on the event objects hooks see, and on the
-control levers a hook can pull mid-flight: `event.cancel` to skip a tool
-call, and `event.retry` to re-issue a model call.
+control lever a hook pulls mid-flight: `event.cancel` to block a
+destructive tool call. A second lever, `event.retry`, is writable on the
+after-events (`on_after_model_call`, `on_after_tool_call`) and is not
+exercised here.
 
 The scenario is RELEASE GUARD — the change-gating layer that sits between a
 deploy-ops agent and the production cluster. A deploy agent that can delete a

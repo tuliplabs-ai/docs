@@ -1,9 +1,12 @@
 # Research
 
-Findings from building a control runtime for agents that take real actions.
+Findings from building Tulip — an open-source Python agent framework — and the
+control layer that decides which of an agent's actions may run.
 Everything here comes from running code against real catalogs, real tools and
-real models — the numbers are reproducible, and where a result is a single
-illustration rather than a benchmark, it says so.
+real models. The method and the scoring code are public and runnable against
+your own endpoint; where a result depends on a model or a corpus we do not
+redistribute, the page says so, and where a result is a single illustration
+rather than a benchmark, it says that too.
 
 ## Papers
 
@@ -25,7 +28,8 @@ others, and the silence survives code review, its own tests, validation against
 the real tool catalog, and training.
 
 Three independent instances, one of them measured: **Clusiana-Admit-4B** on
-3,139 distinct held-out items reaches a 1.88% false-allow rate, but its errors cluster —
-5.45% on execution and 5.32% on egress against 0.00% on destruction. Includes a
+3,139 distinct held-out items reaches a 1.88% false-allow rate. Row-weighted
+across the 8,989-row split, those errors cluster by family — 5.45% on execution
+and 5.32% on egress against 0.00% on destruction. Includes a
 seven-model comparison against GPT-5 and Claude Opus/Sonnet/Haiku on identical
 rows, and the reason the headline number from that comparison is misleading.

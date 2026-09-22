@@ -43,7 +43,7 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_36_reasoning_patterns.py
   `openai` / `anthropic` / `mock`.
 - A model that supports constrained JSON decoding for the
   `output_schema=` parts. The `check_structured_output_capable()` helper
-  exits cleanly under mock or Cohere R-series.
+  exits cleanly under mock.
 
 ## Source
 

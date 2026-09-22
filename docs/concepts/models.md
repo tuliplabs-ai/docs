@@ -1,9 +1,10 @@
 # Model providers
 
-A model is a string. The prefix before the colon (`openai:` or
-`anthropic:`) tells the Tulip SDK which provider to use; the rest is the
-model id that provider expects. `get_model()` parses the string and
-returns a ready client.
+A model is a string. The prefix before the colon names the provider —
+`openai:`, `anthropic:`, `azure:`, `bedrock:`, or one of the
+OpenAI-compatible prefixes such as `ollama:`, `vllm:`, `groq:` or
+`gemini:` — and the rest is the model id that provider expects.
+`get_model()` parses the string and returns a ready client.
 
 ```python
 # tools, system_prompt, and other kwargs are the same across providers
@@ -13,18 +14,32 @@ Agent(model="openrouter:provider/model-id", tools=[lookup_order, issue_refund]) 
 Agent(model="together:organization/model-id", tools=[lookup_order, issue_refund]) # Together.ai
 ```
 
-To reach a **self-hosted model** (Ollama, vLLM, or any OpenAI-compatible
-server), use the `openai` provider with a custom `base_url` — point it at
-your endpoint and no prompt leaves your network:
+To reach a **self-hosted model**, use its prefix. `ollama:` and `vllm:`
+default to the server's conventional local endpoint
+(`http://localhost:11434/v1` and `http://localhost:8000/v1`) and need no
+API key — run the server on your own host and the model call stays
+inside your network; prompts never reach a hosted model API:
 
 ```python
-from tulip.models.native.openai import OpenAIModel
+# Self-hosted servers have their own prefixes: local default endpoint, no key.
+# On-prem: the model call never leaves the box.
+Agent(model="ollama:qwen3", tools=[lookup_order, issue_refund])
+```
 
-# Ollama / vLLM expose an OpenAI-compatible API — reach it via base_url.
-local = OpenAIModel(model="llama-3.3-70b",
-                    base_url="http://localhost:11434/v1",  # Ollama default
-                    api_key="ollama")                      # any non-empty string
-Agent(model=local, tools=[lookup_order, issue_refund])     # on-prem, no data egress
+To run the server somewhere other than localhost, set
+`TULIP_OLLAMA_BASE_URL` or `TULIP_VLLM_BASE_URL` (the conventional
+`OLLAMA_BASE_URL` / `VLLM_BASE_URL` also work; the `TULIP_` variable wins
+when both are set). An OpenAI-compatible server with no
+named prefix goes through `openai-compatible:`, which has no default
+endpoint, so you supply one:
+
+```python
+from tulip.models import get_model
+
+# Any other OpenAI-compatible server: no default endpoint, so pass base_url.
+local = get_model("openai-compatible:llama-3.3-70b",
+                  base_url="http://inference.internal:8000/v1")
+Agent(model=local, tools=[lookup_order, issue_refund])     # model call stays on your network
 ```
 
 The same agent works against any provider — only the model id, the
@@ -40,16 +55,32 @@ tulip.models
 │
 ├── openai:                                ── OpenAI direct · OpenAIModel
 │   ├─ chat completions       — gpt-* family
-│   ├─ reasoning models       — o-series
-│   └─ compatible endpoints   — OpenRouter · Together.ai · LiteLLM · vLLM ·
-│                               Ollama · Fireworks · Groq · custom base_url —
-│                               any OpenAI-compatible endpoint, incl.
-│                               self-hosted / air-gapped (no data egress)
+│   └─ reasoning models       — o-series
 │
 ├── anthropic:                             ── Anthropic direct · AnthropicModel
 │   ├─ Claude family          — opus · sonnet · haiku
-│   └─ prompt caching         — cache the playbook + GSAR rubric once;
-│                               subsequent turns pay 1/10th input cost
+│   └─ prompt caching         — opt-in (prompt_cache=True), non-streaming
+│                               calls only: marks the system prompt + tool
+│                               catalog; once that prefix passes the model's
+│                               minimum cacheable length, later turns read
+│                               it at ~1/10th input cost while the ~5-min
+│                               cache holds
+│
+├── azure:                                 ── Azure OpenAI · AzureOpenAIModel
+│   └─ deployments            — the URL names a deployment, not a model id
+│
+├── bedrock:                               ── Amazon Bedrock · BedrockModel
+│   └─ Converse API           — one client for every Bedrock chat model
+│                               that supports Converse
+│
+├── OpenAI-compatible prefixes             ── OpenAIModel at a routed base_url
+│   ├─ self-hosted            — ollama · vllm · lmstudio · llamacpp
+│   │                           (model call stays on-network)
+│   ├─ gateway                — litellm (on-network only if its upstreams are)
+│   ├─ managed                — groq · together · openrouter · deepseek ·
+│   │                           mistral · xai · fireworks · cerebras ·
+│   │                           perplexity · nvidia · gemini
+│   └─ openai-compatible:     — any other endpoint; you supply base_url
 │
 └── custom:                                ── register_provider("myco", MyModel)
     └─ implement ModelProtocol — complete · stream
@@ -58,17 +89,25 @@ tulip.models
 Pick the prefix that matches both your auth surface and your data-handling
 rules. The hosted API endpoints send prompts off-box — fine when the
 vendor's audit logging and data-residency terms cover your data. For
-**air-gapped or strictly data-residency-bound environments**, point
-`openai` at a self-hosted OpenAI-compatible server (Ollama / vLLM) via
-`base_url` so prompt payloads never leave the network.
+**air-gapped or strictly data-residency-bound environments**, use a
+self-hosted prefix (`ollama:`, `vllm:`, or `openai-compatible:` with your
+own `base_url`) so prompt payloads never reach a hosted model API.
+
+Other surfaces you configure egress on their own paths — a web-search or
+web-fetch provider, a hosted embedding backend for RAG, an
+`auxiliary_model` or grounding model on a hosted provider, or trace
+export — so audit those separately.
 
 | Provider | Detail page |
 |---|---|
 | **OpenAI** | [OpenAI →](providers/openai.md) |
 | **Anthropic** | [Anthropic →](providers/anthropic.md) |
+| **Azure OpenAI** | [Azure OpenAI →](providers/azure.md) |
+| **Amazon Bedrock** | [Amazon Bedrock →](providers/bedrock.md) |
 | **OpenRouter** | [OpenAI-compatible providers →](providers/openai-compatible.md#openrouter-and-togetherai) |
 | **Together.ai** | [OpenAI-compatible providers →](providers/openai-compatible.md#openrouter-and-togetherai) |
 | **Other hosted or self-hosted endpoints** | [OpenAI-compatible providers →](providers/openai-compatible.md) |
+| **Failover, credential pools, rate limits** | [Resilience →](providers/resilience.md) |
 
 ## Custom providers
 

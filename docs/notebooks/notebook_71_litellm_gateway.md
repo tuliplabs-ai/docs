@@ -53,3 +53,9 @@ python examples/notebook_71_litellm_gateway.py
 - [`examples/litellm-gateway/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/examples/litellm-gateway) — the working sample: `config.yaml`, `docker-compose.yml`, `helm-values.yaml`.
 - [Model providers](../concepts/models.md) — the direct (no-gateway)
   providers, the right default for single-tenant.
+
+## Source
+
+````python
+--8<-- "examples/notebook_71_litellm_gateway.py"
+````

@@ -113,9 +113,20 @@ export TULIP_OLLAMA_BASE_URL=http://gpu-box:11434/v1
   calling, structured output, or vision. See
   [Structured output](../structured-output.md) for the fallbacks Tulip
   applies when a model cannot constrain its own decoding.
-- **`temperature` / `top_p` left unset are omitted** from the request, so a
-  self-hosted server's own `generation_config.json` defaults apply rather
-  than being silently overridden.
+- **Sampling defaults are sent.** `temperature` and `top_p` default to
+  `0.7` / `0.9` on the model config and go out with chat-completions
+  requests (model ids Tulip treats as reasoning or search-preview models
+  are the exception). `AgentConfig.temperature` defaults to `None` and is
+  forwarded on the agent's regular turns only when set, so it does not
+  override them there. (The iteration-limit summary, empty-answer recovery
+  and structured-output repair calls pass the agent's `temperature`
+  explicitly, so with the default `None` they send `top_p` but no
+  `temperature`.) `AgentConfig` has no `top_p` field. To let a
+  self-hosted server's own `generation_config.json` defaults apply, clear
+  them when you build the model —
+  `get_model("vllm:my-model", temperature=None, top_p=None)`, or
+  `Agent(model="vllm:my-model", model_kwargs={"temperature": None, "top_p": None})`
+  — since `None` means "do not send this parameter".
 
 → [Models overview](../models.md) · [OpenAI provider](openai.md) ·
 [LiteLLM gateway](../../how-to/litellm-gateway.md)

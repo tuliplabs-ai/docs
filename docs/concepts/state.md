@@ -34,7 +34,7 @@ for you. Reach for it when:
 |---|---|
 | You're writing a custom hook and want to inspect the conversation so far | Read `state.messages`, `state.tool_executions`, `state.confidence` |
 | You're persisting a run and rehydrating later | `state.to_checkpoint()` / `AgentState.from_checkpoint(d)` — every checkpointer does this internally |
-| You're writing a custom termination predicate | `CustomCondition(lambda s: ...)` — `s` is `AgentState` |
+| You're writing a custom termination predicate | `CustomCondition(lambda s, **ctx: (..., "reason"))` — `s` is `AgentState` |
 | You're building a multi-agent graph | Reducers compose new `AgentState` from parallel branches (see below) |
 | You want to seed a run from a previous transcript | Construct `AgentState(messages=(...))` and pass to `agent.run(...)` |
 
@@ -132,5 +132,5 @@ doesn't use them. See `tulip.core.reducers` for the source.
 
 - [Checkpointers](checkpointers.md) — durable persistence of `AgentState`.
 - [Events](events.md) — what gets emitted as state changes.
-- [Termination](termination.md) — `CustomCondition(fn)` is `(state) -> bool`.
+- [Termination](termination.md) — `CustomCondition(fn)` is `(state, **ctx) -> (stop, reason)`.
 - [Multi-agent: StateGraph](multi-agent/graph.md) — where reducers earn their keep.

@@ -15,9 +15,9 @@ html {
 
    Brand (from docs/img/logo.svg):
      - Wordmark is always lowercase "tulip", never capitalized.
-     - Body type is sans (Inter); display type — headings, hero, header
-       wordmark, tabs, footer brand — is the Fraunces variable serif
-       (--tulip-display below, single source of truth).
+     - Body type is sans (Inter), and so are headings, hero, tabs and the
+       footer brand. The Fraunces variable serif (--tulip-display below,
+       single source of truth) is used for the header wordmark only.
      - Wordmark colour:  #1B1620   (warm near-black)
      - Mark accent:      #D6336C   (tulip red, also accent3)
      - Tagline:          uppercase, weight 500, letter-spacing 0.16em,
@@ -52,14 +52,15 @@ html {
   --tl-rose-tint:   #F4A6C2;   /* light rose tint */
   --tl-green:       #16A34A;   /* the one true green (success accents) */
 
-  /* tulip type stack — same as logo SVG, sans throughout */
+  /* tulip type stack — sans for body and headings; the header title
+     (wordmark) alone uses --tulip-display */
   --tulip-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
                 Helvetica, system-ui, sans-serif;
   --tulip-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo,
                 Consolas, monospace;
   /* display face — Fraunces variable serif (loaded via extra_css in
-     mkdocs.yml); applied to headings/hero/header wordmark/tabs by the
-     dev-brand section near the end of this file */
+     mkdocs.yml); used for the header wordmark only. Headings, hero, tabs
+     and footer brand stay on --tulip-sans. */
   --tulip-display: "Fraunces", Georgia, "Times New Roman", serif;
 
   /* pink -> deep-rose brand gradient (hero accent word, footer wordmark,
@@ -264,7 +265,9 @@ html {
 }
 
 /* ---------------------------------------------------------------------------
-   Typography — sans throughout, matching the tulip wordmark.
+   Typography — sans (Inter) for body and headings; only the header
+   wordmark uses the Fraunces display face (--tulip-display). The page-title
+   topic that Material would swap in on scroll is hidden site-wide below.
    Display headings carry the wordmark's tight tracking (-0.04em on h1, -0.02em
    below). Subheadings can opt into the tagline pattern (uppercase + 0.16em)
    via the `.tagline` utility class.
@@ -296,8 +299,8 @@ html {
   font-family: var(--tulip-sans);
 }
 
-/* Brand title — the "tulip agents" header title renders in the logo's
-   rounded geometric wordmark face, not the body sans. */
+/* Brand title — the "tulip agents" header wordmark renders in the Fraunces
+   display face, not the body sans. It is the only display-face element. */
 .md-header__topic:first-child > .md-ellipsis {
   font-family: var(--tulip-display);
   font-weight: 600;
@@ -345,7 +348,7 @@ html {
   line-height: 1.65;
 }
 
-/* Homepage hero — Strands-format split (copy left, code right) with
+/* Homepage hero — split layout (copy left, code right) with
    soft-glow background blobs for visual warmth without
    enterprise stiffness. */
 .md-typeset .tulip-hero {
@@ -492,34 +495,6 @@ html {
   font-size: 0.78rem;
 }
 
-/* Stat strip — compact metric bar. */
-.md-typeset .tulip-stat-strip {
-  display: block;
-  border-top: 1px solid var(--tl-rule);
-  border-bottom: 1px solid var(--tl-rule);
-  padding: 0.35rem 0;
-  margin: 0.7rem 0 1rem;
-}
-/* Target the <p> MkDocs injects so font-size and centering apply correctly. */
-.md-typeset .tulip-stat-strip p {
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--tulip-mute);
-  margin: 0;
-  line-height: 1.5;
-  text-align: center;
-}
-.md-typeset .tulip-stat-strip a {
-  color: inherit;
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
-}
-.md-typeset .tulip-stat-strip a:hover {
-  color: var(--tl-red);
-  border-bottom-color: var(--tl-red);
-}
 /* Hide the ¶ permalink on the hero h1. */
 .md-typeset .tulip-hero h1 a.headerlink {
   display: none;
@@ -682,19 +657,6 @@ html {
   opacity: 0.85;
 }
 
-/* Dark-mode swap. ``mkdocs.yml`` declares a single ``theme.logo``
-   pointing at ``img/mark.svg`` (outer-diamond stroke ``#1B1620`` —
-   warm near-black, sized for the light surface). On the slate scheme
-   the surface goes dark ``#1F1D1A`` and that stroke is practically
-   invisible, especially on mobile where the mark is the only brand
-   anchor. Swap the image content to the white-stroke variant
-   (``img/mark-dark.svg``) when the slate scheme is active. ``content:``
-   on ``<img>`` is supported across Chrome/Safari/Firefox 119+ — fine
-   for our browser baseline. */
-[data-md-color-scheme="slate"] .md-header__button.md-logo img[src*="img/mark.svg"] {
-  content: url("../img/mark-dark.svg");
-}
-
 /* Title block in the middle — "tulip" wordmark only.
    The slogan lives in the SVG logo and on the homepage; trying to
    stack a tagline beneath the title fights Material's absolute-
@@ -828,10 +790,10 @@ form.md-header__option {
   }
 }
 
-/* GitHub icon white when inside the mobile drawer (red primary background). */
+/* GitHub icon in the mobile drawer uses ink on the drawer surface. */
 .md-nav--primary .md-header__source.md-header__github,
 .md-drawer .md-header__source.md-header__github {
-  color: #FFFFFF;
+  color: var(--tulip-ink);
 }
 
 /* Header right slot — PyPI version badge sits to the right of the GitHub
@@ -892,7 +854,7 @@ form.md-header__option {
   }
 }
 .md-nav--primary .md-header__source.md-header__github:hover {
-  color: #FFFFFF;
+  color: var(--tl-red);
   opacity: 0.8;
 }
 
@@ -948,17 +910,15 @@ form.md-header__option {
 .md-nav--primary .md-nav__title[for="__drawer"] .md-nav__button {
   color: var(--tulip-ink);
 }
-/* Source slot inside the drawer — target the actual container. */
+/* Source slot inside the drawer — target the actual container. Same surface
+   as the drawer header above it in each scheme. */
 .md-nav__source {
-  background-color: #2A2826 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  background-color: var(--tl-surface);
+  border-bottom: 1px solid var(--tl-rule);
 }
 [data-md-color-scheme="slate"] .md-nav--primary .md-nav__title[for="__drawer"] {
   background-color: var(--tl-surface);
   color: var(--tl-text);
-}
-[data-md-color-scheme="slate"] .md-nav__source {
-  background-color: #2A2826 !important;
 }
 
 /* Mobile: float the palette toggle into the right rail. At cramped
@@ -1072,26 +1032,33 @@ form.md-header__option {
 }
 .md-typeset .admonition.note > .admonition-title,
 .md-typeset details.note > summary {
-  background-color: rgba(0, 104, 140, 0.08);
+  background-color: var(--tl-bg-soft);
   color: var(--tl-link);
 }
+/* Warning and tip take the status tokens (hold and allow), not the brand
+   pink: pink means Tulip or an interactive element, never a status. The
+   tokens are defined per scheme, so the title keeps its contrast in dark. */
 .md-typeset .admonition.warning,
 .md-typeset details.warning {
-  border-left-color: var(--tl-red);
+  border-left-color: var(--tl-hold-border);
 }
 .md-typeset .admonition.warning > .admonition-title,
 .md-typeset details.warning > summary {
-  background-color: rgba(229, 72, 103, 0.08);
-  color: var(--tl-red-deep);
+  background-color: var(--tl-hold-bg);
+  color: var(--tl-hold-fg);
+}
+.md-typeset .admonition.warning > .admonition-title::before,
+.md-typeset details.warning > summary::before {
+  background-color: var(--tl-hold-fg);
 }
 .md-typeset .admonition.tip,
 .md-typeset details.tip {
-  border-left-color: var(--tl-green);
+  border-left-color: var(--tl-allow-border);
 }
 .md-typeset .admonition.tip > .admonition-title,
 .md-typeset details.tip > summary {
-  background-color: rgba(22, 163, 74, 0.18);
-  color: #2f6243;
+  background-color: var(--tl-allow-bg);
+  color: var(--tl-allow-fg);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1125,7 +1092,7 @@ form.md-header__option {
    Footer — dark bar with red micro-accent + tulip wordmark.
    --------------------------------------------------------------------------- */
 .md-footer-meta {
-  background-color: #161A1A;
+  background-color: var(--md-footer-bg-color--dark);
 }
 .md-footer__inner {
   border-top: 2px solid var(--tl-red);
@@ -1253,9 +1220,10 @@ form.md-header__option {
 
 /* ---------------------------------------------------------------------------
    Dark-mode logo handling.
-   - tulip wordmark (black-fill) → invert filter flips to white.
-   - tulip mark (dark stroke + red accents) → swap to mark-dark.svg variant
-     which has the stroke recoloured to off-white.
+   - tulip wordmark → live text in var(--tulip-ink), which flips per scheme;
+     no filter.
+   - tulip mark → swapped to img/tulip-mark.png on the slate scheme (header
+     and drawer).
    --------------------------------------------------------------------------- */
 /* Header AND mobile drawer — same mark in dark (the drawer was stuck on the
    pink variant while the header swapped to the rose→amber one). */
@@ -1541,13 +1509,13 @@ form.md-header__option {
 
 /* ===================================================================
    tulip — "modern dev-brand" redesign (distinct from the stock
-   Material template): Fraunces display type (--tulip-display, declared
-   in :root at the top of this file) and bordered hover-lift feature
-   cards.
+   Material template): sans headings, the Fraunces display face
+   (--tulip-display, declared in :root at the top of this file) on the
+   header wordmark only, and bordered hover-lift feature cards.
    =================================================================== */
 
 /* Product and documentation headings stay crisp and technical. Fraunces is
-   reserved for the small brand wordmark and editorial research treatments. */
+   reserved for the header wordmark. */
 .md-typeset h1, .md-typeset h2, .md-typeset h3,
 .md-typeset .tulip-hero h1,
 .md-tabs__link,
@@ -1684,21 +1652,6 @@ form.md-header__option {
 }
 
 /* ===================================================================
-   Link-dense zones — calm links (home domain table).
-   A table where every cell is a rose link reads as a pink wall; links
-   show as ink with a rose-tinted underline, and turn rose on hover.
-   =================================================================== */
-
-.md-typeset .tulip-domain-table a {
-  color: var(--md-default-fg-color);
-  border-bottom: 1px solid color-mix(in srgb, var(--tl-red) 40%, transparent);
-}
-.md-typeset .tulip-domain-table a:hover {
-  color: var(--tl-red);
-  border-bottom-color: var(--tl-red);
-}
-
-/* ===================================================================
    Mobile — CTA buttons stack full-width (no orphan third button on a
    row of its own), kicker tightens to fit the narrow column.
    =================================================================== */
@@ -1799,8 +1752,7 @@ form.md-header__option {
   background: var(--tulip-surface);
 }
 .execution-flow__node,
-.execution-flow__audit,
-.execution-flow__outcomes {
+.execution-flow__audit {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -1824,30 +1776,6 @@ form.md-header__option {
   color: var(--tl-red);
   font-size: 1.4rem;
   font-weight: 700;
-}
-.execution-flow__outcomes span {
-  padding: 0.25rem 0.45rem;
-  border-radius: 0.3rem;
-  font-family: var(--tulip-mono);
-  font-size: 0.7rem;
-}
-/* Status tokens, not ad-hoc tints. `deny` previously reused var(--tl-red) —
-   the brand pink — which taught the reader that pink meant "denied" while the
-   buttons on the same page used pink to mean "do this". */
-.execution-flow__outcomes .flow-allow {
-  color: var(--tl-allow-fg);
-  background: var(--tl-allow-bg);
-  border: 1px solid var(--tl-allow-border);
-}
-.execution-flow__outcomes .flow-hold {
-  color: var(--tl-hold-fg);
-  background: var(--tl-hold-bg);
-  border: 1px solid var(--tl-hold-border);
-}
-.execution-flow__outcomes .flow-deny {
-  color: var(--tl-deny-fg);
-  background: var(--tl-deny-bg);
-  border: 1px solid var(--tl-deny-border);
 }
 .execution-flow__audit {
   grid-column: 3 / 6;
@@ -1940,13 +1868,19 @@ form.md-header__option {
 .action-demo__tabs button:focus-visible {
   color: var(--tulip-ink);
   background: var(--tl-bg-soft);
-  outline: none;
 }
 .action-demo__tabs button[aria-selected="true"] {
   border-color: var(--tl-accent);
   color: var(--tl-accent);
   background: var(--tl-accent-subtle);
   font-weight: 700;
+}
+/* Keyboard focus needs its own ring: the selected-tab rule above overrides
+   the focus tint, so without an outline the focused selected tab shows no
+   change at all. */
+.action-demo__tabs button:focus-visible {
+  outline: 2px solid var(--tl-focus);
+  outline-offset: 2px;
 }
 .action-demo__workspace {
   display: grid;

@@ -6,6 +6,9 @@ import from `tulip.core` directly — the re-exports at the package root
 but the typed protocols, error classes, and control-flow helpers below
 are the foundation underneath every API.
 
+For the concepts, start with [Errors](../concepts/errors.md) and
+[State](../concepts/state.md), which also explains the reducers below.
+
 ## Configuration
 
 ::: tulip.core.config.TulipSettings

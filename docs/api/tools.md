@@ -3,6 +3,8 @@
 Define the functions an agent can call — the `@tool` decorator,
 execution strategies, and JSON Schema generation.
 
+For the concepts, start with [Tools](../concepts/tools.md).
+
 ## Decorator
 
 The primary entry point — wrap a Python function and you get a `Tool`

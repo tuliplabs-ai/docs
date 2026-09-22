@@ -1,3 +1,7 @@
+---
+title: Observability
+---
+
 # Observability
 
 What the agent did, how long each step took, and what it cost — two
@@ -11,7 +15,7 @@ protocol), you point it at whatever backend you run.
 |---|---|
 | Structured per-event lines for log aggregators (Loki, Splunk) | `StructuredLoggingHook` |
 | OTLP traces and metrics for dashboards (Grafana, Honeycomb) | `TelemetryHook` |
-| Per-run token totals on every result | nothing — `AgentResult.metrics` already has it |
+| Token and cost totals on every result (a resumed `thread_id` reports the thread's running total) | nothing — `AgentResult.metrics` already has it |
 | Per-run trace ID surfaced to the user (for support tickets) | telemetry hook + log the active span's trace ID |
 
 ## Getting started
@@ -47,9 +51,17 @@ like this out of the box:
 
 The keys are exactly those the hook sets: `message`, `event` (the
 message lowercased with spaces as underscores — e.g.
-`tool_call_completed`), `tool_name`, `success`, and `timestamp`. With
-`log_results=True` you also get `result_preview` + `result_length`; on
-failure an `error` key. Anything you pass as `extra={...}` to the hook
+`tool_call_completed`), `tool_name`, `success`, and `timestamp`, with
+an `error` key when the call failed. `StructuredLoggingHook` hard-wires
+`log_arguments=False` and `log_results=False` and exposes no
+constructor option to turn them on, so the matching `tool_call_starting`
+record carries `tool_name` plus `argument_keys` (names only, no values),
+and neither record carries argument values or tool results. If you need
+`result_preview` + `result_length`, use the parent
+`LoggingHook(log_results=True)` instead — it attaches them as attributes
+on the standard `logging` record (no `event` or `timestamp` key) — and
+note that results and arguments may contain PII.
+Anything you pass as `extra={...}` to the hook
 constructor is merged into **every** record — that's how you stamp a
 stable `agent_id` / `thread_id` for correlation.
 
@@ -147,9 +159,24 @@ print(f"prompt:     {result.metrics.prompt_tokens}")
 print(f"completion: {result.metrics.completion_tokens}")
 print(f"total:      {result.metrics.total_tokens}")
 print(f"iterations: {result.metrics.iterations}")
+print(f"cost_usd:   {result.metrics.cost_usd}")
 ```
 
-Multiply by your provider's per-token rate to get a per-run cost.
+`cost_usd` is the spend in USD, computed from the model's
+per-million-token prices in Tulip's model metadata. Like the token
+counts, it adds up across turns when you resume a checkpointed
+`thread_id`, so on a resumed thread it is the thread's total so far,
+not just the latest turn's. It is `None` —
+unpriced, never free — when those prices are unknown. The built-in
+table prices only some models, and lookup is an exact match once the
+`openai:` / `anthropic:` prefix is stripped, so
+`anthropic:claude-sonnet-4-6` does not inherit the `claude-sonnet-4`
+price. Register prices for your model with
+`register_metadata(ModelMetadata(..., input_price_per_mtok=..., output_price_per_mtok=...))`
+from `tulip.models.metadata` before you construct the agent — prices
+are read once, when the `Agent` is built. The same prices drive `max_cost_usd`: set
+a budget on an unpriced model and the `Agent` constructor raises
+`ValueError` rather than run a budget that could never stop anything.
 For dashboards, key on `agent_id` plus the same metrics the
 `TelemetryHook` already emits — no glue code needed.
 
@@ -201,14 +228,27 @@ from tulip.observability import run_context, get_event_bus
 
 async def main():
     async with run_context() as rid:
-        # Subscribe before or during a run — history replay delivers the last
-        # 500 events on connect, then switches to live mode.
-        async for event in get_event_bus().subscribe(rid):
-            print(event.event_type, event.data)
+        bus = get_event_bus()
+
+        async def consumer():
+            # Subscribe before or during a run — history replay delivers the last
+            # 500 events on connect, then switches to live mode.
+            async for event in bus.subscribe(rid):
+                print(event.event_type, event.data)
+
+        task = asyncio.create_task(consumer())
+        await asyncio.sleep(0)  # let the subscriber register
+        await agent.arun("Resolve the duplicate charge on ord-4821.")
+        await bus.close_stream(rid)  # delivers the end-of-stream sentinel
+        await task                   # the iterator ends only after close_stream
 
 
 asyncio.run(main())
 ```
+
+Nothing publishes until something runs inside the context, and the
+iterator ends only when you call `close_stream(rid)` — `run_context`
+deliberately does not close it for you.
 
 ### The agent yield bridge
 
@@ -223,7 +263,9 @@ bus as a canonical `agent.*` event — no hook registration, no config flag:
 | `ToolCompleteEvent` | `agent.tool.completed` (matching `span_id`) |
 | `ReflectEvent` | `agent.reflect` |
 | `GroundingEvent` | `agent.grounding` |
+| `ModelChunkEvent` | `agent.model.chunk` (only with `run(..., stream_tokens=True)`) |
 | `ModelCompleteEvent` | `agent.model.completed` + `agent.tokens.used` |
+| `InterruptEvent` | `agent.interrupt` (human-in-the-loop pause) |
 | `TerminateEvent` | `agent.terminate` |
 
 `span_id` on started/completed pairs lets consumers compute durations and

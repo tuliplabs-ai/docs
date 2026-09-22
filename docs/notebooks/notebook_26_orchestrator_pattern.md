@@ -4,9 +4,17 @@ A privacy officer routes a data-subject request to a chosen set of
 specialist agents, runs them in parallel under a semaphore, then
 correlates their outputs into a single privacy assessment. Compared with
 a swarm, the decision of who investigates what is centralised here
-instead of emerging from capability tags — a single, auditable choke
-point that constrains which systems each specialist may touch, exactly
-the accountability and data-minimization posture GDPR and CCPA expect.
+instead of emerging from capability tags. The routing step is one named
+place where you can see, log and review which specialist was asked what
+— `OrchestratorResult.decisions` carries the `RoutingDecision` trail —
+rather than reconstructing it from a self-organising pool. It does not
+itself restrict what a specialist can reach: the tools you attach to
+each `Specialist` set that. Gating a side-effecting call is a separate
+step you add by wrapping it in `admit()`; neither the orchestrator nor
+the specialist calls it for you. If the planner does not return a
+parseable fenced JSON block,
+routing falls back to the specialist IDs named in its reply, or to every
+registered specialist if it names none.
 
 This notebook covers:
 
@@ -40,5 +48,5 @@ The default provider is the bundled mock model. Set `TULIP_MODEL_PROVIDER`
 ## Source
 
 ````python
---8<-- "examples/notebook_26_orchestrator_pattern.py"
+--8<-- "examples/notebook_26_orchestrator_pattern.py:47:"
 ````

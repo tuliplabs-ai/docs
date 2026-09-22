@@ -12,7 +12,11 @@ fabricated subjects (`*.example` domains, 555-01xx phone numbers).
 What you'll learn:
 
 - The event types: `ThinkEvent`, `ToolStartEvent`, `ToolCompleteEvent`,
-  `TerminateEvent`, plus model chunk events.
+  `TerminateEvent`.
+- Event-level streaming by default — the assistant's text arrives in one
+  piece when a step completes — and token-level output with
+  `stream_tokens=True`, which adds `ModelChunkEvent`s as the model emits
+  text (see `example_token_streaming` in the source below).
 - Filtering with `isinstance(event, EventType)`.
 - Building a live console UI from the stream.
 - Rolling event counts into per-run metrics.

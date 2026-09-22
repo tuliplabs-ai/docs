@@ -19,7 +19,7 @@ agent = Agent(
     model="openai:gpt-4o-mini",
     web_search=OpenAISearchPreviewProvider(OpenAIModel("gpt-4o-search-preview")),  # order / product lookups
     web_fetch=HTTPXWebFetcher(),         # pull policy pages, docs, status pages
-    image_generator=OpenAIImageProvider(model="dall-e-3"),  # render report figures
+    image_generator=OpenAIImageProvider(),  # gpt-image-1 by default — render report figures
     speech_provider=OpenAISpeechProvider(),  # transcribe call recordings
 )
 ```
@@ -69,10 +69,11 @@ The shared Pydantic types live in `tulip.providers.types` (`SearchResult`,
   returns annotated results; the provider pins them through a strict
   JSON schema and returns a list of `SearchResult` — handy for a quick
   open-web pivot before you commit to a hard API call.
-- `OpenAIImageProvider` — `images.generate` (`dall-e-3` /
-  `gpt-image-1`). Surfaces hosted URLs when the API returns them and
-  base64 PNG bytes otherwise. Use it to render figures and diagrams
-  for a report.
+- `OpenAIImageProvider` — `images.generate`, defaulting to
+  `gpt-image-1`. `dall-e-3` / `dall-e-2` are deprecated by OpenAI; pass
+  one explicitly only if you still need it. Surfaces hosted URLs when
+  the API returns them and base64 PNG bytes otherwise. Use it to render
+  figures and diagrams for a report.
 - `OpenAISpeechProvider` — `audio.speech.create` (TTS,
   default `tts-1`) plus `audio.transcriptions.create` (Whisper, default
   `whisper-1`). Transcribe call recordings into text the agent can

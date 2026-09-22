@@ -10,11 +10,13 @@ Events, gated by optional bearer-token auth.
 !!! note "Single shared key — single principal"
     `AgentServer` takes **one** `api_key`. Every authenticated request
     presents that same token, so all callers hash to the **same**
-    principal and share one thread namespace. The principal prefix on
-    thread IDs stops an *unauthenticated* guesser and keeps thread IDs
-    from colliding — it does **not** give you per-analyst or per-tenant
-    isolation behind a shared key. For real multi-tenant isolation, run
-    one keyed `AgentServer` instance per tenant.
+    principal and share one thread namespace. The bearer check (a 401 on
+    `/invoke`, `/stream` and `/threads/{tid}`) is what stops a caller
+    without the key; the principal prefix on thread IDs only keeps
+    thread IDs from colliding between deployments with different keys
+    that share a checkpointer — it does **not** give you per-analyst or
+    per-tenant isolation behind a shared key. For real multi-tenant
+    isolation, run one keyed `AgentServer` instance per tenant.
 
 ```python
 from tulip.server import AgentServer
@@ -125,6 +127,46 @@ The `data:` payload is the JSON projection of each agent event (`type`
 plus its fields), derived from the same `async for event in
 agent.run(...)` stream the Python API exposes.
 
+## Serving a graph
+
+`AgentServer` only needs the agent contract — an async
+`run(prompt, *, thread_id=None, metadata=None)` that yields events. A
+compiled `StateGraph` doesn't speak that directly, so wrap it in
+`GraphRunnable`:
+
+```python
+from tulip.multiagent.graph import StateGraph, START, END
+from tulip.server import AgentServer, GraphRunnable
+
+
+async def draft(state):
+    return {"answer": f"Draft reply for: {state['prompt']}"}
+
+
+graph = StateGraph()
+graph.add_node("draft", draft)
+graph.add_edge(START, "draft")
+graph.add_edge("draft", END)
+
+server = AgentServer(
+    agent=GraphRunnable(graph.compile(), input_key="prompt", output_key="answer"),
+    api_key="…",
+)
+server.run(host="0.0.0.0", port=8080)
+```
+
+The request's `prompt` lands in the graph's initial state under
+`input_key`. Each streamed graph event goes out on `/stream` as a
+`think` frame, and the final state's `output_key` value becomes the
+`message` of the `done` frame and of the `/invoke` response (with no
+`output_key`, the whole final state is stringified). `thread_id` and
+`metadata` are accepted but not passed to the graph, so the
+[case persistence](#case-persistence) flow and the `/threads/{tid}`
+routes don't apply: those routes read `agent.config.checkpointer`, and
+`GraphRunnable` has no `config`, so they fail with a 500 rather than the
+no-checkpointer 404. The
+same adapter slots into `tulip.a2a.A2AServer`.
+
 ## Endpoints
 
 | Path | Method | Body | Returns |
@@ -149,17 +191,23 @@ schema by default.
   `api_key="..."` to the constructor or set `TULIP_SERVER_API_KEY` to
   turn it on; then every request must carry `Authorization: Bearer
   <token>`, constant-time compared with `hmac.compare_digest`.
-- **Loopback-only fallback.** If you don't configure auth and don't
-  pass `allow_unauthenticated=True`, the server warns and binds to
-  loopback only — no accidental open agent endpoint on `0.0.0.0`.
+- **Refuses to start off-loopback.** With no `api_key` (argument or
+  `TULIP_SERVER_API_KEY`) and no `allow_unauthenticated=True`,
+  `server.run(host=...)` raises `RuntimeError` for any non-loopback
+  host — it does not fall back to `127.0.0.1`. `run()` itself defaults
+  to `host="127.0.0.1"`, so a bare `server.run()` still starts for local
+  work. The check lives in `AgentServer.run()` only: serve `server.app`
+  under your own uvicorn or gunicorn and it is bypassed (the app just
+  logs a warning), so set the key yourself or terminate auth upstream.
 - **Single-principal thread namespacing.** The principal is derived
   server-side from the presented key — `sha256(token)[:12]`, or `anon`
   when unauthenticated. Because the server holds **one** shared
   `api_key`, every authenticated caller resolves to the **same**
   principal, and thread IDs are prefixed with it (`<principal>:<tid>`).
-  This prefix stops an unauthenticated peer from reading or guessing a
-  thread (CWE-639, authorization bypass via user-controlled key) and
-  namespaces threads per *server instance* — it
+  A caller without the key never reaches a thread — the bearer check
+  rejects it with a 401 first. The prefix keeps thread IDs from
+  colliding between deployments with different keys that share one
+  checkpointer — it
   does **not** separate two analysts sharing the same key. For
   per-tenant isolation, run one keyed `AgentServer` per tenant.
 
@@ -234,9 +282,14 @@ The server is plain FastAPI — deploy it however you deploy FastAPI.
 | Target | Path |
 |---|---|
 | **Kubernetes / container services** | `docker build` and ship; gunicorn-uvicorn workers in front |
-| **serverless functions** | Mangum-style adapter; cold-start friendly because `Agent` is constructed lazily |
-| **Compute / VM** | `uvicorn tulip.server:app --workers 4 --port 8080` once you've defined `app` at module scope |
+| **serverless functions** | Mangum-style adapter wrapping `server.app` (the FastAPI app is built on first access) |
+| **Compute / VM** | `uvicorn myapp:app --workers 4 --port 8080`, where `myapp.py` sets `app = AgentServer(agent=agent, api_key=...).app` at module scope |
 | **Anywhere else FastAPI runs** | …yes |
+
+Each of these serves `server.app` directly rather than calling
+`server.run()`, so the loopback check in `AgentServer.run()` never runs.
+Set `api_key` (or `TULIP_SERVER_API_KEY`) explicitly, or put an
+auth-terminating proxy in front and pass `allow_unauthenticated=True`.
 
 Auth, rate-limiting, and request logging are FastAPI middleware
 concerns — Tulip does not own
@@ -247,15 +300,15 @@ your platform expects.
 
 | Symptom | Likely cause |
 |---|---|
-| Server starts but binds to loopback only | No `api_key` and no `allow_unauthenticated=True`. Pick one. |
+| `RuntimeError: Refusing to bind AgentServer to '0.0.0.0'…` | No `api_key` and no `allow_unauthenticated=True`. Pick one. |
 | Console SSE drops mid-run (~30s) | Reverse-proxy idle timeout. Bump `proxy_read_timeout` in nginx / `idle_timeout` on the LB, or have the agent send heartbeats every ~25s. A long-running tool call is the usual trigger. |
 | Threads don't persist across restarts | `FileCheckpointer` writes to disk in the working directory — ephemeral container filesystems lose state on restart. Mount a volume or move to `S3Backend`. |
-| `/threads/{tid}` 404s for the right tid | Thread IDs are prefixed with the principal — `<principal>:<tid>` is what's stored. The path you pass is *your* tid; the server prefixes. A request under a different key (or unauthenticated) won't find it. |
+| `/threads/{tid}` 404s for the right tid | Thread IDs are prefixed with the principal — `<principal>:<tid>` is what's stored. The path you pass is *your* tid; the server prefixes. A thread written under a different key (the key was rotated, or another deployment sharing the checkpointer wrote it), or written in-process by `agent.run(..., thread_id=...)` without the prefix, won't be found. A request with a wrong or missing key gets a 401, not a 404. |
 
 ## Source and notebook
 
 - [`notebook_68_agent_server.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_68_agent_server.py) — runnable wrapper plus a curl client.
-- [`tulip.server`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/server) — `AgentServer`, `InvokeRequest`, `InvokeResponse`.
+- [`tulip.server`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/server) — `AgentServer`, `GraphRunnable`, `InvokeRequest`, `InvokeResponse`.
 
 ## See also
 

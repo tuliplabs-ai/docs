@@ -46,9 +46,10 @@ Each `Specialist` is its own self-contained agent. Its fields:
 ## Code
 
 ```python
+from tulip.models import get_model
 from tulip.multiagent import Specialist, create_orchestrator
 
-model = "anthropic:claude-sonnet-4-6"
+model = get_model("anthropic:claude-sonnet-4-6")
 
 research = Specialist(
     name="research",
@@ -77,8 +78,7 @@ writing = Specialist(
 orchestrator = create_orchestrator(
     name="coordinator",
     specialists=[research, data, writing],
-    model=model,                           # the coordinator's routing model
-)
+).with_model(model)                        # routing model, copied into every specialist
 orchestrator.system_prompt = (
     "You are the coordinator. Delegate source-gathering to research, "
     "metrics to data, and only after both report back call writing."
@@ -89,8 +89,13 @@ result = await orchestrator.execute(
 )
 ```
 
-`create_orchestrator` registers the specialists and propagates the
-coordinator's `model` into any specialist that doesn't carry its own.
+`create_orchestrator` registers the specialists but does not hand its
+`model` to them, and a `Specialist` with no model returns an error
+result instead of running. `.with_model(model)` sets the coordinator's
+routing model and copies it into every registered specialist, replacing
+any model a specialist already carried. To give specialists different
+models, set `model=` on each `Specialist` and pass the coordinator's own
+to `create_orchestrator(model=...)` instead.
 `execute()` is async — `await` it (or wrap in `asyncio.run`). The same
 shape runs an incident commander: triage, forensics, and containment
 specialists, with containment gated behind the other two.
@@ -129,8 +134,9 @@ Specialist(
 - [`notebook_27_specialist_agents.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_27_specialist_agents.py)
   — confidence floors and per-specialist playbooks.
 - [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)
-  — vendor security review with risk-tiered approval gates and a typed
-  `VendorDecision` artifact.
+  — customer-support concession approval with risk-tiered approval gates
+  and a typed `ConcessionDecision` artifact (built on a `StateGraph`, not
+  the orchestrator).
 
 ## Source
 

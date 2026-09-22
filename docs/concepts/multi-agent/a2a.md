@@ -6,8 +6,8 @@ Each agent runs as its own service, advertises an Agent Card
 agents discover and call it over HTTP.
 
 Tulip implements the public
-[A2A protocol](https://a2aproject.github.io/A2A/) — the same wire
-format used by Strands, ADK, and Google's reference SDKs — so an
+[A2A protocol](https://a2aproject.github.io/A2A/) — an open wire
+format that any conforming runtime can speak — so an
 SDK-built agent can call a non-SDK A2A peer (or be called by one)
 without an adapter.
 

@@ -10,7 +10,7 @@ then walks the gateway's full spend surface:
 - `/global/spend/keys` — aggregate per virtual key
 - `/global/spend/models` — aggregate per upstream model
 
-All four endpoints are SQL-backed (Postgres sidecar from the sample
+All three endpoints are SQL-backed (Postgres sidecar from the sample
 `docker-compose.yml`) and require zero Tulip integration glue —
 the gateway is the source of truth.
 
@@ -56,3 +56,9 @@ python examples/notebook_72_litellm_gateway_cost.py
 - [LiteLLM AI Gateway how-to](../how-to/litellm-gateway.md) — when to
   use the gateway, auth boundary, scope, and the enterprise patterns
   the cost surface unlocks.
+
+## Source
+
+````python
+--8<-- "examples/notebook_72_litellm_gateway_cost.py"
+````

@@ -10,8 +10,10 @@ also *consumes* existing MCP servers — a billing service, a
 case-management server, a threat-intel feed — so your agent can reach
 tools it didn't ship.
 
-**The SDK speaks MCP both ways**. Most agent frameworks consume MCP
-servers but don't expose their own. Round-trip means a Tulip-built
+**The SDK speaks MCP both ways**. `MCPClient` turns a remote
+server's tools into SDK tools, and `TulipMCPServer` publishes every
+tool on an agent (plus `run_agent` / `run_agent_stream`) over stdio,
+HTTP, or SSE. Round-trip means a Tulip-built
 agent can be either side: pull data from a billing server *and*
 serve its own refund tools back to the operator's desktop.
 

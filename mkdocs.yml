@@ -1,5 +1,5 @@
 site_name: tulip agents
-site_description: An open-source agent framework with explicit policy enforcement before consequential actions execute, typed grounding, approvals, and verifiable decision records.
+site_description: "An open-source Python agent framework: typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one Agent class — with a policy gate, approvals, and an audit trail you can put in front of the actions that change real systems."
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/tulip-agents
 repo_name: tulip-agents
@@ -57,7 +57,7 @@ hooks:
 - hooks/build_metadata.py
 
 extra_css:
-- https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&display=swap
+- https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600..700&display=swap
 - stylesheets/tulip.css
 
 extra_javascript:
@@ -145,30 +145,27 @@ nav:
   - Inspect a run: concepts/observability.md
   - Persist and resume: how-to/persist-conversations.md
   - Compose multiple agents: concepts/multi-agent.md
-  - Runtime architecture: concepts/control-layer.md
-  - Guarantees & boundaries: why-tulip.md
-  - Capabilities: capabilities.md
 - Guides:
   - Agents:
-    - Overview: concepts/agent.md
-    - Agent Loop: concepts/agent-loop.md
+    - Agent: concepts/agent.md
+    - Agent loop: concepts/agent-loop.md
     - State: concepts/state.md
     - Prompts: concepts/prompts.md
-    - Conversation Management: concepts/conversation-management.md
-    - Retry Strategies: concepts/retry.md
+    - Conversation management: concepts/conversation-management.md
+    - Retry strategies: concepts/retry.md
     - Hooks: concepts/hooks.md
     - Termination: concepts/termination.md
-    - Structured Output: concepts/structured-output.md
+    - Structured output: concepts/structured-output.md
     - Interrupts: concepts/interrupts.md
     - Errors: concepts/errors.md
   - Tools:
-    - Overview: concepts/tools.md
+    - Tools: concepts/tools.md
     - Idempotency: concepts/idempotency.md
     - Executors: concepts/executors.md
     - MCP: concepts/mcp.md
     - Multi-modal providers: concepts/multi-modal-providers.md
-  - Model Providers:
-    - Overview: concepts/models.md
+  - Model providers:
+    - Model providers: concepts/models.md
     - OpenAI: concepts/providers/openai.md
     - Anthropic: concepts/providers/anthropic.md
     - OpenAI-compatible: concepts/providers/openai-compatible.md
@@ -181,7 +178,7 @@ nav:
     - Long-term Memory Manager: concepts/memory-manager.md
   - RAG: concepts/rag.md
   - Multi-agent:
-    - Overview: concepts/multi-agent.md
+    - Multi-agent: concepts/multi-agent.md
     - Composition: concepts/multi-agent/composition.md
     - Orchestrator: concepts/multi-agent/orchestrator.md
     - Swarm: concepts/multi-agent/swarm.md
@@ -191,11 +188,11 @@ nav:
     - A2A protocol: concepts/multi-agent/a2a.md
     - DeepAgent: concepts/deepagent.md
     - Production-readiness: concepts/multi-agent/production.md
-  - Check evidence (GSAR): concepts/gsar.md
+  - GSAR typed grounding: concepts/gsar.md
   - Control layer:
-    - Control an action: concepts/control-layer.md
+    - Control-layer architecture: concepts/control-layer.md
+    - Writing a policy that holds: concepts/policy-authoring.md
     - SecurityContext application: concepts/security-context.md
-  - Writing a policy that holds: concepts/policy-authoring.md
   - Skills & Playbooks:
     - Skills: concepts/skills.md
     - Playbooks: concepts/playbooks.md
@@ -203,13 +200,13 @@ nav:
     - Streaming: concepts/streaming.md
     - Events: concepts/events.md
     - Graph streaming: concepts/graph-streaming.md
-    - Agent Server: concepts/server.md
+    - Agent server: concepts/server.md
   - Observability:
     - Observability: concepts/observability.md
     - SSE event catalogue: concepts/sse-events.md
     - Testing: concepts/testing.md
     - Evaluation: concepts/evaluation.md
-  - Security domain:
+  - Security use cases:
     - Agentic AI-security: concepts/agentic-ai-security.md
     - Grounded findings: concepts/security.md
     - Guardrails: concepts/safety.md
@@ -224,6 +221,8 @@ nav:
     - Environment variables: how-to/environment-variables.md
     - Build an integration: how-to/build-an-integration.md
   - Project:
+    - Guarantees & boundaries: why-tulip.md
+    - Capabilities: capabilities.md
     - About & maintainers: about.md
     - Compatibility & releases: compatibility.md
     - Legal notices: legal.md
@@ -237,7 +236,7 @@ nav:
     - Streaming events: notebooks/notebook_11_agent_streaming.md
     - Lifecycle hooks: notebooks/notebook_12_agent_hooks.md
     - SSE streaming: notebooks/notebook_13_sse_streaming.md
-    - Hooks: notebooks/notebook_14_hooks_advanced.md
+    - Advanced hooks: notebooks/notebook_14_hooks_advanced.md
     - Termination conditions: notebooks/notebook_15_termination.md
   - Graphs & composition:
     - Basic graph: notebooks/notebook_16_basic_graph.md
@@ -246,7 +245,7 @@ nav:
     - Human-in-the-loop: notebooks/notebook_19_human_in_the_loop.md
     - Command + advanced patterns: notebooks/notebook_20_advanced_patterns.md
     - Composition: notebooks/notebook_21_composition.md
-    - Graph: notebooks/notebook_22_graph_advanced.md
+    - Advanced graphs: notebooks/notebook_22_graph_advanced.md
     - Functional API: notebooks/notebook_23_functional_api.md
   - Agent teams:
     - Swarm: notebooks/notebook_24_swarm_multiagent.md
@@ -255,7 +254,7 @@ nav:
     - Specialist agents: notebooks/notebook_27_specialist_agents.md
     - A2A protocol: notebooks/notebook_28_a2a_protocol.md
     - DeepAgent: notebooks/notebook_29_deepagent.md
-    - Map-reduce code review: notebooks/notebook_30_map_reduce_code_review.md
+    - Map-reduce support triage: notebooks/notebook_30_map_reduce_code_review.md
     - Supervisor + critic loop: notebooks/notebook_31_supervisor_critic_loop.md
     - Adversarial debate + judge: notebooks/notebook_32_debate_with_judge.md
     - Multi-agent + human-in-the-loop: notebooks/notebook_33_multiagent_human_in_loop.md
@@ -274,6 +273,8 @@ nav:
     - Skills: notebooks/notebook_48_skills.md
     - Steering: notebooks/notebook_49_steering.md
   - Hardening for production:
+    - Guardrails & security: notebooks/notebook_50_guardrails_security.md
+    - Advanced guardrails: notebooks/notebook_51_guardrails_advanced.md
     - Checkpoint backends: notebooks/notebook_52_checkpoint_backends.md
     - Evaluation: notebooks/notebook_55_evaluation.md
     - Model providers: notebooks/notebook_56_model_providers.md
@@ -285,8 +286,8 @@ nav:
     - Full event catalogue tour: notebooks/notebook_62_event_catalogue.md
   - Real-world workflows:
     - On-call incident response: notebooks/notebook_63_incident_response.md
-    - Tiered procurement approval: notebooks/notebook_64_procurement_approval.md
-    - Contract review + negotiation: notebooks/notebook_65_contract_review.md
+    - Support concession approval: notebooks/notebook_64_procurement_approval.md
+    - Vendor DPA & data-privacy review: notebooks/notebook_65_contract_review.md
     - Voice output: notebooks/notebook_66_audio_response.md
     - Voice in → voice out: notebooks/notebook_67_audio_chat.md
   - Serving & gateways:
@@ -295,33 +296,31 @@ nav:
     - Live vendor integrations: notebooks/notebook_70_vendor_integrations.md
     - LiteLLM AI Gateway: notebooks/notebook_71_litellm_gateway.md
     - LiteLLM AI Gateway — cost tracking: notebooks/notebook_72_litellm_gateway_cost.md
-    - Grounded cloud-posture agent: notebooks/notebook_73_cloud_posture_agent.md
   - Real-world gates:
     - Payment refund gate: notebooks/notebook_83_payment_refund_gate.md
     - Infra deploy gate: notebooks/notebook_84_infra_deploy_gate.md
     - Support account gate: notebooks/notebook_85_support_account_gate.md
     - Data deletion (GDPR) gate: notebooks/notebook_86_data_deletion_gate.md
     - Cloud resource gate: notebooks/notebook_87_cloud_resource_gate.md
-  - Security domain:
+  - Security operations:
     - Red-team an AI agent: notebooks/notebook_75_agent_red_team.md
     - Red-team a support bot: notebooks/notebook_76_redteam_support_bot.md
-    - CI security gate: notebooks/notebook_77_ci_security_gate.md
     - Verify findings: notebooks/notebook_78_verify_findings.md
-    - Guardrails & security: notebooks/notebook_50_guardrails_security.md
-    - Guardrails: notebooks/notebook_51_guardrails_advanced.md
-    - Investigate with SecurityContext: notebooks/notebook_82_investigate_with_ctx.md
+    - CI security gate: notebooks/notebook_77_ci_security_gate.md
     - SOC alert triage: notebooks/notebook_79_soc_alert_triage.md
+    - Investigate with SecurityContext: notebooks/notebook_82_investigate_with_ctx.md
     - IR with a tamper-evident audit trail: notebooks/notebook_81_ir_audit_trail.md
     - SOC playbooks: notebooks/notebook_74_security_playbooks.md
+    - Grounded cloud-posture agent: notebooks/notebook_73_cloud_posture_agent.md
     - Model & hardware fingerprinting: notebooks/notebook_80_model_fingerprint.md
 - Research:
-  - Overview: research/index.md
+  - Research: research/index.md
   - Policy blindness: research/policy-blindness.md
 - API:
+  - API reference: api/index.md
   - Agent: api/agent.md
   - Multi-agent: api/multiagent.md
   - DeepAgent: api/deepagent.md
-  - ReAct loop: api/loop.md
   - Tools: api/tools.md
   - Control: api/control.md
   - Security: api/security.md
@@ -337,9 +336,10 @@ nav:
   - Streaming: api/streaming.md
   - Events: api/events.md
   - Observability: api/observability.md
-  - Agent Server: api/server.md
+  - Agent server: api/server.md
   - Evaluation: api/evaluation.md
   - Playbooks: api/playbooks.md
   - Skills: api/skills.md
   - Integrations: api/integrations.md
   - Core primitives: api/core.md
+  - ReAct loop (deprecated): api/loop.md

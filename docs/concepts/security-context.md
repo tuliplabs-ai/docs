@@ -156,22 +156,26 @@ held, or denied, and a held action waits for a person before anything fires.
 
 The gate in step 3 is a `ControlPolicy`: `require_human_for={"production"}` by
 default, alongside `require_verification_score`, `max_blast_radius`, `deny_for`,
-and `min_severity`. To enforce a custom policy, call `approve(action, policy=…,
+`min_severity`, `require_sandbox_for`, and the spend controls
+`require_human_over_usd` / `spend_limit_usd` — the [API reference](../api/control.md)
+lists every field. To enforce a custom policy, call `approve(action, policy=…,
 finding=…, verdict=…)` directly — `ctx.actions.request_approval` is the
 convenience wrapper around it.
 
-`verify()` is framework-agnostic by design: it accepts a Tulip `Evidence` **or a
-finding-shaped dict** produced by any other agent (LangGraph, CrewAI, anything),
-which is what lets Tulip sit *above* the stack as the verification layer rather
-than competing with the frameworks below it.
+`verify()` does not need a finding built by Tulip: it accepts a Tulip `Evidence`
+**or any finding-shaped dict** (it reads `title`, `severity`, `gsar_score`,
+`evidence_refs` and `confidence`), so you can verify results that another part of
+your pipeline produced.
 
 ## Admission control — the enforcement point
 
 `request_approval()` returns a *decision*; it doesn't run anything. To make the
 decision binding, run the action through the **admission gate** — `admit()`, or
 `ctx.actions.execute()` on the facade. The side effect fires **only if** the
-chain clears (`approve()` → ALLOW); otherwise it raises `AdmissionError`, and the
-attempt is recorded to the audit trail either way:
+chain clears (`approve()` → ALLOW); otherwise it raises `AdmissionError`.
+`ctx.actions.execute()` takes no trail and records nothing. When you need the
+attempt recorded, call `admit(..., trail=...)` directly, which appends the
+decision either way, admitted or refused. On the facade:
 
 ```python
 from tulip.control import Action, AdmissionError, verify
@@ -189,9 +193,8 @@ except AdmissionError as exc:
 ```
 
 This is what turns this call path from *advisory* into *enforced*: `execute()`
-does not invoke its supplied side effect until the configured checks clear,
-and it writes the decision when a trail is configured. Other direct call paths
-remain the application's responsibility. It's the
+does not invoke its supplied side effect until the configured checks clear.
+Other direct call paths remain the application's responsibility. It's the
 admission-controller pattern (think Kubernetes admission webhooks) applied to
 agent actions, and it's what makes Tulip a *runtime* rather than a library of
 trust functions.
@@ -236,8 +239,15 @@ from tulip import Agent
 agent = Agent(model="anthropic:claude-sonnet-4-6", tools=ctx.toolset())
 ```
 
-`toolset()` returns the deduplicated, agent-ready security tool bundle, so the same
-domain capabilities are available to the model as callable tools.
+`toolset()` returns the agent-ready security tool bundle built from the **bundled
+reference adapters** — it does not read the providers you injected into `ctx`, so a
+live `identity` or `logs` provider is not reachable from these tools. It is
+read-only by default and covers threat intel, SIEM, EDR, scanning and
+fingerprinting; pass `ctx.toolset(allow_containment=True)` for `isolate_host`,
+`aws=True` for the cloud-posture tools, and `extra=[...]` to merge tools you wrote
+against your own live providers. There is no identity tool in the bundle, and
+admission (`ctx.actions`) is not a tool — to gate a side-effecting tool you hand
+the agent, wrap it with `gate_tool` or call `admit()` in your own code.
 
 ## The one-way dependency
 

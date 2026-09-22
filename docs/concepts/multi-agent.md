@@ -1,18 +1,20 @@
+---
+title: Multi-agent workflows
+---
+
 # Multi-agent workflows
 
 Multi-agent workflows are first-class in Tulip: eight shapes you compose
 in one process or scale across a mesh, every shape backed by the same
-`Agent` class, the same event stream, and the same primitives. Compose a
-shape directly, or hand the loop [`shape_tools()`](../capabilities.md) and let
-it reach for one when the work calls for it.
+`Agent` class, the same event stream, and the same primitives. Compose the
+shape that fits the work.
 
 ![Multi-agent workflow shapes — Composition, Orchestrator + Specialists, Swarm, Handoff, StateGraph, Functional, A2A](../img/multi-agent-patterns.svg)
 
 !!! tip "Don't know which shape to use?"
-    Don't choose up front. Give the agent
-    [`shape_tools()`](../capabilities.md) — `fan_out`, `debate`,
-    `plan_and_verify`, `code_until_tests_pass` — and let it pick once it has
-    read the request and tried something.
+    See [Pick a shape](#pick-a-shape) — three questions get you there. For
+    a straight chain or fan-out, start with
+    [Composition](multi-agent/composition.md).
 
 ## What you can ship today
 
@@ -23,12 +25,12 @@ upgrades to a live provider by setting one env var.
 | | Workflow | One line | Code |
 |---|---|---|---|
 | **29** | DeepAgent — research factory | `create_deepagent` with reflexion + grounding + subagent dispatch + `deepagent.*` SSE events. | [`notebook_29_deepagent.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_29_deepagent.py) |
-| **30** | Map-reduce code review | Scatter a diff to `N` reviewers via `Send`, reduce findings into one report. | [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_30_map_reduce_code_review.py) |
+| **30** | Customer-support triage at scale | Scatter 3 tickets × 3 lenses (sentiment, routing, resolution) to 9 analyst agents via `Send`, reduce into one triage summary. | [`notebook_30_map_reduce_code_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_30_map_reduce_code_review.py) |
 | **31** | Supervisor + critic loop | Recon → Report author → Skeptical reviewer, loop back to the author until the reviewer approves (cap'd revisions). | [`notebook_31_supervisor_critic_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_31_supervisor_critic_loop.py) |
 | **32** | Adversarial debate + judge | One agent argues the finding is a true positive, another argues benign, across N rounds; Judge emits a typed `Verdict` via `output_schema`. | [`notebook_32_debate_with_judge.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_32_debate_with_judge.py) |
 | **33** | Multi-agent + human-in-the-loop | Three patterns in one file: approval gate, human-as-tool, long-pause snapshot/resume. | [`notebook_33_multiagent_human_in_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_33_multiagent_human_in_loop.py) |
 | **63** | IR (incident-response) war-room | Triage → 3 parallel investigators (SIEM — a security team's log platform — EDR, and threat intel) → severity gate → page-the-responder → contain → typed `Postmortem`. | [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_63_incident_response.py) |
-| **64** | Vendor security review | Questionnaire analyst → Posture analyst → risk-tier router (auto / security-manager / +GRC / +CISO) → typed `VendorDecision`. Stacked `interrupt()` gates on the top tiers. | [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py) |
+| **64** | Customer-support concession approval | Ticket analyst → Impact analyst → risk-tier router (auto / support manager / +billing / +director) → typed `ConcessionDecision`. Stacked `interrupt()` gates on the top tiers. | [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py) |
 | **65** | DPA & security-addendum review | Parser → 3 parallel reviewers (privacy / security / compliance) → revision gate → human analyst → `Command(goto="sign_off")` short-circuits when resolved. Cycles enabled. | [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_65_contract_review.py) |
 
 ## Pick a shape
@@ -152,7 +154,7 @@ verdict: Verdict = result.parsed   # validated Pydantic instance, not free text
 ```
 
 When you need a typed artifact at the workflow boundary — `Verdict`,
-`Postmortem`, `PurchaseOrder`, `ContractDecision` — `output_schema`
+`Postmortem`, `ConcessionDecision`, `ContractDecision` — `output_schema`
 gives you a validated Pydantic instance.
 
 ### `GraphConfig(allow_cycles=True)` — refinement loops
@@ -168,70 +170,21 @@ Opt in with `allow_cycles=True` plus an iteration cap.
 
 ## Why these workflows ship to prod
 
-The boring stuff that turns a demo into a product. Every primitive
-below works in any of the eight shapes — you don't pick "shape" or
-"production-ready", you get both. And side-effecting tools inside any
-shape go through the admission gate —
-[`admit()`](security-context.md) — so every decision lands on the
-hash-chained `AuditTrail` (each entry commits to the one before it, so
-editing any record breaks verification).
+The boring stuff that turns a demo into a product — typed terminal
+artifacts, idempotent tools, checkpointing, reflexion, grounding, and
+streaming — works in any of the eight shapes; you don't pick "shape" or
+"production-ready", you get both. And a side-effecting tool in any
+shape can be put behind the admission gate — wrap it with
+[`gate_tool(...)`](control-layer.md) or call
+[`admit()`](security-context.md) in its body, passing your
+`ControlPolicy` and an `AuditTrail`. Every decision on it, whether allow,
+hold or deny, is then appended to that hash-chained trail: each entry
+commits to the one before it, so an edit, reorder, or deletion in the
+middle breaks verification. Sign the trail and verify it against the
+public key (`verify(keys=...)`), and a chain rebuilt around an edit by
+anyone without your signing key fails too.
 
-### Reflexion — catch a bad turn before the next one
-
-```python
-agent = Agent(config=AgentConfig(model=..., reflexion=True))
-```
-
-`reflexion=True` self-evaluates every turn and feeds the next Think a
-sharper plan. → [Reasoning concept](reasoning.md)
-
-### Grounding — verify claims against their source
-
-```python
-agent = Agent(config=AgentConfig(model=..., grounding=True))
-```
-
-The configured grounding judge scores the final answer against collected tool
-evidence; below-threshold output can trigger replanning. → [Reasoning concept](reasoning.md) ·
-[GSAR](gsar.md) for typed grounding.
-
-### Idempotent tools — deduplicate identical calls
-
-```python
-@tool(idempotent=True)
-def issue_refund(order_id: str, case_id: str) -> dict:
-    return billing.refund(order_id, case_id)
-```
-
-The ReAct loop reuses the recorded result for identical `(name, kwargs)` calls
-in its documented scope. Use a downstream idempotency key for crash-safe
-refunds, pages, and deploys. → [Idempotency concept](idempotency.md).
-
-### Checkpointing — survive every restart
-
-```python
-agent = Agent(config=AgentConfig(
-    model=...,
-    checkpointer=S3Backend(bucket="...", prefix="..."),
-))
-```
-
-Eight backends — one Protocol — and the graph snapshots state at every
-interrupt boundary. Pause for a human Friday afternoon, resume Monday
-morning from a different process. → [Checkpointers](checkpointers.md).
-
-### Streaming events — every node visible
-
-```python
-async for event in graph.stream(initial, mode=StreamMode.NODES):
-    match event:
-        case StreamEvent(node_id=n, mode=StreamMode.NODES):
-            print(f"✓ {n}")
-```
-
-Every shape in this section emits the same typed events. SSE-ready,
-match-statement friendly, attributable to the specific specialist that
-produced them. → [Streaming](streaming.md).
+→ [Production-readiness](multi-agent/production.md)
 
 ## One event stream across all of them
 
@@ -246,18 +199,20 @@ from tulip.observability import run_context, get_event_bus
 
 async with run_context() as rid:
     result = await orchestrator.execute("Resolve the disputed orders in this morning's queue.")
+    # The run is done: close its stream so the subscriber below replays
+    # the recorded history and then stops, instead of waiting for more.
+    await get_event_bus().close_stream(rid)
 
     async for ev in get_event_bus().subscribe(rid):
         match ev.event_type:
-            case "multiagent.orchestrator.decision":
+            case "multiagent.orchestrator.decision" if "specialists_selected" in ev.data:
                 print("orchestrator →", ev.data["specialists_selected"])
-            case "agent.tool.started":
-                print("  🔧", ev.data["tool_name"])
-            case "agent.terminate":
-                print("  ✓", ev.data["final_message_preview"])
+            case "multiagent.specialist.completed":
+                print("  ✓", ev.data["specialist_type"], ev.data.get("output_preview", ev.data.get("error")))
 ```
 
-`agent_name` is set on every event so you can attribute output to the
+Orchestrator events carry `orchestrator_id` and specialist events carry
+`specialist_id` and `specialist_type`, so you can attribute output to the
 specialist that produced it. SSE streams from `AgentServer` carry the
 same shape — your front-end consumer is unchanged whether the back-end
 is a single agent, an orchestrator, a swarm, or an A2A mesh.
@@ -267,10 +222,19 @@ is a single agent, an orchestrator, a swarm, or an A2A mesh.
 
 ## Mixing shapes
 
-Nothing stops you running a `Swarm` whose members are themselves
-`Orchestrator`s, with a `StateGraph` wrapping the whole thing for
-retry policy. The patterns compose; pick the shape that fits each
-layer of the problem.
+A `StateGraph` node runs any async callable, so one node can await
+`orchestrator.execute(...)`, another `swarm.execute(...)`, and a third
+can be a whole `StateGraph` added as a subgraph. Give a node a
+`retry_policy` and the graph re-runs it with backoff when it raises, up
+to `max_attempts` times. A `TimeoutError`, including a node's own
+`timeout_ms`, fails the node without a retry.
+`Orchestrator.execute` and `Swarm.execute` catch their own errors and
+return a result with `success=False`, so a node that wraps one should
+check `result.success` and raise if you want the retry to fire. An
+orchestrator still reports `success=True` when a single specialist
+fails: that failure is on `result.specialist_results[<id>].error`, so
+check it as well if a failed specialist should trigger the retry. Pick
+the shape that fits each layer of the problem.
 
 ## See also
 

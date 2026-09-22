@@ -10,6 +10,8 @@ termination = (
 ) | MaxIterations(15)
 ```
 
+For the concepts, start with [Termination](../concepts/termination.md).
+
 ## Base
 
 ::: tulip.core.termination.TerminationCondition

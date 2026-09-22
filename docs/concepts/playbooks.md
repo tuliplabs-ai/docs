@@ -36,7 +36,6 @@ refund_escalation = Playbook(
             expected_tools=["issue_refund"],
         ),
     ],
-    strict_sequence=True,
 )
 
 agent = Agent(
@@ -66,8 +65,8 @@ NIST SP 800-61 flow (the standard incident-response process) —
 **detection → analysis → containment** — wired to a security toolset.
 Detection pulls from the SIEM (a security team's log platform),
 analysis enriches each IOC (indicator of compromise — a suspicious
-hash, IP, or domain), and containment never fires before the IOCs
-are enriched:
+hash, IP, or domain), and containment never fires before
+`enrich_indicator` has run:
 
 ```python
 from tulip.playbooks import Playbook, PlaybookStep
@@ -98,7 +97,6 @@ nist_ir = Playbook(
             required=True,
         ),
     ],
-    strict_sequence=True,
     allow_extra_tools=False,
 )
 ```
@@ -108,12 +106,17 @@ nist_ir = Playbook(
 | Field | Meaning |
 |---|---|
 | `id` | Unique step identifier. |
-| `description` | Human-readable; the agent sees this as a hint. |
+| `description` | Human-readable, for whoever reads the playbook — the SDK never sends it to the model. |
 | `expected_tools` | Tools the agent is supposed to call during this step. |
-| `hints` | Extra steering text. |
+| `hints` | Steering text. The model sees it only when a call in this step is rejected as the wrong tool. |
 | `required` | If `False`, the step can be skipped. |
+| `uses` | Skills the step is carried out with, by name. The step inherits each skill's `required_probes`, and while it is the current step a skill's `allowed_tools` bounds what may be called. See [Steps that use skills](#steps-that-use-skills). |
+| `required_probes` | Evidence the step must gather: `RequiredProbe(name=..., match=...)` (from `tulip.playbooks.models`), where `match` is a case-insensitive substring sought in the step's tool calls — the tool name and its serialised arguments, not its result. Completing the step with a probe unmatched records an `evidence_incomplete` violation. |
+| `min_tool_calls` | Floor on effort. The hook still closes the step once its `expected_tools` have all fired; if that took fewer calls, an `insufficient_effort` violation is recorded. |
 | `max_tool_calls` | Hard cap on tool calls for this step. |
-| `validation` | Optional dict of post-step checks. |
+| `validation` | Optional dict of post-step criteria; carried on the step but not evaluated by the enforcer in {{ tulip_sdk_version }}. |
+| `timeout_seconds` | Optional per-step timeout; carried on the step but not enforced in {{ tulip_sdk_version }}. |
+| `metadata` | Arbitrary dict for your own use. |
 
 ### 2. Load from YAML or JSON
 
@@ -130,7 +133,6 @@ nist_ir = load_playbook("playbooks/nist_800_61_ir.yaml")
 id: nist-800-61-ir
 name: NIST 800-61 incident response
 description: Detect from the SIEM, analyze the IOCs, then contain.
-strict_sequence: true
 allow_extra_tools: false
 steps:
   - id: detection
@@ -159,24 +161,97 @@ agent = Agent(
 result = agent.run_sync("Triage alert ALT-7 (host WS-014) and contain if malicious.")
 ```
 
-The hook injects step descriptions and hints into the agent's
-context, validates each tool call against the current step's
-`expected_tools`, and records the executions. The detection →
-analysis → containment order is enforced: an `isolate_host` call
-during the `detection` step is rejected, so the host can't be
-contained before its IOCs are enriched.
+The hook validates each tool call against the current step's
+`expected_tools` and records the executions. It does not add the plan
+to the prompt: a step's `hints` reach the model only when a call is
+rejected (with the hook's default `block_violations=True`), as part of
+the `PlaybookEnforcer blocked: … | Hints: …` tool result the model then
+has to recover from; `description` is never sent. If you want the
+model steered up front, put the procedure in `system_prompt=` as well.
+The detection → analysis → containment order is enforced: an
+`isolate_host` call during the `detection` step is rejected, so the
+host can't be contained before `enrich_indicator` has run.
 
 ## Strict vs lenient enforcement
 
 | Setting | Effect |
 |---|---|
-| `strict_sequence=True` (default) | Steps must run in order; skipping ahead rejects the call. |
-| `strict_sequence=False` | Steps can run in any order, but each must complete. |
-| `allow_extra_tools=False` (default) | Only `expected_tools` may fire during a step. |
-| `allow_extra_tools=True` | Any registered tool may fire — playbook is a recommendation, not a contract. |
+| `allow_extra_tools=False` (default) | During a step, a call must be in the step's `expected_tools` (a step with an empty `expected_tools` list constrains nothing here) and, when the step `uses` a skill that declares `allowed_tools`, in that allow-list too. Once the last step completes, any further tool call is rejected. |
+| `allow_extra_tools=True` | None of those three checks apply — any registered tool may fire; the playbook is a recommendation, not a contract. |
 
-For compliance-grade workflows, keep both at their defaults. For
-"loose runbook" guidance, flip them.
+`strict_sequence` is carried on `Playbook` for authoring and
+serialisation but is not consulted by `PlaybookEnforcer` or
+`PlaybookEnforcerHook` in {{ tulip_sdk_version }}; ordering comes from
+the plan's current-step pointer, which the hook advances once the
+current step's `expected_tools` have all fired (or its
+`max_tool_calls` is reached).
+
+For compliance-grade workflows, keep `allow_extra_tools` at its
+default. For "loose runbook" guidance, set `allow_extra_tools=True`.
+
+### Steps that use skills
+
+A step can name the [skills](skills.md) it is carried out with, so the
+procedure is written at the level of the job rather than the tool:
+
+```python
+from tulip.playbooks import Playbook, PlaybookStep
+from tulip.playbooks.hook import PlaybookEnforcerHook
+from tulip.skills import Skill
+
+refund_triage = Skill(
+    name="refund-triage",
+    description="Use when a customer asks for a refund or disputes a charge.",
+    instructions="Pull the order, then check it against the refund policy.",
+    allowed_tools=["lookup_order", "check_refund_policy"],
+)
+
+refund_intake = Playbook(
+    id="refund-intake",
+    name="Refund intake",
+    steps=[
+        PlaybookStep(
+            id="triage",
+            description="Triage the refund request.",
+            uses=["refund-triage"],
+            max_tool_calls=6,
+        ),
+    ],
+)
+
+intake_hook = PlaybookEnforcerHook(playbook=refund_intake, skills={"refund-triage": refund_triage})
+```
+
+- **Resolution.** Names resolve against the `skills=` mapping given to
+  `PlaybookEnforcerHook`, or, when the playbook is passed as
+  `Agent(playbook=...)`, against the agent's `skills=`. In
+  {{ tulip_sdk_version }} that works only for `Skill` objects: a string
+  path there makes `Agent(...)` fail at construction (`AttributeError`),
+  and a `Path` leaves the name inert (no allow-list, no probes), so load
+  it with `Skill.from_file(...)` first. A name that resolves to nothing
+  is inert too: no error, no constraint.
+- **Allow-list.** While the step is current, the union of the
+  allow-lists its skills declare bounds what may be called. Any other
+  call is recorded as a `tool_outside_skill` violation and, with
+  `block_violations=True` (the default), blocked. This applies only
+  while `allow_extra_tools=False` (the default); with
+  `allow_extra_tools=True` the call goes through and no violation is
+  recorded. A skill without an allow-list constrains nothing, and
+  outside a step that names it, a skill's list constrains nothing
+  either. The step's own `expected_tools` check still applies on top.
+- **Evidence.** The step inherits each skill's `required_probes`; a
+  probe the step declares under the same name wins. A skill's own
+  `min_tool_calls` / `max_tool_calls` are not applied to the step in
+  {{ tulip_sdk_version }} — declare them on the step.
+- **Advancing.** The hook closes a step when its `expected_tools` have
+  all fired or its `max_tool_calls` is reached, never on `uses` alone,
+  so a step that names only skills needs a `max_tool_calls` to move on
+  (the `max_tool_calls=6` above).
+- **The activation tool.** The `skills` tool that `Agent(skills=[...])`
+  registers is checked like any other call: while such a step is
+  current it is blocked unless it is on the step's skill allow-list
+  (when one is declared) and in the step's `expected_tools` (when those
+  are listed).
 
 ## Inspecting execution
 
@@ -196,11 +271,61 @@ for execution in plan.step_executions.values():
 ephemeral Pydantic object — serialize it (or wire an [`AuditTrail`](agentic-ai-security.md))
 if you need a record that outlives the process.
 
+### Evidence, not just sequence
+
+`expected_tools` asks whether the right tool was called;
+`required_probes` asks whether the right thing was looked at. Declare
+the evidence on the step, then read the violations off the enforcer
+after the run:
+
+```python
+from tulip.playbooks import Playbook, PlaybookStep
+from tulip.playbooks.hook import PlaybookEnforcerHook
+from tulip.playbooks.models import RequiredProbe
+
+triage = Playbook(
+    id="alert-triage",
+    name="Alert triage",
+    steps=[
+        PlaybookStep(
+            id="detection",
+            description="Pull the alert and its authentication events from the SIEM.",
+            expected_tools=["query_siem"],
+            required_probes=[RequiredProbe(name="auth_events", match="index=auth")],
+        ),
+        PlaybookStep(
+            id="containment",
+            description="Isolate the affected host from the network.",
+            expected_tools=["isolate_host"],
+        ),
+    ],
+)
+
+triage_hook = PlaybookEnforcerHook(playbook=triage)
+# ... run the agent with hooks=[triage_hook] ...
+
+for violation in triage_hook.enforcer.violations:
+    print(f"{violation.violation_type} @ {violation.step_id}: {violation.message}")
+
+print(f"probe coverage (steps reached): {triage_hook.enforcer.adherence_score():.2f}")
+```
+
+If the agent's `query_siem` arguments never mention `index=auth`, the
+`detection` step still closes — probes are recorded, they don't block —
+and the violation list carries an `evidence_incomplete` entry naming
+`auth_events`. `adherence_score()` averages probe coverage over the
+steps the run reached, not the whole playbook: a run that closes
+`detection` with its probe matched and then stops scores 1.00, so read
+it alongside `triage_hook.enforcer.plan.unresolved_required_steps()`. A substring match
+shows the string was asked for, not that the evidence was examined, so
+a low score is worth investigating and a high one proves little. The
+violation list is the thing to show a reviewer.
+
 ## Common gotchas
 
 | Symptom | Likely cause |
 |---|---|
-| Agent skips a step it shouldn't | The current step's `description` isn't specific enough — the model is interpreting the user's request as already satisfying the step. Sharpen the description. |
+| Agent skips a step it shouldn't | Nothing up front tells the model the procedure: it never sees a step's `description`, and sees `hints` only after a rejected call. Put the procedure in `system_prompt=` too, and check `enforcer_hook.enforcer.plan.unresolved_required_steps()` after the run — a model that answers without calling a step's tools leaves that step unresolved rather than tripping a rejection. |
 | Enforcer rejects a tool that *should* be allowed | The tool isn't in `expected_tools` for the current step. Add it, or set `allow_extra_tools=True` if the policy allows. |
 | `max_tool_calls` exhausts mid-step | Bump the limit or split the step in two — the model may need search-and-refine cycles. |
 | YAML loads but the agent doesn't follow it | Pass it through `PlaybookEnforcerHook(...)` — `Playbook` alone is just data. |

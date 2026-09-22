@@ -14,9 +14,9 @@ allocations.
 
 Pipeline::
 
-    with run_context() as rid:        ← activates emission; generates run_id
+    async with run_context() as rid:  ← activates emission; generates run_id
          │
-         │  agent.run_sync(…)
+         │  await agent.arun(…)
          │      │
          │      ├─ agent.think         ← one per ReAct iteration
          │      ├─ agent.tool.started  ┐ span_id ties the pair

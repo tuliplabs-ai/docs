@@ -44,11 +44,12 @@ exits when the queue empties or `max_iterations` is hit.
 
 ```python
 import asyncio
+from tulip.models import get_model
 from tulip.multiagent import create_swarm, create_swarm_agent
 
 
 async def main():
-    model = "anthropic:claude-sonnet-4-6"
+    model = get_model("anthropic:claude-sonnet-4-6")
 
     scout = create_swarm_agent(
         name="Scout",

@@ -5,8 +5,9 @@ Three layers cooperate inside an agent run:
 1. **Validation** — typed tool arguments are JSON-schema-checked before
    the call lands. No opt-in needed.
 2. **Guardrails** — content policy, PII redaction, dangerous-tool
-   blocking, prompt/result length caps. Runs as a hook on the
-   prompt-in / output-out boundaries.
+   blocking, prompt/result length caps. Runs as a hook at three points:
+   on the incoming prompt, before each tool call, and on each tool
+   result. To filter the model's own output, add `OutputFilterHook`.
 3. **Steering** — a second model evaluates every tool call before it
    fires. The judge sees the recent tool-call activity and your policy,
    and emits one of *PROCEED / GUIDE / INTERRUPT* (allow, cancel with

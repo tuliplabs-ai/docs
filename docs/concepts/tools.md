@@ -1,3 +1,7 @@
+---
+title: Tools
+---
+
 # Tools
 
 Tools are how a Tulip agent
@@ -124,8 +128,15 @@ If your tools have side effects that must be ordered, switch to
 ### Error handling — tool failures don't crash the agent
 
 If a tool raises, the loop catches the exception and turns it into a
-`ToolResult(error=str(exc))`, then feeds that back into the next model
-turn. (`ToolResult.success` is a read-only property derived from
+`ToolResult` whose `error` is `f"{type(exc).__name__}: {message}"` —
+first line only, with common secret patterns (`postgresql://`, `redis://`,
+`mongodb://` and `mysql://` URLs, `password=`/`api_key=`/`token=`
+assignments, well-known vendor key prefixes, `Authorization: Bearer`
+values, JWTs, home-directory paths) redacted or masked on a best-effort
+basis — then feeds that back into the next model turn. The redaction is
+pattern-based: a `postgres://` URL or an unrecognised key format passes
+through unchanged, so keep secrets out of exception messages.
+(`ToolResult.success` is a read-only property derived from
 `error` — it's `True` when `error is None`, not something you set.) The
 model sees the failure and can react: retry, try a different tool, or
 report to the user.
@@ -139,9 +150,11 @@ def lookup_order(order_id: str) -> dict:
     return record
 ```
 
-The model sees `"no order with id=ord-4821"` and decides what to do.
-Behind the scenes, the loop captures the exception's string form into
-`ToolResult.error`; the raw exception is logged where the tool ran.
+The model sees `"Error: ValueError: no order with id=ord-4821"` and decides what to do.
+Behind the scenes, the loop captures the exception type plus its sanitized
+first line into `ToolResult.error`, and that string is folded into the tool
+message content (prefixed with `Error: `) when the tool produced no content;
+the traceback and any later lines of the message never reach the model.
 
 ### Custom names and descriptions
 

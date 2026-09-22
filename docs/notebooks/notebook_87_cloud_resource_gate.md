@@ -54,12 +54,12 @@ calling boto3, the OCI SDK, or ``gcloud``, so the script runs offline with no
 cloud account, no creds, no network. Swap those functions for real API calls and
 the gate is unchanged.
 
-Run it (fully offline — no cloud account, no credentials needed):
+Run it (fully offline — no model, no cloud account, no credentials needed):
     python examples/notebook_87_cloud_resource_gate.py
 
 ## Output
 
-Running it offline — no credentials, bundled mock model — prints spend held at the policy boundary:
+Running it offline — no model and no credentials — prints a staging resize allowed and a production terminate held:
 
 ```text
 Notebook 87: gating a cloud-ops agent's actions by blast radius and environment

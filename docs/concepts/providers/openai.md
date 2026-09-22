@@ -51,10 +51,13 @@ without further configuration.
 
 ### Chat completions across the GPT family
 
-Every chat-shaped OpenAI model: `gpt-4o`, `gpt-4.1`, `gpt-5`, `gpt-5.5`,
-`gpt-image-1`. Vision input (image URLs / base64), audio input, and
+Every chat-shaped OpenAI model: `gpt-4o`, `gpt-4.1`, `gpt-5`, `gpt-5.5`.
+Vision input (image URLs / base64), audio input, and
 function calling work the same way you'd use them on the OpenAI SDK
 directly — the SDK just normalises the events the model emits.
+
+Image *generation* (`gpt-image-1`) is a separate provider, not a chat
+model — see [Multi-modal providers](../multi-modal-providers.md).
 
 ### Reasoning models — the o-series
 
@@ -73,6 +76,30 @@ Each turn's assistant message is surfaced as a `ThinkEvent` (carrying
 it goes. Note: OpenAI does not return separate reasoning traces over the
 API, so the `ThinkEvent` carries the model's normal per-turn message
 text, not hidden chain-of-thought.
+
+### The gpt-5.6 family and the Responses API
+
+`OpenAIModel` speaks both OpenAI wire APIs. `api="auto"` (the default) sends
+chat-completions for everything except model ids starting with `gpt-5.6`
+(`gpt-5.6-sol`, `-terra`, `-luna`): that family rejects function tools on
+chat-completions whenever reasoning is active, so Tulip routes it to
+`/v1/responses`. Auto-routing fires only when no `base_url` is passed to the
+model. With a custom `base_url` the request stays on chat-completions, because
+an OpenAI-compatible gateway typically does not serve the Responses path. A
+gateway set only through the `OPENAI_BASE_URL` environment variable is not
+detected, so pass `base_url` explicitly or set `api="chat_completions"`.
+
+Force either wire API with `api="responses"` / `api="chat_completions"`. It is
+a model argument, not an agent one, so `Agent(..., api=...)` raises. Build the
+model first, or pass it through `model_kwargs` with the string form
+(`Agent(model="openai:gpt-5.6-sol", model_kwargs={"api": "responses"})`):
+
+```python
+from tulip.agent import Agent
+from tulip.models import get_model
+
+agent = Agent(model=get_model("openai:gpt-5.6-sol", api="responses"))
+```
 
 ### Real SSE streaming
 

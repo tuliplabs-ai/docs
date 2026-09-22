@@ -1,3 +1,7 @@
+---
+title: GSAR — typed grounding
+---
+
 # GSAR — typed grounding
 
 Imagine an incident-response agent that pulls three log lines, two

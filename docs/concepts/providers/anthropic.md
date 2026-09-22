@@ -7,7 +7,8 @@ without going through an intermediary.
 
 What makes this provider distinct is **prompt caching**: a long
 product-catalog, policy, or playbook block reused across a session pays
-1/10th the input cost on repeat turns. Each turn's assistant message is
+1/10th the input cost on repeat turns once you opt in with
+`prompt_cache=True`. Each turn's assistant message is
 also surfaced as a typed `ThinkEvent`, so a UI can show the model's
 working as it streams.
 
@@ -48,29 +49,33 @@ result = agent.run_sync("Summarise the open orders for customer 4821 in three bu
 print(result.message)
 ```
 
-That's the full setup. Streaming, tool calling, and prompt caching
-work without extra configuration.
+That's the full setup. Tool calling works without extra configuration;
+token streaming is one argument away (`stream_tokens=True` on
+`agent.run`), and prompt caching is opt-in (`prompt_cache=True`, below).
 
 ## What you get out of the box
 
 ### The whole Claude family
 
-Whatever Anthropic ships, you can address by name:
+Whatever Anthropic ships, you can address by name. The ids below are
+examples, not a maintained roster:
 
 | Model | When to pick it |
 |---|---|
 | `claude-opus-4-8` | Hardest problems — timeline reconstruction, complex multi-step plans |
+| `claude-sonnet-5` | Current-generation everyday workhorse |
 | `claude-sonnet-4-6` | Everyday workhorse — fast enough, smart enough, cheap enough for routine work |
 | `claude-haiku-4-5` | High-volume classification and routing — cheap calls, log summaries |
 
 ### Real SSE streaming
 
-Token-level streaming. The model emits content deltas; the SDK
+Token-level streaming, opted into with `stream_tokens=True` on
+`agent.run`. The model emits content deltas; the SDK
 converts them to `ModelChunkEvent`s; your `async for` loop reads
 them as they arrive.
 
 ```python
-async for event in agent.run("Summarise the history of order ord-4821."):
+async for event in agent.run("Summarise the history of order ord-4821.", stream_tokens=True):
     if isinstance(event, ModelChunkEvent) and event.content:
         print(event.content, end="", flush=True)
 ```
@@ -119,6 +124,10 @@ Opt in with `prompt_cache=True` on `AnthropicModel`. The SDK then sends
 the system prompt as a block list with `cache_control: ephemeral` and
 tags the last entry of the tool catalog the same way (Anthropic walks
 markers in order — the last tag anchors the cache point).
+These markers are applied on the non-streaming path only:
+`AnthropicModel.stream()`, which `agent.run(..., stream_tokens=True)`
+uses, sends the system prompt and tool catalog untagged, so nothing is
+cached while streaming tokens.
 
 ```python
 from tulip.agent import Agent
@@ -163,7 +172,7 @@ extended-thinking request param, so this is the normal per-turn message
 text, not a separate hidden chain-of-thought channel:
 
 ```python
-async for event in agent.run("..."):
+async for event in agent.run("...", stream_tokens=True):
     match event:
         case ThinkEvent(reasoning=r) if r:
             print(f"💭 {r}")
@@ -180,6 +189,7 @@ async for event in agent.run("..."):
 | `429 overloaded_error` | Anthropic capacity; the `ModelRetryHook` re-tries with backoff if installed |
 | Prompt caching not visible in usage stats | Cache window expired (5 min ephemeral) or prompt below the threshold |
 | `ThinkEvent`s never fire | The turn produced no assistant `message.content` (e.g. tool-call-only turn) |
+| `temperature` appears to have no effect | Anthropic deprecated `temperature` from `claude-opus-4-7` onward and across the Claude 5 family. The provider matches those ids by prefix (`claude-opus-4-7`, `claude-opus-4-8`, `claude-opus-4-9`, `claude-sonnet-5`, `claude-opus-5`, `claude-haiku-5`, `claude-fable-5`, `claude-mythos-5`) and omits the parameter rather than taking a 400 — it is dropped silently, with no warning, even though `AnthropicConfig.temperature` defaults to `0.7`. Separately, token streaming (`agent.run(..., stream_tokens=True)`) goes through `AnthropicModel.stream()`, which sends no `temperature` for any Claude model, so while streaming the setting has no effect on `claude-sonnet-4-6` or `claude-haiku-4-5` either. Steer with the system prompt instead. |
 
 ## Source
 

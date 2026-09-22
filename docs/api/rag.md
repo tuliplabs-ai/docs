@@ -5,6 +5,8 @@ around pluggable embedders and vector stores behind one interface. The `BaseVect
 contracts are identical across backends so you can swap stores with a
 one-line import change.
 
+For the concepts, start with [RAG](../concepts/rag.md).
+
 ## Retriever
 
 The unified interface — combines an embedder and a store into the

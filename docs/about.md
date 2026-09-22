@@ -25,7 +25,7 @@ it does not mean every historical line originated with the current maintainers.
 |---|---|
 | Releases and changes | [Changelog](https://github.com/tuliplabs-ai/tulip-agents/blob/main/CHANGELOG.md) and [PyPI](https://pypi.org/project/tulip-agents/) |
 | Supported Python and dependency ranges | [Compatibility policy](compatibility.md) and package metadata |
-| Open work and decisions | [Issues](https://github.com/tuliplabs-ai/tulip-agents/issues) and [discussions](https://github.com/tuliplabs-ai/tulip-agents/discussions) |
+| Open work and decisions | [Issues](https://github.com/tuliplabs-ai/tulip-agents/issues) |
 | Contribution process | [Contributing guide](https://github.com/tuliplabs-ai/tulip-agents/blob/main/CONTRIBUTING.md) |
 | Security reporting | [Security policy](https://github.com/tuliplabs-ai/tulip-agents/blob/main/SECURITY.md) |
 | License and provenance | [Legal notices](legal.md) |

@@ -45,12 +45,21 @@ agent.run_sync("What host did we isolate, and on what evidence?", thread_id="cas
 
 !!! note "What a checkpoint is — and isn't"
     A checkpoint is the agent's `AgentState` serialised to plain,
-    mutable JSON. Each save overwrites the thread's latest record; there
-    is no signing, no append-only history, and no integrity guarantee on
-    the stored bytes. It gives you **durability and resumability**, not a
-    tamper-evident audit log. For a tamper-evident record of decisions,
-    route those through the [`AuditTrail`](agentic-ai-security.md) hash
-    chain instead.
+    mutable JSON. Each save the agent makes mints a new checkpoint id and
+    writes a new record — a new `<checkpoint_id>.json` for
+    `FileCheckpointer`, a new object plus metadata for `S3Backend`, a new
+    `<thread_id>:<checkpoint_id>` entry for the `redis_checkpointer` /
+    `postgresql_checkpointer` / `mysql_checkpointer` factories. Only
+    bookkeeping is overwritten: the `<thread_id>/_latest` pointer object
+    for `S3Backend`, and for the factories a `<thread_id>:latest` copy
+    plus the `<thread_id>:_checkpoints` index. Earlier checkpoints stay
+    until you delete them or a retention rule (TTL, lifecycle policy,
+    `vacuum`) expires them. What you do not get is signing or any
+    integrity guarantee on the stored bytes: anything with write access
+    to the store can alter a checkpoint in place. It gives you
+    **durability and resumability**, not a tamper-evident audit log. For
+    a tamper-evident record of decisions, route those through the
+    [`AuditTrail`](agentic-ai-security.md) hash chain instead.
 
 ## Picking a backend
 
@@ -82,8 +91,9 @@ agent = Agent(
 )
 ```
 
-One JSON file per `thread_id` in the directory — one file per case.
-Zero dependencies; the on-disk case file is grep-able when you need to
+One directory per `thread_id` — one per case — with a JSON file per
+checkpoint.
+Zero dependencies; the on-disk case files are grep-able when you need to
 eyeball a thread's saved state by hand.
 
 ### Production: `S3Backend`
@@ -166,9 +176,13 @@ auto-expire once the case is closed.
 ### SQL: `PostgreSQLBackend` / `MySQLBackend`
 
 If your stack is already on PostgreSQL or MySQL, the SDK ships storage
-backends so agent state can live alongside your app data. One row per
-`thread_id` (upsert), `list_threads` / `vacuum` / `search` over a JSON
-column. These are **storage backends**, not native checkpointers, so go
+backends so agent state can live alongside your app data. The backend
+upserts one row per key. Through the factories below, that key is
+`<thread_id>:<checkpoint_id>`, so each save adds a row, and a
+`<thread_id>:latest` row and a `<thread_id>:_checkpoints` index row are
+updated in place. `list_threads` and `vacuum` work over those rows, and
+`search_data` matches against the JSON `data` column. These are
+**storage backends**, not native checkpointers, so go
 through the `postgresql_checkpointer` / `mysql_checkpointer` factories
 (which wrap the backend in a `StorageBackendAdapter`):
 
@@ -287,18 +301,25 @@ async def main():
 asyncio.run(main())
 ```
 
-The interface is `put / get / list / delete` keyed on a `(namespace,
-key)` pair. The [`LLMMemoryManager`](memory-manager.md) builds on this
+The interface is `put / get / delete / list_keys`, keyed on a
+`(namespace, key)` pair, plus optional `search` and
+`search_by_embedding` that backends advertise through
+`store.capabilities`. The [`LLMMemoryManager`](memory-manager.md) builds on this
 to give an agent a long-term memory layer; you can also use the store
 directly for anything cross-case that doesn't need LLM extraction
 (product catalogues, customer allowlists, rate-limit counters).
 
 ### The built-in store: `InMemoryStore`
 
-The SDK ships an in-process `InMemoryStore` implementing the
-`BaseStore` interface. Namespaces and keys live in a dict; it's the
-default the [`LLMMemoryManager`](memory-manager.md) uses. For a durable
-cross-thread store, subclass `BaseStore` over your backend of choice.
+`InMemoryStore` (`tulip.memory.store`) is the in-process
+implementation — namespaces and keys live in a dict, and it is the store
+the examples pass to [`LLMMemoryManager`](memory-manager.md), which
+requires a `store` argument rather than defaulting to one. For a durable
+cross-thread store the SDK ships `HolographicStore` (SQLite + FTS5, no
+external infrastructure; give it a file `path`, since the default is
+`:memory:`) and `PgMemory` (Postgres + pgvector with per-tenant
+row-level security), both in `tulip.memory.store_backends`; subclass
+`BaseStore` only if neither fits — see [Memory API](../api/memory.md).
 
 ```python
 import asyncio

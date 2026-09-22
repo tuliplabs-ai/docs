@@ -6,9 +6,10 @@ Well-Architected best-practice catalogue, using the bundled in-memory
 vector store.
 
 - **Embed** — `OpenAIEmbeddings` (`text-embedding-3-small`, 1536 dims).
-- **Store** — `QdrantVectorStore` (in-memory) keeps vectors in process;
-  swap in `PgVectorStore` / `OpenSearchVectorStore` / `ChromaVectorStore`
-  for a durable backend.
+- **Store** — the pure-Python `InMemoryVectorStore` keeps vectors in
+  process with no extra dependencies; swap in `QdrantVectorStore` /
+  `PgVectorStore` / `OpenSearchVectorStore` / `ChromaVectorStore` for a
+  durable backend.
 - **Search** — nearest-neighbour by cosine distance.
 - **Retrieve** — `RAGRetriever` wraps embed + chunk + store behind one
   call, tagging each chunk with the pillar/practice metadata the cloud-ops
@@ -16,7 +17,7 @@ vector store.
 
 The corpus is AWS Well-Architected best practices (`REL-xx`, `COST-xx`,
 `SEC-xx`, `OPS-xx`) mapped to your runbooks — the Index the cloud-ops
-agent (STRATUS, notebook 40) reads from.
+agent (ATLAS, notebook 40) reads from.
 
 ## Run it
 

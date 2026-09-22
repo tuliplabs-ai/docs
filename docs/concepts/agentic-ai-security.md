@@ -61,9 +61,10 @@ black-box endpoint, an agent you built, or an offline stub in CI.
 
 ## `red_team` — attack, grounded
 
-`red_team` runs the OWASP-ASI / MITRE-ATLAS probe suite against a target and
-grounds each outcome. A probe whose attack *landed* yields an `Evidence`
-finding; an inconclusive one yields an `Abstention`.
+`red_team` runs the OWASP-ASI probe suite (or the smaller `owasp-llm` one)
+against a target and grounds each outcome; MITRE ATLAS appears as tags on the
+findings (`Evidence.taxonomy`), not as a suite. A probe whose attack *landed*
+yields an `Evidence` finding; an inconclusive one yields an `Abstention`.
 
 ```python
 import asyncio
@@ -96,11 +97,13 @@ coverage, with the taxonomy listing exactly the gaps.
 
 ```python
 from tulip.security import assure
-posture = await assure(target)   # grounded guardrail-coverage posture
+posture = await assure(target)          # one grounded posture finding per assessment
+coverage = posture[0]                   # today assure runs a single assessment: guardrail coverage
+# or call guardrail_coverage(target) directly for just that one finding
 ```
 
-This is a *grounded finding*, not a compliance attestation. `assure` never
-asserts posture it cannot evidence — it abstains. Tulip deliberately does not
+Each item in that list is a *grounded finding*, not a compliance attestation.
+`assure` never asserts posture it cannot evidence — it abstains. Tulip deliberately does not
 do compliance attestation; its governance acts on the action itself: the
 [admission gate](#enforce-it-before-it-acts) — enforced policy, a human on
 the actions that warrant one, and a tamper-evident record.
@@ -121,25 +124,40 @@ result = secured.run_sync("...")
 assert secured.audit_trail.verify()   # the chain is intact (tamper-evident)
 ```
 
-The `AuditTrail` is a keyless, in-memory SHA-256 hash chain: every action
-commits to the hash before it, so any later edit, deletion, or reorder breaks
-`verify()` against a trusted head hash. That makes it tamper-*evident* (it
-**detects** edits) rather than tamper-proof — there is no signing or external
-anchoring yet. It exports as JSONL for shipping to your audit store or a SIEM
-(a security team's log platform), where signing or write-once anchoring can
+The `AuditTrail` is an in-memory SHA-256 hash chain: every action commits to
+the hash before it, so an edit, deletion, or reorder in the middle breaks
+`verify()`. Records cut off the end still leave a valid chain; catching that
+needs `verify(expected_head=...)` against a head hash pinned outside the trail.
+That makes it tamper-*evident* (it **detects** edits) rather than tamper-proof.
+It is unsigned by default, so anyone who can write the log could rebuild the
+whole chain around an edit and `verify()` would still pass; only
+`verify(expected_head=...)` against a head hash anchored somewhere out of their
+reach would catch it. Give it an
+`Ed25519Signer` (`AuditTrail(signer=...)`, which needs
+`pip install "tulip-agents[audit]"`) and `verify(keys=...)` then fails if any
+record is not signed with a key you trust. The signature covers each record's
+hash when it is written, so it cannot catch a payload that was wrong before it
+was recorded. It exports as JSONL for shipping to your audit store or a SIEM
+(a security team's log platform); anyone holding the export can check it with
+`verify_jsonl()` and the public keys alone, and write-once retention can
 harden it further.
 
 ## Enforce it before it acts
 
 Grounding, verification, and the audit trail make an agent *trustworthy*; the
 **admission gate** makes that trust *binding*. Run a side-effecting action
-through `admit()` (or `ctx.actions.execute()`). The action fires only if it
-clears the policy chain (`approve()` → ALLOW). When policy answers
-`require_human`, it is held for a named person; everything else is denied.
-Every decision — allowed, held, or denied — is recorded, and `AdmissionError`
-is raised whenever the action does not run. That's the line between an agent
-that *could* be safe and a runtime that *enforces* safety — no action reaches
-production without a verified, approved, audited warrant. See
+through `admit()` (or `ctx.actions.execute()`). The action fires at once
+when policy allows it (`approve()` → ALLOW). When policy holds it
+(`require_human`), `admit()` raises `AdmissionError` instead of running it; it
+runs only if you call `admit()` again naming the person who approved it
+(`admit(approved_by=...)`). `ctx.actions.execute()` takes no `approved_by`, so
+a hold there is simply refused. Everything else is denied, and no approval
+overrides a denial.
+Every decision — allowed, held, or denied — is recorded when you pass an
+`AuditTrail` to `admit(trail=...)`, and `AdmissionError` is raised whenever the
+action does not run. That's the line between an agent that *could* be safe and
+a runtime that *enforces* its policy — an action routed through the gate runs
+only when policy allows it or a named person approves the hold. See
 [SecurityContext](security-context.md#admission-control-the-enforcement-point).
 
 ## Regular cyber — classic security operations

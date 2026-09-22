@@ -42,6 +42,8 @@ approval, idempotency, and persistence tests against the new version.
 | Template | Example adapter or skeleton requiring deployment-specific implementation and validation |
 | Offline simulation | Deterministic local behavior; no claim about a live external system |
 | Live | Contacts the named provider or infrastructure and needs its credentials/configuration |
+| Supported interfaces | The SDK-side adapter interface is supported; the backing service (database, vector store) is yours to operate and test |
+| Research-only | A published research or evaluation artifact describing a specific experiment; not a supported SDK surface, and the exact evaluated configuration is preserved |
 
 Examples should state their execution mode, requirements, tested SDK line, and
 limitations near the top. If a page is missing those details, treat it as

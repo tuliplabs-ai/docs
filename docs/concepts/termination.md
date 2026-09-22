@@ -13,7 +13,7 @@ from tulip.core.termination import (
 
 termination = (
     (ToolCalled("issue_refund") & ConfidenceMet(0.9))
-    | TextMention(r"\bESCALATE\b")
+    | TextMention("ESCALATE")
     | MaxIterations(10)
 )
 ```
@@ -37,7 +37,7 @@ ladders sprinkled through the response loop.
 | The run is "done" when one specific tool fires | `ToolCalled("issue_refund")` |
 | The model is confident and Reflexion agrees | `ConfidenceMet(0.85)` (requires `reflexion=True`) |
 | The agent should write a summary, not call more tools | `NoToolCalls()` |
-| The run ends when the model flags for human review | `TextMention(r"\bESCALATE\b")` |
+| The run ends when the model flags for human review | `TextMention("ESCALATE")` |
 | Custom predicate over `AgentState` | `CustomCondition(fn)` |
 
 ## Getting started
@@ -104,10 +104,10 @@ and control flow on the normalized `result.stop_reason`.
 | `TokenLimit(n)` | Cumulative model tokens exceed `n`. |
 | `TimeLimit(seconds)` | Wall-clock budget exceeded. |
 | `NoToolCalls()` | The most recent turn produced a summary and zero tool calls. |
-| `ToolCalled(name, args=None)` | A specific tool fired — e.g. `ToolCalled("issue_refund")` (with optional args predicate). |
+| `ToolCalled(name, *, require_success=False)` | A specific tool was called — e.g. `ToolCalled("issue_refund")`. With `require_success=True`, a call that raised doesn't count; a call a before-tool hook cancelled is recorded without an error, so it still counts. |
 | `ConfidenceMet(threshold)` | Reflexion confidence ≥ threshold. |
-| `TextMention(pattern)` | Final message contains a regex match — e.g. an `ESCALATE` sentinel. |
-| `CustomCondition(fn)` | `fn(state) -> bool` — anything you can write in Python. |
+| `TextMention(text, case_sensitive=False)` | The last assistant message contains `text` as a substring; case-insensitive by default. |
+| `CustomCondition(fn)` | `fn(state, **ctx) -> (stop, reason)` — anything you can write in Python. |
 
 Every condition takes `AgentState` and its `check()` returns a
 `(stop: bool, reason: str | None)` tuple. They run after each
@@ -118,18 +118,28 @@ iteration; the first one that stops wins.
 Write any predicate over `AgentState`:
 
 ```python
-from tulip.core.termination import CustomCondition
+from tulip.core.termination import CustomCondition, MaxIterations
 
-def refund_settled(state) -> bool:
+def refund_settled(state, **ctx) -> tuple[bool, str | None]:
     # Stop only once issue_refund actually returned a receipt —
-    # not just when the call was emitted.
-    return any(
-        e.tool_name == "issue_refund" and (e.result or {}).get("receipt")
+    # not just when the call was emitted. `e.result` is a string (the
+    # tool's output, or the cancel message if a hook blocked the call),
+    # or None if the call raised.
+    settled = any(
+        e.tool_name == "issue_refund" and "receipt" in (e.result or "")
         for e in state.tool_executions
     )
+    return settled, ("refund_settled" if settled else None)
 
 termination = CustomCondition(refund_settled) | MaxIterations(15)
 ```
+
+The loop calls `fn(state, **ctx)` and always passes `last_message` and
+`no_tool_calls` as keywords, so the `**ctx` parameter is required even
+if you ignore it. Return the `(stop, reason)` tuple — the loop unpacks
+it directly, so a bare `bool` raises `TypeError: cannot unpack
+non-iterable bool object`. The reason string is what surfaces on
+`TerminateEvent.reason`.
 
 Custom conditions compose with built-ins exactly the same way — `&`
 and `|` work across the whole hierarchy.
@@ -141,7 +151,7 @@ and `|` work across the whole hierarchy.
 | Agent always stops at `MaxIterations` | The "done" condition never fires — model isn't calling `issue_refund`, or confidence never reaches the threshold. Lower the threshold or check the tool name. |
 | `&` / `\|` precedence surprises | Python's normal precedence applies: `&` binds tighter than `\|`. Add parentheses when in doubt — `(A & B) \| C` reads cleaner anyway. |
 | `ConfidenceMet` never trips | `reflexion=True` is required — without it, confidence stays at the default, so the agent never early-stops on a high-confidence resolution. |
-| `ToolCalled("issue_refund")` fires before the refund settles | It checks the *call*, not the *result*. Pair with `ConfidenceMet` or a `CustomCondition` that inspects `tool_executions` for the returned receipt. |
+| `ToolCalled("issue_refund")` fires before the refund settles | It checks the *call*, not the *result* — `require_success=True` additionally skips a call that raised, so a terminal tool can reject a submission by raising and the loop continues. For a check on the returned content, pair with `ConfidenceMet` or a `CustomCondition` that inspects `tool_executions`. |
 
 ## Source and notebook
 

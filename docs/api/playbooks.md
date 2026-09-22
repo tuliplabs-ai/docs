@@ -4,6 +4,8 @@ Structured execution plans for agents — declared step sequences with
 expected tools, validation criteria, and guidance hints. Attach one
 via `AgentConfig.playbook`; enforcement details below.
 
+For the concepts, start with [Playbooks](../concepts/playbooks.md).
+
 ## Models
 
 ::: tulip.playbooks.models.Playbook

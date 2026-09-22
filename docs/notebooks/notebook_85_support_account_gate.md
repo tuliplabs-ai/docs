@@ -37,7 +37,14 @@ the gate reasons purely over scope and labels.
 decision to the ``AuditTrail`` whether or not it allows, and only then awaits
 ``perform``. There is no path to the write that skips the log — the held plan
 upgrade lands on the trail next to the small credit that actually ran, and
-``trail.verify()`` confirms the SHA-256 chain was not altered after the fact.
+``trail.verify()`` confirms the SHA-256 chain is internally consistent: an edit,
+a reorder, or a deletion from the middle fails it. On its own it cannot catch
+records dropped off the end, or a chain rewritten and re-hashed from an edited
+record onward; the bare call this script makes returns ``True`` for both. Anchor
+``trail.head`` where the agent cannot reach it and pass it back as
+``verify(expected_head=…)``, and sign the trail, before treating it as evidence
+— see
+[what `verify()` catches](../api/control.md#what-verify-catches-and-the-one-thing-it-cannot).
 
 In this run the small change (one field, a $5 credit on ticket SUP-7781) is
 applied automatically, while the big one (ticket SUP-7782: upgrade to enterprise
@@ -56,7 +63,7 @@ Run it (fully offline — no model, no provider, no network):
 
 ## Output
 
-Running it offline — no credentials, bundled mock model — prints the account action that needed a human:
+Running it offline — no model and no credentials — prints the account action that needed a human:
 
 ```text
 Notebook 85: A support agent changes a customer account — admit() holds the big ones

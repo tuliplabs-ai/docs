@@ -5,7 +5,11 @@ against `S3Backend` — S3 / MinIO / Cloudflare R2 via boto3 — a durable
 store with `list_threads`, `vacuum`, branching, and metadata-query
 capabilities over a single bucket, so a customer-support case outlives
 any one process. (Full-text `search` is not part of the S3 capability
-set — use a SQL or OpenSearch backend for that.) Portable SQL
+set — a checkpointer built on `OpenSearchBackend` (`opensearch_checkpointer`)
+is the only bundled one that reports `capabilities.search`. The SQL
+backends offer exact-match lookups
+instead: `query_by_metadata` and, on the backend itself, `search_data`,
+a JSON-containment match on a top-level state field.) Portable SQL
 deployments can use PostgreSQL or MySQL through the same adapter shape;
 key/value deployments can use Redis. The basic agent notebook covers the
 checkpointer contract itself.
