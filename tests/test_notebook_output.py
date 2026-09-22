@@ -26,7 +26,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 import notebook_output  # noqa: E402
-from notebook_output import PAGES, apply, main, render, run_notebook, sdk_dir  # noqa: E402
+from notebook_output import PAGES, apply, main, render, run_notebook, sdk_dir, uses_model  # noqa: E402
 
 
 PAGE = """\
@@ -264,3 +264,34 @@ def test_check_fails_and_names_the_stale_page(one_page: Path, monkeypatch, capsy
 def test_a_mode_is_required(one_page: Path) -> None:
     with pytest.raises(SystemExit):
         main(["x"])
+
+
+# --------------------------------------------------------------------------
+# The lead-in describes what the notebook actually runs
+# --------------------------------------------------------------------------
+
+
+def test_a_notebook_without_a_model_is_not_described_as_using_one() -> None:
+    """Six of the seven gate notebooks call admit() directly and never build a
+    model; the lead-in used to promise a "bundled mock model" on every page."""
+    block = render("notebook_84_infra_deploy_gate", "a deploy", "out", with_model=False)
+
+    assert "no model and no credentials" in block
+    assert "mock model" not in block
+
+
+def test_a_notebook_with_a_model_keeps_the_mock_lead_in() -> None:
+    block = render("notebook_79_soc_alert_triage", "the triage", "out", with_model=True)
+
+    assert "bundled mock model" in block
+
+
+def test_model_use_is_read_from_the_notebook_source(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    (examples / "uses.py").write_text("from config import get_model\nmodel = get_model()\n")
+    (examples / "direct.py").write_text("from tulip.control import admit\n")
+
+    assert uses_model("uses", tmp_path) is True
+    assert uses_model("direct", tmp_path) is False
+    assert uses_model("absent", tmp_path) is False
