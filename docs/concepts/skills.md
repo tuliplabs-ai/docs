@@ -44,7 +44,7 @@ skill = Skill(
 )
 
 agent = Agent(config=AgentConfig(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     system_prompt="You are a release manager. Use available skills.",
     skills=[skill],
 ))
@@ -187,7 +187,7 @@ refund_triage = Skill(
 )
 
 agent = Agent(config=AgentConfig(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     system_prompt="You are a support agent. Cite evidence; escalate without it.",
     # register the full toolset; the skill narrows it while active
     tools=[lookup_order, lookup_customer, check_refund_policy, issue_refund],

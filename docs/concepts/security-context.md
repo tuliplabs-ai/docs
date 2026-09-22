@@ -236,7 +236,7 @@ you want an autonomous `tulip.Agent` to drive the investigation, hand it the
 ```python
 from tulip import Agent
 
-agent = Agent(model="anthropic:claude-sonnet-4-6", tools=ctx.toolset())
+agent = Agent(model="{{ tulip_example_model }}", tools=ctx.toolset())
 ```
 
 `toolset()` returns the agent-ready security tool bundle built from the **bundled

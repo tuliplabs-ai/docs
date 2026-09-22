@@ -36,7 +36,7 @@ guidance.
       Use them directly, or reach for them from the loop as tools. Every
       pattern shares the same `Agent` class and event stream.
     - **In-process observability** — opt-in `EventBus` with agent yield
-      bridge. One `run_context()` streams 60+ canonical events from every
+      bridge. One `run_context()` streams {{ tulip_event_count }} canonical events from every
       layer (agent, multi-agent, RAG, memory, A2A). Zero allocations
       when unused.
     - **Reasoning loop nodes** — Reflexion, Grounding, Causal as first-class
@@ -184,7 +184,7 @@ await ctx.actions.execute(
 | **`run_context()`** | ContextVar-based opt-in gate — zero allocations when inactive | `tulip.observability.run_context` |
 | **Agent yield bridge** | `@_bus_bridge` on `Agent.run` transparently republishes 9 `TulipEvent` types as `agent.*` SSE events | `tulip.agent.runtime_loop` |
 | **`EventBusHook`** | `HookProvider` that bridges all agent lifecycle hooks onto the bus (for non-async / pre-built agents) | `tulip.observability.EventBusHook` |
-| **Canonical event catalogue** | 60+ `EV_*` constants across 10 prefixes (`agent.*`, `multiagent.*`, `composition.*`, `tool.*`, `research.*`, `rag.*`, `memory.*`, `a2a.*`, `skills.*`, `deepagent.*`) | `tulip.observability.emit` · [SSE event catalogue](concepts/sse-events.md) |
+| **Canonical event catalogue** | {{ tulip_event_count }} `EV_*` constants across {{ tulip_event_prefixes }} | `tulip.observability.emit` · [SSE event catalogue](concepts/sse-events.md) |
 
 ## Reasoning
 

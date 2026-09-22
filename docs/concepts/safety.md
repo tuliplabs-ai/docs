@@ -45,7 +45,7 @@ config = GuardrailConfig(
 )
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[query_siem, summarise],
     hooks=[GuardrailsHook(config=config)],
 )
@@ -81,7 +81,7 @@ content_policy = ContentPolicy(
 )
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[...],
     hooks=[OutputFilterHook(
         topic_policy=topic_policy,
@@ -127,7 +127,7 @@ from tulip.hooks.builtin.steering import SteeringHook
 judge = AnthropicModel(model="claude-sonnet-4-6")
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[query_siem, block_indicator, isolate_host],
     hooks=[
         SteeringHook(

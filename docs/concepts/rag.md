@@ -28,7 +28,7 @@ await retriever.add_documents([
 ])
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[create_rag_tool(retriever)],
     system_prompt="You are a support agent. Cite the indexed "
                   "evidence behind every recommendation; never guess.",

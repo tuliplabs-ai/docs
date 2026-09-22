@@ -68,7 +68,7 @@ from tulip.agent import Agent
 from tulip.a2a import A2AServer, AgentSkill
 
 research_agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[web_search, fetch_page, cite],
     system_prompt="You research questions across sources and summarise the evidence.",
 )

@@ -42,7 +42,7 @@ def lookup_order(order_id: str) -> dict:
 
 
 agent = Agent(
-    model="openai:gpt-4o-mini",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order],
     system_prompt="Answer order questions.",
 )
@@ -73,7 +73,7 @@ print(result.message)
 - :material-radio-tower:{ .lg .middle } **[Typed event streaming](concepts/streaming.md)**
 
     ---
-    One `run_context()` streams 60+ canonical events from every layer —
+    One `run_context()` streams {{ tulip_event_count }} canonical events from every layer —
     agent, multi-agent, RAG, memory — and allocates nothing when unused.
 
 - :material-graph-outline:{ .lg .middle } **[Eight multi-agent shapes](concepts/multi-agent.md)**

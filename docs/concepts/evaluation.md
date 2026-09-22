@@ -139,7 +139,7 @@ case = EvalCase(
     rubric="Passes if it names the evidence that makes the alert benign.",
 )
 
-judge = LLMJudge(model=get_model("openai:gpt-4o"))
+judge = LLMJudge(model=get_model("{{ tulip_example_model }}"))
 runner = EvalRunner(agent=agent, judge=judge)
 report = asyncio.run(runner.arun([case]))
 ```

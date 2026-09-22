@@ -21,7 +21,7 @@ def lookup_order(order_id: str) -> str:
     return "results"
 
 agent = Agent(
-    model="openai:gpt-4o",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order],
     system_prompt="You are a customer-support agent.",
     max_iterations=20,
@@ -86,7 +86,7 @@ from tulip.agent import Agent
 from tulip.agent import AgentConfig
 
 cfg = AgentConfig(
-    model="anthropic:claude-sonnet-4-6",   # see concepts/models.md
+    model="{{ tulip_example_model }}",   # see concepts/models.md
     tools=[...],
     system_prompt="...",
     max_iterations=50,
@@ -113,7 +113,7 @@ keyword on the `Agent(...)` constructor (sugar) or a field on
 | `output_schema=Foo` | Pydantic schema. Final assistant message is parsed into an instance of `Foo` and surfaced on `result.parsed` / `result.parsed_as(Foo)`. Provider-strict `response_format` on OpenAI; tool-use translation on Anthropic; prompted fallback elsewhere. See [structured-output](structured-output.md). |
 | `termination=cond` | Composable stop algebra: `MaxIterations(10) \| TextMention("DONE") & ConfidenceMet(0.9)` is real Python. Eight built-in conditions; `\|` and `&` operator overloads. |
 | `playbook=plan` | A `tulip.playbooks.Playbook`. Auto-installs `PlaybookEnforcerHook` so each tool call is validated against the current step's `expected_tools` and the plan auto-advances. Out-of-sequence calls are cancelled with a hint. |
-| `auxiliary_model="anthropic:claude-sonnet-4-6"` | Cheap-tier model for non-primary calls (max-iterations summary, grounding eval, conversation compactor). String or `ModelProtocol` instance. Falls back to `model=` when unset. |
+| `auxiliary_model="{{ tulip_example_model }}"` | Cheap-tier model for non-primary calls (max-iterations summary, grounding eval, conversation compactor). String or `ModelProtocol` instance. Falls back to `model=` when unset. |
 | `reflexion=True` / `ReflexionConfig(...)` | Reflexion self-evaluation node in the loop. |
 | `grounding=True` / `GroundingConfig(...)` | LLM-as-judge grounding evaluation against retrieved evidence. |
 
@@ -126,11 +126,11 @@ class OrderList(BaseModel):
     order_ids: list[str]
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, issue_refund],
     output_schema=OrderList,
     termination=MaxIterations(8) | ToolCalled("issue_refund"),
-    auxiliary_model="anthropic:claude-sonnet-4-6",
+    auxiliary_model="{{ tulip_example_model }}",
     reflexion=True,
 )
 result = agent.run_sync("Look up the 3 orders and refund the eligible one.")

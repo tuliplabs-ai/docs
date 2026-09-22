@@ -49,7 +49,7 @@ Each `Specialist` is its own self-contained agent. Its fields:
 from tulip.models import get_model
 from tulip.multiagent import Specialist, create_orchestrator
 
-model = get_model("anthropic:claude-sonnet-4-6")
+model = get_model("{{ tulip_example_model }}")
 
 research = Specialist(
     name="research",

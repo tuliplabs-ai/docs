@@ -17,7 +17,7 @@ class Postmortem(BaseModel):
     action_items: list[str]
 
 writer = Agent(config=AgentConfig(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     output_schema=Postmortem,
 ))
 result = writer.run_sync("Write a postmortem for incident #4421")
@@ -57,7 +57,7 @@ from tulip.agent import Agent, AgentConfig
 from tulip.memory.backends.s3 import S3Backend
 
 agent = Agent(config=AgentConfig(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     checkpointer=S3Backend(bucket="tulip-state", prefix="..."),
 ))
 ```
@@ -73,7 +73,7 @@ different process, region, or runtime.
 ## Reflexion — catch a bad turn before the next one
 
 ```python
-agent = Agent(config=AgentConfig(model="anthropic:claude-sonnet-4-6", reflexion=True))
+agent = Agent(config=AgentConfig(model="{{ tulip_example_model }}", reflexion=True))
 ```
 
 `reflexion=True` self-evaluates every turn and feeds the next Think a
@@ -85,7 +85,7 @@ self-correction, flip the flag.
 ## Grounding — verify claims against their source
 
 ```python
-agent = Agent(config=AgentConfig(model="anthropic:claude-sonnet-4-6", grounding=True))
+agent = Agent(config=AgentConfig(model="{{ tulip_example_model }}", grounding=True))
 ```
 
 The configured grounding judge scores the final answer against the tool
@@ -126,7 +126,7 @@ from tulip.agent import Agent, AgentConfig
 from tulip.hooks.builtin import TelemetryHook
 
 agent = Agent(config=AgentConfig(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     hooks=[TelemetryHook(service_name="tulip-incident-bot")],
 ))
 ```
@@ -146,7 +146,7 @@ from tulip.agent import Agent, AgentConfig
 from tulip.hooks.builtin.guardrails import GuardrailsHook, GuardrailConfig
 
 agent = Agent(config=AgentConfig(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     hooks=[GuardrailsHook(config=GuardrailConfig())],
 ))
 ```

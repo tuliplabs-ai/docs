@@ -84,7 +84,7 @@ def submit_research(result: ResearchResult) -> str:
 
 
 agent = create_deepagent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[search_kb, submit_research],
     system_prompt="You are a market-research agent. Submit when confident.",
     output_schema=ResearchResult,

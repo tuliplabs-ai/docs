@@ -43,7 +43,7 @@ Self-evaluate per turn.
 ```python
 from tulip.agent import Agent
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[query_siem, summarise],
     reflexion=True,
 )
@@ -64,7 +64,7 @@ Verify claims before answering.
 
 ```python
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[enrich_indicator, lookup_hash],
     grounding=True,
 )
@@ -124,7 +124,7 @@ over the events the run surfaced:
 
 ```python
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[...],
     reflexion=True,
     grounding=True,

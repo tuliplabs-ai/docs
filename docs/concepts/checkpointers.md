@@ -27,7 +27,7 @@ from tulip.memory.backends import S3Backend
 from tulip.security import security_toolset
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=security_toolset(),   # query_siem, enrich_indicator, isolate_host, ...
     # S3Backend is a native checkpointer — pass it straight to the agent.
     checkpointer=S3Backend(

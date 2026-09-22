@@ -17,7 +17,7 @@ class TriageList(BaseModel):
     tickets: list[TicketTriage]
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_ticket],
     output_schema=TriageList,
     system_prompt="Triage the top three tickets from this queue.",
@@ -68,7 +68,7 @@ constrained decoding.
 
 ```python
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     output_schema=TriageList,
     output_schema_retries=3,        # default 2; set 0 to disable
     output_schema_strict=True,      # default; set False if your provider
@@ -113,7 +113,7 @@ filled:
 from tulip.streaming import StructuredStream
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     output_schema=TriageList,
 )
 
@@ -152,7 +152,7 @@ emits a non-tool response, the SDK parses that response into the schema:
 
 ```python
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_ticket, lookup_order, lookup_customer],
     output_schema=TriageList,
     system_prompt=(

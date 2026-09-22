@@ -38,7 +38,7 @@ def issue_refund(order_id: str, amount: float) -> dict:
     return billing.refund(order_id, amount)
 
 agent = Agent(
-    model="openai:gpt-4o-mini",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, issue_refund],
     # ``ask_user`` is auto-registered only in explicit-completion mode; the
     # default is "auto", where it is absent and the prompt below would ask
@@ -109,7 +109,7 @@ agent = Agent(
     hooks=[SteeringHook(
         # A model instance, not a provider string — the hook calls
         # ``.complete()`` on whatever it is given.
-        model=get_model("openai:gpt-4o-mini"),
+        model=get_model("{{ tulip_example_model }}"),
         policy="Reject any tool call that doesn't match the user's stated request.",
     )],
 )
@@ -143,7 +143,7 @@ refund = gate_tool(
     trail=AuditTrail(),
 )
 agent = Agent(
-    model="openai:gpt-4o-mini",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, refund],
     checkpointer=FileCheckpointer("checkpoints"),
 )

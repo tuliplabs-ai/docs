@@ -26,7 +26,7 @@ from tulip.agent import Agent
 from tulip.server import AgentServer
 
 agent = Agent(
-    model="openai:gpt-4o-mini",
+    model="{{ tulip_example_model }}",
     tools=[],
     system_prompt="Answer concisely.",
 )

@@ -83,7 +83,7 @@ async def main():
     store = InMemoryStore()   # swap for a persistent backend in production
 
     agent = Agent(
-        model="anthropic:claude-sonnet-4-6",
+        model="{{ tulip_example_model }}",
         memory_manager=LLMMemoryManager(store=store),
     )
 
@@ -182,7 +182,7 @@ without changing how your `Agent` consumes memory.
 from tulip.memory.managers import Mem0MemoryManager
 
 manager = Mem0MemoryManager(user_id="agent-7")
-agent = Agent(model="anthropic:claude-sonnet-4-6", memory_manager=manager)
+agent = Agent(model="{{ tulip_example_model }}", memory_manager=manager)
 
 # Pass user_id (and optional thread_id) via metadata to scope retrieval:
 agent.run_sync(
@@ -250,7 +250,7 @@ Use `NoopMemoryManager` as a test double or placeholder:
 from tulip.memory.manager import NoopMemoryManager
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     memory_manager=NoopMemoryManager(),  # wires the hook, stores nothing
 )
 ```

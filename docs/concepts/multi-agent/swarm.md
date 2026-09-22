@@ -49,7 +49,7 @@ from tulip.multiagent import create_swarm, create_swarm_agent
 
 
 async def main():
-    model = get_model("anthropic:claude-sonnet-4-6")
+    model = get_model("{{ tulip_example_model }}")
 
     scout = create_swarm_agent(
         name="Scout",

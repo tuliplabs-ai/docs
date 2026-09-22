@@ -70,6 +70,10 @@ copyright: <span class="footer-brand"><span class="footer-brand__text">tulipagen
 
 extra:
   homepage: https://tulipagents.ai/
+  # The model every generic example uses. It matches the quickstart, which
+  # installs only the openai extra. Change it here, not on the pages: the
+  # build hook expands {{ tulip_example_model }} everywhere.
+  example_model: openai:gpt-4o-mini
   social:
   - icon: fontawesome/brands/github
     link: https://github.com/tuliplabs-ai/tulip-agents

@@ -64,7 +64,7 @@ from tulip.security import create_soc_analyst, SecurityControls
 
 controls = SecurityControls(min_gsar=0.6, min_confidence=0.6)
 analyst = create_soc_analyst(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     controls=controls,
     scope="Focus on account-level IAM: root access keys and MFA.",
 )

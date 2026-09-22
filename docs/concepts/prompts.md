@@ -18,7 +18,7 @@ You don't usually configure 2 and 3 directly. You configure 1.
 
 ```python
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="{{ tulip_example_model }}",
     tools=[lookup_order, issue_refund],
     system_prompt=(
         "You are a support agent. "
