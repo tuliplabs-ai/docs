@@ -1,6 +1,7 @@
-# Model Providers
+# Model providers
 
-Tulip supports OpenAI, Anthropic as first-class providers.
+Tulip supports OpenAI and Anthropic directly, and OpenRouter, Together.ai, and
+other hosted or self-hosted services through named OpenAI-compatible prefixes.
 The same `Agent` code works against any of them — only the model object
 changes. A cloud platform team can re-platform a provider (for cost,
 latency, data residency, or an outage failover) without rewriting a
@@ -13,12 +14,26 @@ Provider matrix:
 | --- | --- | --- |
 | OpenAI | `OpenAIModel` | GPT-4o, o1, o3, gpt-5.x against the direct API |
 | Anthropic | `AnthropicModel` | Claude models (opus / sonnet / haiku) |
-| OpenAI-compatible | `OpenAIModel(base_url=…)` | Any OpenAI-compatible endpoint — vLLM, Ollama, together.ai, LiteLLM, … — see [LiteLLM gateway](notebook_71_litellm_gateway.md) |
+| OpenRouter | `get_model("openrouter:provider/model-id")` | Uses `OPENROUTER_API_KEY` and OpenRouter's model id |
+| Together.ai | `get_model("together:organization/model-id")` | Uses `TOGETHER_API_KEY` and Together's model id |
+| OpenAI-compatible | `OpenAIModel(base_url=…)` | Any compatible endpoint — vLLM, Ollama, LiteLLM, and others |
 
 The registry helper `get_model("provider:model_name")` returns the right
 client for the prefix.
 
-Run it (defaults to the bundled mock model; set `TULIP_MODEL_PROVIDER` to `openai` / `anthropic` for a live model):
+This particular notebook harness supports `mock`, `openai`, and `anthropic`.
+OpenRouter and Together.ai are available in application code through the SDK's
+provider registry:
+
+```python
+from tulip import Agent
+
+openrouter_agent = Agent(model="openrouter:provider/model-id")
+together_agent = Agent(model="together:organization/model-id")
+```
+
+Run the notebook (it defaults to the bundled mock model; set
+`TULIP_MODEL_PROVIDER` to `openai` or `anthropic` for a live run):
 
     python examples/notebook_56_model_providers.py
 
