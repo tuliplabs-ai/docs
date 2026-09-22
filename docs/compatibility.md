@@ -9,16 +9,21 @@ description: Supported Python versions, documentation versioning, API stability,
 
 | Surface | Policy |
 |---|---|
-| SDK | These docs target `tulip-agents` 2.15.x |
+| SDK | This build targets `tulip-agents` {{ tulip_sdk_version }} |
 | Python | 3.11, 3.12, 3.13, and 3.14 |
 | Documentation examples | Tested against the sibling SDK checkout in the documentation build |
 | Provider and infrastructure dependencies | Install through the documented optional extra; consult each guide for credentials and limitations |
 
-Pin a compatible minor line when following a tutorial exactly:
+Current guides use an unpinned install so new readers receive the current
+release:
 
 ```bash
-python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+python -m pip install "tulip-agents[openai]"
 ```
+
+For production, resolve and lock dependencies in your application after testing
+them. Historical research pages keep exact versions because they describe a
+specific experiment rather than the current documentation.
 
 ## Changes and deprecations
 

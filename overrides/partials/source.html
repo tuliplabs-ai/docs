@@ -1,5 +1,5 @@
 {#-
-  tulip header right-side: always-on PyPI badge + GitHub repo link.
+  tulip header right-side: build-pinned SDK badge + GitHub repo link.
   One brand lockup per header — the left-side mark + "tulip agents"
   wordmark is the logo; this side is utilities only.
 -#}
@@ -11,11 +11,9 @@
   rel="noopener"
   aria-label="tulip-agents on PyPI"
 >
-  <img
-    src="https://img.shields.io/pypi/v/tulip-agents?label=PyPI&color=ED5A8B"
-    alt="tulip-agents on PyPI"
-    class="md-header__pypi-badge"
-  >
+  <span class="md-header__sdk-badge" aria-hidden="true">
+    SDK&nbsp;v{{ config.extra.sdk_version }}
+  </span>
 </a>
 
 <a

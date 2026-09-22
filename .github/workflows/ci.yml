@@ -69,6 +69,9 @@ jobs:
       - name: Build docs (strict)
         run: hatch run build
 
+      - name: Homepage control demo matches the published behavior
+        run: hatch run python examples/homepage_control_demo.py
+
       # The notebook pages show captured output. Re-run the notebooks against
       # the same pinned SDK the pages render from, so the output shown is the
       # output of the source shown.

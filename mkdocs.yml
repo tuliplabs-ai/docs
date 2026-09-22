@@ -54,6 +54,7 @@ theme:
 # the moment a file changes (no more stale-cache surprises). See hooks/.
 hooks:
 - hooks/cache_bust.py
+- hooks/build_metadata.py
 
 extra_css:
 - https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&display=swap
@@ -61,6 +62,7 @@ extra_css:
 
 extra_javascript:
 - javascripts/header-home.js
+- javascripts/action-demo.js
 - javascripts/notebook-filter.js
 - javascripts/sidebar-filter.js
 
@@ -135,9 +137,15 @@ nav:
 # Home (index.md) is reached via the header wordmark + logo (both link to "/"),
 # so we don't repeat it as a tab here.
 - Get started:
-  - First agent: how-to/quickstart.md
-  - First controlled action: how-to/first-controlled-action.md
-  - Architecture: concepts/control-layer.md
+  - Create an agent: how-to/quickstart.md
+  - Add tools: concepts/tools.md
+  - Control an action: how-to/first-controlled-action.md
+  - Request approval: concepts/interrupts.md
+  - Check evidence (GSAR): concepts/gsar.md
+  - Inspect a run: concepts/observability.md
+  - Persist and resume: how-to/persist-conversations.md
+  - Compose multiple agents: concepts/multi-agent.md
+  - Runtime architecture: concepts/control-layer.md
   - Guarantees & boundaries: why-tulip.md
   - Capabilities: capabilities.md
 - Guides:
@@ -183,9 +191,9 @@ nav:
     - A2A protocol: concepts/multi-agent/a2a.md
     - DeepAgent: concepts/deepagent.md
     - Production-readiness: concepts/multi-agent/production.md
-  - GSAR grounding: concepts/gsar.md
+  - Check evidence (GSAR): concepts/gsar.md
   - Control layer:
-    - Architecture: concepts/control-layer.md
+    - Control an action: concepts/control-layer.md
     - SecurityContext application: concepts/security-context.md
   - Writing a policy that holds: concepts/policy-authoring.md
   - Skills & Playbooks:
