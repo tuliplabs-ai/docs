@@ -191,11 +191,11 @@ sharper plan. → [Reasoning concept](reasoning.md)
 agent = Agent(config=AgentConfig(model=..., grounding=True))
 ```
 
-Each claim is scored against the tool result it came from; below-threshold
-claims get dropped or sent back. → [Reasoning concept](reasoning.md) ·
+The configured grounding judge scores the final answer against collected tool
+evidence; below-threshold output can trigger replanning. → [Reasoning concept](reasoning.md) ·
 [GSAR](gsar.md) for typed grounding.
 
-### Idempotent tools — side effects fire once
+### Idempotent tools — deduplicate identical calls
 
 ```python
 @tool(idempotent=True)
@@ -203,9 +203,9 @@ def issue_refund(order_id: str, case_id: str) -> dict:
     return billing.refund(order_id, case_id)
 ```
 
-The ReAct loop dedupes repeat calls on the `(name, kwargs)` hash — the
-model can't double-refund an order, double-page on-call, or re-fire a
-deploy. → [Idempotency concept](idempotency.md).
+The ReAct loop reuses the recorded result for identical `(name, kwargs)` calls
+in its documented scope. Use a downstream idempotency key for crash-safe
+refunds, pages, and deploys. → [Idempotency concept](idempotency.md).
 
 ### Checkpointing — survive every restart
 

@@ -34,7 +34,7 @@ Used by notebooks [32 (debate)][t44], [63 (incident)][t46],
 
 → See [Structured output](../structured-output.md).
 
-## Idempotent tools — side effects fire once
+## Idempotent tools — deduplicate identical calls
 
 ```python
 from tulip.tools import tool
@@ -43,11 +43,10 @@ def isolate_host(host_id: str, case_id: str) -> dict:
     return edr.quarantine(host_id, case_id)
 ```
 
-The ReAct loop dedupes repeat calls on the `(name, kwargs)` hash. The
-model can't double-isolate a host, double-page, or re-fire a containment
-action even if the graph retries a node or a checkpointed run resumes
-mid-tool. This is the difference between a reliable agent and a horror
-story.
+The ReAct loop reuses the recorded result for identical `(name, kwargs)` calls
+in its documented run/checkpoint scope. A downstream idempotency key is still
+required to cover the window where an external action succeeds before its
+receipt is durably recorded.
 
 → See [Idempotency](../idempotency.md).
 

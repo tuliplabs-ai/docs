@@ -1,4 +1,20 @@
+---
+title: Policy blindness — the family of harm an agent policy cannot see
+description: A measured study of consequence-family blind spots in admission policies and action classifiers.
+---
+
 # The family of harm your agent policy cannot see
+
+<p class="research-byline">The Tulip Authors · Published 13 August 2026 · Revised 21 September 2026</p>
+
+| Evaluation record | Detail |
+|---|---|
+| Evaluation unit | Reported per table: rows or deduplicated distinct items |
+| Held-out evaluation | 8,989 rows; 3,139 distinct items |
+| Frontier comparison | 638 rows; 456 distinct items after deduplication |
+| Evaluation-code revision | [`4601064`](https://github.com/tuliplabs-ai/tulip-agents/tree/4601064413dc925f748f6ad8f6b31adba827af74/examples/research) |
+| Model under study | Clusiana-Admit-4B, research-only and not generally available |
+| Dataset availability | Family probe is included; the full held-out corpus is not redistributed |
 
 *A risk policy tends to encode one family of consequence and stay silent about
 the others. We found it three times in a week — twice in our own code, once in
@@ -166,6 +182,10 @@ Scored on three numbers rather than accuracy, because the corpus is 51%
 
 ### Results
 
+**Evaluation unit:** the left column weights all 8,989 held-out rows; the
+right column deduplicates them to 3,139 distinct items. Denominators for rate
+metrics are the relevant gold-label subset, not all rows.
+
 | metric | all 8,989 rows | **3,139 distinct items** |
 |---|---|---|
 | accuracy | 94.27% | **84.71%** |
@@ -236,6 +256,10 @@ return empty content, which is a measurement artifact, not a result.
 
 Deduplicated to **456 distinct items**, for the reason given above. Zero
 unparseable responses from any model.
+
+**Evaluation unit:** 456 distinct items deduplicated from 638 sampled rows.
+False-allow denominators include only items whose gold verdict was hold or
+deny; over-hold denominators include only gold-allowed items.
 
 | model | accuracy | false-allow | over-hold | tokens / verdict |
 |---|---|---|---|---|
@@ -374,8 +398,25 @@ almost never gets it.
 
 ## Reproducing this
 
+!!! example "Compact reproduction record"
+
+    ```bash
+    git clone https://github.com/tuliplabs-ai/tulip-agents.git
+    cd tulip-agents
+    git checkout 4601064413dc925f748f6ad8f6b31adba827af74
+    python examples/research/family_eval.py http://127.0.0.1:8010
+    ```
+
+    `family_eval.py` contains 64 hand-written cases and can use any
+    OpenAI-chat-compatible endpoint. The held-out and frontier scripts require
+    `sample600.json`; the source corpus used for the published run is not
+    redistributed. Clusiana-Admit-4B is also not publicly available, so the
+    full published tables cannot currently be reproduced independently from
+    public artifacts. The scripts reproduce the scoring procedure, not access
+    to the original model and dataset.
+
 - **The family dataset and eval** —
-  [`examples/research/family_eval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/research/family_eval.py),
+  [`examples/research/family_eval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/4601064413dc925f748f6ad8f6b31adba827af74/examples/research/family_eval.py),
   runnable against any OpenAI-compatible endpoint.
 - **The method, with a runnable coverage probe** —
   [Writing a policy that holds](../concepts/policy-authoring.md)

@@ -61,7 +61,7 @@ schema marshalling.
 ### Idempotent tools — the model can retry; the side effect can't
 
 This is the SDK's flagship tool primitive. Some side-effecting tools
-must run *exactly once* per logical request — issuing a refund, paging
+should not repeat for an identical call within a run — issuing a refund, paging
 on-call, rolling out a deploy. Mark them `idempotent=True`:
 
 ```python

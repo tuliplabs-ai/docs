@@ -1,5 +1,5 @@
 site_name: tulip agents
-site_description: A complete open-source agent framework — tools, memory, RAG, multi-agent, streaming — where control is native. Every consequential action clears your policy, waits for a person when it matters, and lands on a record you can prove. Build agents on it, or govern the ones you already run.
+site_description: An open-source agent framework with explicit policy enforcement before consequential actions execute, typed grounding, approvals, and verifiable decision records.
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/tulip-agents
 repo_name: tulip-agents
@@ -38,10 +38,10 @@ theme:
       name: Switch to dark mode
   features:
   - navigation.instant
-  - navigation.sections
   - navigation.tabs
   - navigation.tabs.sticky
   - navigation.indexes
+  - navigation.prune
   - navigation.top
   - content.code.copy
   - content.code.annotate
@@ -134,9 +134,13 @@ plugins:
 nav:
 # Home (index.md) is reached via the header wordmark + logo (both link to "/"),
 # so we don't repeat it as a tab here.
-- Learn:
-  - Why Tulip: why-tulip.md
+- Get started:
+  - First agent: how-to/quickstart.md
+  - First controlled action: how-to/first-controlled-action.md
+  - Architecture: concepts/control-layer.md
+  - Guarantees & boundaries: why-tulip.md
   - Capabilities: capabilities.md
+- Guides:
   - Agents:
     - Overview: concepts/agent.md
     - Agent Loop: concepts/agent-loop.md
@@ -180,7 +184,9 @@ nav:
     - DeepAgent: concepts/deepagent.md
     - Production-readiness: concepts/multi-agent/production.md
   - GSAR grounding: concepts/gsar.md
-  - The control layer: concepts/security-context.md
+  - Control layer:
+    - Architecture: concepts/control-layer.md
+    - SecurityContext application: concepts/security-context.md
   - Writing a policy that holds: concepts/policy-authoring.md
   - Skills & Playbooks:
     - Skills: concepts/skills.md
@@ -201,9 +207,20 @@ nav:
     - Guardrails: concepts/safety.md
     - Threat scenarios: concepts/threat-scenarios.md
     - Cloud-posture agent: concepts/cloud-posture.md
-- Notebooks:
-  - Quickstart: how-to/quickstart.md
-  - Overview: notebooks/index.md
+  - How-to:
+    - Deploy: how-to/deploy.md
+    - Persist conversations: how-to/persist-conversations.md
+    - Build a custom tool: how-to/custom-tools.md
+    - Add a checkpointer backend: how-to/custom-checkpointer.md
+    - LiteLLM AI Gateway: how-to/litellm-gateway.md
+    - Environment variables: how-to/environment-variables.md
+    - Build an integration: how-to/build-an-integration.md
+  - Project:
+    - About & maintainers: about.md
+    - Compatibility & releases: compatibility.md
+    - Legal notices: legal.md
+- Examples:
+  - Catalog: notebooks/index.md
   - Foundations:
     - Basic agent: notebooks/notebook_06_basic_agent.md
     - Agent with tools: notebooks/notebook_07_agent_with_tools.md
@@ -289,18 +306,10 @@ nav:
     - IR with a tamper-evident audit trail: notebooks/notebook_81_ir_audit_trail.md
     - SOC playbooks: notebooks/notebook_74_security_playbooks.md
     - Model & hardware fingerprinting: notebooks/notebook_80_model_fingerprint.md
-  - Guides:
-    - Deploy: how-to/deploy.md
-    - Persist conversations: how-to/persist-conversations.md
-    - Build a custom tool: how-to/custom-tools.md
-    - Add a checkpointer backend: how-to/custom-checkpointer.md
-    - LiteLLM AI Gateway: how-to/litellm-gateway.md
-    - Environment variables: how-to/environment-variables.md
-    - Build an integration: how-to/build-an-integration.md
 - Research:
   - Overview: research/index.md
   - Policy blindness: research/policy-blindness.md
-- Reference:
+- API:
   - Agent: api/agent.md
   - Multi-agent: api/multiagent.md
   - DeepAgent: api/deepagent.md
@@ -326,4 +335,3 @@ nav:
   - Skills: api/skills.md
   - Integrations: api/integrations.md
   - Core primitives: api/core.md
-  - Legal notices: legal.md

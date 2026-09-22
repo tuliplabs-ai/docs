@@ -1,97 +1,110 @@
+---
+title: Why Tulip — guarantees and boundaries
+description: What Tulip's policy gate, grounding, idempotency, and audit trail enforce; what developers configure; and what remains model-dependent.
+---
+
 # Why Tulip
 
-Tulip is a **complete open-source agent framework** — tools, memory, multi-agent,
-RAG, streaming, all behind one `Agent` class — where control is native rather than
-an add-on you remember to wire.
+Tulip is a complete open-source agent framework with an explicit enforcement
+point for consequential actions. Its useful promise is narrow and testable:
+**a callable routed through `admit()` is invoked only after the supplied policy
+allows its declared `Action`.** The runtime can instead hold the call for a
+person or deny it, and it can record that decision.
 
-The breadth is what makes the control claim possible. Picking which shape runs,
-checking what gets asserted, and gating what actually fires are three different
-moments in one loop — you can only hold all three if you own that loop.
+This is stronger than a prompt instruction, but it is not a claim that every
+possible action is automatically safe. Coverage depends on how an application
+classifies actions and whether all side-effecting paths use the gate.
 
-A frontier model can be brilliant and still be talked into a catastrophic action
-— by a misleading document, its own confused reasoning, or a cleverly worded
-request. The one
-thing it *structurally* cannot do, no matter how smart, is **prove it won't**.
-That's not an intelligence problem; it's a control problem. Tulip solves it with
-three control points, so safety is a property of the runtime, not a reminder in a
-prompt.
+## Control at three moments
 
-## Control in three places
+| Moment | Tulip surface | What it does |
+|---|---|---|
+| Decide what happens next | [Agent loop](concepts/agent-loop.md) | Runs bounded reasoning, tool calls, observations, and termination |
+| Assess what may be asserted | [GSAR](concepts/gsar.md) | Scores a judge-produced, typed evidence partition and supports proceed, revise, replan, or abstain behavior |
+| Decide whether an action executes | [Admission](concepts/control-layer.md) | Evaluates an `Action` against `ControlPolicy` before calling the side effect |
 
-In short: the [agent loop](concepts/agent-loop.md) decides *what to do next*,
-[GSAR](concepts/gsar.md) decides *what gets asserted*, and the admission gate
-decides *what actions fire*. This page goes deep on the last one — the gate the
-model can't reach around, whatever it was talked into.
+These controls compose, but none silently enables the others. Grounding and
+admission are configuration choices, and a high-stakes deployment should make
+those choices visible in code and tests.
 
-## The one thing a bare model can't do
-
-Give a capable model a `wipe_database` tool and a clever enough prompt, and
-sooner or later it calls it. You can add a system-prompt rule ("never wipe
-production"), and a good model will follow it — until a misleading document, a
-confused chain of reasoning, or a determined-enough request talks it past the rule. A rule the
-model *chooses* to follow is advisory by definition.
-
-Tulip makes the rule **structural**. The action runs only after it clears an
-admission gate — `admit()` — that lives in your code, not in the prompt. You can
-trick the model into *trying* the action. You cannot trick the gate that decides
-whether it actually runs.
-
-## Library vs. runtime
-
-A trust *library* offers grounding, verification, and policy as functions you
-*may* call. A trust *runtime* makes them mandatory: a side-effecting action runs
-**only after** it has cleared the chain — evidence → verification → policy →
-approval → admission → audit. That last gate is the whole difference.
-
-## Three places control can live
-
-| | Bare model + prompt rules | Framework guardrails | **Tulip** |
-|---|---|---|---|
-| **Where control lives** | In the prompt the model can be argued out of | Input/output filters around the call | An admission gate **around the action** |
-| **Can the model be talked past it?** | Yes — argue it out of the rule | Often — filters score text, not what the action can touch | **No** — the action runs only if `admit()` allows it |
-| **Human-in-the-loop** | Ad-hoc, if you wire it | Sometimes, per-framework | First-class: `require_human_for` by environment / kind / tag |
-| **Proof of what happened** | Logs you can edit | App logs | **Hash-chained `AuditTrail`** — `verify()` fails on any edit |
-| **Evidence behind a claim** | "Trust the model" | None | **GSAR grounding** — an `Evidence` exists only above threshold, else `Abstention` |
-
-Guardrails and grounding are good and Tulip ships both. But the difference is the
-**admission gate**: a wrong action isn't filtered after the fact, it's *prevented*
-before it runs, and the decision is recorded whether it ran or not.
-
-## See it in ~8 lines
+## The admission guarantee
 
 ```python
-from tulip.control import (
-    Action, admit, ControlPolicy, AuditTrail, AdmissionError)
-
-policy = ControlPolicy()   # conservative: production → human
-trail = AuditTrail()        # tamper-evident, replayable
-
-risky = Action(name="refund", asset="cust:4821",
-               blast_radius=1, kind="payment", environment="production")
-
 try:
-    await admit(risky, lambda: refund("cust:4821"), policy=policy, trail=trail)
-except AdmissionError as e:
-    print(e.decision.outcome)   # -> "require_human" — held; refund NOT run
+    result = await admit(
+        action,
+        perform,
+        policy=policy,
+        trail=trail,
+    )
+except AdmissionError as exc:
+    handle_refusal(exc.decision)
 ```
 
-The refund was *decided* by the model and *held* by the runtime. The hold is on
-the audit trail. Nothing the model says in the next turn can release it — only a
-human on a side channel can.
+Within that call:
 
-## Proven in the hardest domain first
+- `perform` runs only for an allowed decision;
+- a hold or denial does not invoke `perform`;
+- the decision is appended when an `AuditTrail` is supplied.
 
-The same three control points apply to any agent you build with Tulip — in
-payments, in infrastructure, in support. They were proven in the hardest place to
-act on a machine's say-so: **security**. There a hallucinated claim isn't an
-embarrassment but a false positive that burns an analyst's night, so
-`tulip.security` makes a finding *unshippable* unless it's grounded. Findings
-carry tags from the standard security catalogues (MITRE ATLAS, OWASP) and export
-straight into a security team's log platform (a SIEM) — the same
-evidence-before-action discipline that makes Tulip safe to let act anywhere.
+The guarantee does not extend to another reference that calls the underlying
+function directly. `gate_tool()` makes the gated wrapper the tool exposed to
+an agent, but application code and review must still prevent bypass paths.
 
-## Where to start
+## Runtime, configuration, and judgment
 
-- [Quickstart](how-to/quickstart.md) — a working agent, then gate its action in step 3.5.
-- [The control layer](concepts/security-context.md) — the full policy + admission surface.
-- [GSAR grounding](concepts/gsar.md) — why an `Evidence` can't exist without evidence.
+| Capability | Runtime enforces automatically | Developer configures | Remains judgment-dependent |
+|---|---|---|---|
+| Policy gate | Deterministic evaluation and pre-execution allow/hold/deny | Action labels, rules, gate coverage, approval handling | Whether the classification captures the actual consequence |
+| Human approval | Approval state and one-use consumption in the configured store | Durable storage, authenticated approver, resume workflow | Whether the human has enough context to decide |
+| GSAR grounding | Score and threshold logic over a typed partition | Evidence corpus, judge, thresholds, recovery/fail behavior | The judge's claim and evidence assessment |
+| Typed findings | Carries an explicit score, references, and provenance fields | Criteria for emitting or accepting the finding | Whether source evidence is complete and correctly interpreted |
+| Idempotent tools | Reuses a cached result for an identical call in the documented scope | Tool annotation, checkpoints, downstream operation key | Semantic equivalence of differently encoded calls |
+| Audit trail | Hash-chains appended records and detects later edits to that chain | Durable export, access controls, external anchoring | Whether all relevant events were sent to the trail |
+
+## Compared with prompt rules and filters
+
+| | Prompt instruction | Input/output filter | Tulip admission gate |
+|---|---|---|---|
+| Evaluated where | Model context | Around model text | Around a specific callable |
+| Can block the side effect itself | No | Only if application wiring makes it authoritative | Yes, for calls routed through `admit()` |
+| Depends on model compliance | Yes | Often, when classification is model-based | Policy evaluation does not; action classification still can |
+| Human hold | Application-specific | Framework-specific | Built-in stores and resume flow |
+| Decision record | Usually logs | Usually logs | Optional hash-chained `AuditTrail` |
+
+Guardrails remain useful for prompt injection, content policy, and data-loss
+prevention. Admission solves a different problem: making an application-level
+decision before a named side effect runs.
+
+## Grounding is an assessment, not truth
+
+GSAR makes the evidence assessment inspectable: claims are assigned to
+grounded, ungrounded, contradicted, or complementary partitions, then scored.
+Threshold logic is deterministic once that partition exists. Producing the
+partition is normally an LLM judgment and can be wrong. Evaluate the judge on
+your domain, calibrate thresholds, and choose whether low scores cause a
+rewrite, replan, abstention, or hard failure.
+
+A typed finding therefore means “this object carries an explicit evidence
+assessment,” not “this claim cannot be wrong.”
+
+## Idempotency is scoped
+
+`@tool(idempotent=True)` deduplicates matching calls within the documented
+agent/checkpoint scope. It does not by itself close the crash window where an
+external service succeeds and the local result has not yet been durably
+recorded. For payments, deploys, and messages, also send a stable idempotency
+key to the downstream API.
+
+## When Tulip is a good fit
+
+Tulip earns its control layer when an agent can move money, change
+infrastructure, alter access, contact a third party, or create another durable
+effect. A read-only summarizer may need grounding and evaluation without an
+admission gate.
+
+Start with the [first agent](how-to/quickstart.md), then run the
+[first controlled action](how-to/first-controlled-action.md). Before
+production, read [policy authoring](concepts/policy-authoring.md),
+[idempotency](concepts/idempotency.md), and the
+[deployment guide](how-to/deploy.md).

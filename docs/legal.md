@@ -2,7 +2,12 @@
 
 ## About &amp; disclaimer
 
-**tulip is developed 100% by the tulip maintainers, working independently.** No third party contributed to its development. tulip is an open-source **agentic harness** — a control runtime for agents that take real actions — developed in the open, alongside independent AI-security research.
+**Tulip is maintained independently by The Tulip Authors.** The current
+maintainers develop the project in the open and do not claim endorsement by
+model providers or integration vendors. Tulip began as a fork, so its history
+also includes inherited code described under [Provenance](#provenance); the
+independence statement applies to present maintenance, not authorship of every
+historical line.
 
 **Organizations and corporations are welcome to use the open-source tulip SDK at production grade, at no cost**, under the Apache License, Version 2.0.
 

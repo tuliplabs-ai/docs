@@ -17,8 +17,9 @@ responses: `proceed` if the synthesis holds up, `regenerate` if the
 evidence is fine but the wording is loose (rewrites without re-running
 tools), or `replan` if the evidence itself is missing or contradicted.
 The math is small (one equation), the integration is one Pydantic
-type, and six monotonicity / adversarial-robustness properties are
-formally provable.
+type, and six properties of the scoring function are formally provable. Those
+properties describe the arithmetic after a partition is supplied; they do not
+prove that an LLM judge classified a claim or its evidence correctly.
 
 Use GSAR for high-stakes pipelines — operational incidents, regulated
 diagnostics, anything where the "evidence fine, conclusion loose"
@@ -44,14 +45,22 @@ For a claim partition — `G` grounded, `U` ungrounded, `X` contradicted,
 `K` complementary — an evidence-type weight map `w`, and a
 contradiction penalty `ρ ∈ [0, 1]`, the GSAR score is:
 
-$$
-S = \frac{W(\mathcal G) + W(\mathcal K)}{W(\mathcal G) + W(\mathcal U) + \rho \cdot W(\mathcal X) + W(\mathcal K)}
-$$
+<math display="block" aria-label="S equals the weight of G plus the weight of K, divided by the weight of G plus the weight of U plus rho times the weight of X plus the weight of K">
+  <mrow>
+    <mi>S</mi><mo>=</mo>
+    <mfrac>
+      <mrow><mi>W</mi><mo>(</mo><mi>G</mi><mo>)</mo><mo>+</mo><mi>W</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow>
+      <mrow><mi>W</mi><mo>(</mo><mi>G</mi><mo>)</mo><mo>+</mo><mi>W</mi><mo>(</mo><mi>U</mi><mo>)</mo><mo>+</mo><mi>ρ</mi><mo>·</mo><mi>W</mi><mo>(</mo><mi>X</mi><mo>)</mo><mo>+</mo><mi>W</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow>
+    </mfrac>
+  </mrow>
+</math>
 
 where `W(P) = Σ_{c ∈ P} w(type(c))`. On the empty partition `S = 0.5`
 (epistemic indifference). The score lives in `[0, 1]`; six monotonicity
-and adversarial-robustness properties are proven in Appendix A of the
-paper and locked under unit tests in `tests/unit/test_gsar.py`.
+and adversarial-robustness properties of this scoring function are proven in
+Appendix A of the paper and locked under unit tests in
+`tests/unit/test_gsar.py`. Empirical judge reliability is a separate question
+that must be evaluated on deployment data.
 
 ## The decision
 

@@ -188,9 +188,10 @@ except AdmissionError as exc:
     route_to_human(exc.decision)   # production → require_human, so the disable never fired
 ```
 
-This is what turns the chain from *advisory* into *enforced*: there is no path
-through `execute()` to a side effect that skips evidence, verification, and
-policy — and nothing reaches production without leaving an audit record. It's the
+This is what turns this call path from *advisory* into *enforced*: `execute()`
+does not invoke its supplied side effect until the configured checks clear,
+and it writes the decision when a trail is configured. Other direct call paths
+remain the application's responsibility. It's the
 admission-controller pattern (think Kubernetes admission webhooks) applied to
 agent actions, and it's what makes Tulip a *runtime* rather than a library of
 trust functions.
