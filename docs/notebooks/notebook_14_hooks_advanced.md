@@ -36,6 +36,6 @@ Prerequisite: the agent-hooks notebook.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_14_hooks_advanced.py"
-```
+````

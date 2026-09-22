@@ -61,6 +61,6 @@ The vulnerable bot produced grounded Findings; the hardened bot abstained across
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_75_agent_red_team.py"
-```
+````

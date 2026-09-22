@@ -32,6 +32,6 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_19_human_in_the_loop.py
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_19_human_in_the_loop.py"
-```
+````

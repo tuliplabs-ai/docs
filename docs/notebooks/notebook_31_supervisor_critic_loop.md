@@ -65,6 +65,6 @@ path either way.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_31_supervisor_critic_loop.py"
-```
+````

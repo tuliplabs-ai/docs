@@ -76,6 +76,6 @@ OK — staging shipped, production held, both on the trail.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_84_infra_deploy_gate.py"
-```
+````

@@ -53,6 +53,6 @@ credentials.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_67_audio_chat.py"
-```
+````

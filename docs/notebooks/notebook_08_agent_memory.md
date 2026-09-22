@@ -30,6 +30,6 @@ provider you configure via `TULIP_MODEL_PROVIDER` (openai / anthropic / for a li
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_08_agent_memory.py"
-```
+````

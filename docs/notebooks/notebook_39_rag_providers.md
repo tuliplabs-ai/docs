@@ -46,6 +46,6 @@ export OPENAI_API_KEY=sk-...
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_39_rag_providers.py"
-```
+````

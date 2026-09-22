@@ -87,3 +87,34 @@ def test_main_scaffolds_skips_and_forces(
     monkeypatch.setattr("sys.argv", ["gen", "--force"])
     gen.main()
     assert "scaffolded 1 new pages" in capsys.readouterr().out
+
+def test_source_fence_survives_a_fenced_block_inside_the_example(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A ``` block inside an example must not close the page's Source fence.
+
+    notebook_31 shipped a ```text block inside its module docstring. With a
+    three-backtick Source fence that inner fence closed the outer one, and the
+    remaining ~315 lines rendered as prose — every ``# comment`` became an <h1>.
+    The outer fence is four backticks so the inner one cannot terminate it.
+    """
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    out = tmp_path / "out"
+    (examples / "notebook_31_fenced.py").write_text(
+        '"""Notebook 31: Fenced.\n\nShows output:\n\n```text\nrole: MIRROR\n```\n"""\n'
+        "# ---------------------------------------------------------------\n"
+        "x = 1\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(gen, "_sdk_examples", lambda: examples)
+    monkeypatch.setattr(gen, "OUT", out)
+    monkeypatch.setattr("sys.argv", ["gen"])
+
+    gen.main()
+    capsys.readouterr()
+    text = (out / "notebook_31_fenced.md").read_text(encoding="utf-8")
+    # The docstring body is copied into the page, so its own fence appears
+    # first; the Source block is the final pair and must be four backticks.
+    fences = [ln for ln in text.splitlines() if ln.startswith("```")]
+    assert fences[-2:] == ["````python", "````"], fences

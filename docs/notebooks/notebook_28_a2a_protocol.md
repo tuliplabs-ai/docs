@@ -51,6 +51,6 @@ against it; expect a few seconds of warm-up before the first
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_28_a2a_protocol.py"
-```
+````

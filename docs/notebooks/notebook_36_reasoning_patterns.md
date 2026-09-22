@@ -47,6 +47,6 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_36_reasoning_patterns.py
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_36_reasoning_patterns.py"
-```
+````

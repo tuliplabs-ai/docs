@@ -26,6 +26,6 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_16_basic_graph.py
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_16_basic_graph.py"
-```
+````

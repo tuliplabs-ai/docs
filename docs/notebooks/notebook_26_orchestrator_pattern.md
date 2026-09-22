@@ -39,6 +39,6 @@ The default provider is the bundled mock model. Set `TULIP_MODEL_PROVIDER`
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_26_orchestrator_pattern.py"
-```
+````

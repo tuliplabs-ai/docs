@@ -29,6 +29,6 @@ Optional: set `OPENAI_API_KEY` to exercise the OpenAI-backed providers.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_57_multimodal_providers.py"
-```
+````

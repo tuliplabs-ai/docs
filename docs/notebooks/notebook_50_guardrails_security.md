@@ -25,6 +25,6 @@ Pin a specific model:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_50_guardrails_security.py"
-```
+````

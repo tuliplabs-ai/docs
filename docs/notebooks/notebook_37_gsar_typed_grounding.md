@@ -40,6 +40,6 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_37_gsar_typed_grounding.py
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_37_gsar_typed_grounding.py"
-```
+````

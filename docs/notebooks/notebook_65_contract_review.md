@@ -55,6 +55,6 @@ Pin a strong-enough model for the structured ContractDecision schema:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_65_contract_review.py"
-```
+````

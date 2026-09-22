@@ -32,6 +32,6 @@ Prerequisite: the agent-basics notebook.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_07_agent_with_tools.py"
-```
+````

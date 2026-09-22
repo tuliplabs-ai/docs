@@ -35,6 +35,6 @@ Prerequisites:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_70_vendor_integrations.py"
-```
+````

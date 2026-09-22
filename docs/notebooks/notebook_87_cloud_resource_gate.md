@@ -92,6 +92,6 @@ All assertions passed: low-risk action ran, production change held, both audited
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_87_cloud_resource_gate.py"
-```
+````

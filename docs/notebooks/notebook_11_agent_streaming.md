@@ -33,6 +33,6 @@ Prerequisite: the agent-basics notebook.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_11_agent_streaming.py"
-```
+````

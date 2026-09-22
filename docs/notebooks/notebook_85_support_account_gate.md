@@ -82,6 +82,6 @@ Both decisions are on the trail: one allowed, one held. No write went unrecorded
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_85_support_account_gate.py"
-```
+````

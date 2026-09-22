@@ -19,6 +19,6 @@ Offline:
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_51_guardrails_advanced.py"
-```
+````

@@ -35,6 +35,6 @@ for offline runs.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_15_termination.py"
-```
+````

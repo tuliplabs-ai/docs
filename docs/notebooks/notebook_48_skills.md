@@ -40,6 +40,6 @@ TULIP_MODEL_PROVIDER=mock python examples/notebook_48_skills.py
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_48_skills.py"
-```
+````

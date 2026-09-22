@@ -43,6 +43,6 @@ real TTS endpoint — so it runs end-to-end with zero credentials.
 
 ## Source
 
-```python
+````python
 --8<-- "examples/notebook_66_audio_response.py"
-```
+````
