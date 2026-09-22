@@ -14,9 +14,9 @@ description: Build Python agents with typed tools, memory, RAG, streaming, and e
 # Build agents that <span class="accent">do real work.</span>
 
 Typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one
-`Agent` class, on OpenAI, Anthropic, or any compatible provider. And when an
-agent needs to change a real system, the same runtime puts a policy gate in
-front of the side effect.
+`Agent` class, on any OpenAI-compatible provider. And when an agent needs to
+change a real system, the same runtime puts a policy gate in front of the
+side effect.
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
