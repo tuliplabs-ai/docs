@@ -17,6 +17,46 @@ Agent(model="ollama:qwen3")
 Agent(model="deepseek:deepseek-chat")
 ```
 
+## OpenRouter and Together.ai
+
+Both are supported directly through named prefixes. Install the OpenAI extra,
+set the provider's own key, and use the exact model id shown in that provider's
+catalog:
+
+=== "OpenRouter"
+
+    ```bash
+    python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+    export OPENROUTER_API_KEY="your-key"
+    ```
+
+    ```python
+    from tulip import Agent
+
+    agent = Agent(model="openrouter:provider/model-id")
+    result = agent.run_sync("Explain the control decision.")
+    ```
+
+=== "Together.ai"
+
+    ```bash
+    python -m pip install "tulip-agents[openai]>=2.15,<2.16"
+    export TOGETHER_API_KEY="your-key"
+    ```
+
+    ```python
+    from tulip import Agent
+
+    agent = Agent(model="together:organization/model-id")
+    result = agent.run_sync("Explain the control decision.")
+    ```
+
+The prefix selects the endpoint and credential variable; Tulip passes the part
+after the colon through as the provider's model id. No OpenAI account or
+`OPENAI_API_KEY` is required for these two routes. Tool calling, structured
+output, vision, context size, pricing, and availability remain properties of
+the selected model and provider.
+
 ## The table
 
 | Prefix | Provider | Endpoint | API key |

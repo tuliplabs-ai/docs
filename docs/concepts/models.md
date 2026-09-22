@@ -9,6 +9,8 @@ returns a ready client.
 # tools, system_prompt, and other kwargs are the same across providers
 Agent(model="openai:gpt-4o", tools=[lookup_order, issue_refund])                # OpenAI direct
 Agent(model="anthropic:claude-sonnet-4-6", tools=[lookup_order, issue_refund])  # Anthropic direct
+Agent(model="openrouter:provider/model-id", tools=[lookup_order, issue_refund]) # OpenRouter
+Agent(model="together:organization/model-id", tools=[lookup_order, issue_refund]) # Together.ai
 ```
 
 To reach a **self-hosted model** (Ollama, vLLM, or any OpenAI-compatible
@@ -39,8 +41,8 @@ tulip.models
 ├── openai:                                ── OpenAI direct · OpenAIModel
 │   ├─ chat completions       — gpt-* family
 │   ├─ reasoning models       — o-series
-│   └─ base_url override      — Azure · Portkey · LiteLLM · vLLM ·
-│                               Ollama · together.ai · fireworks · groq —
+│   └─ compatible endpoints   — OpenRouter · Together.ai · LiteLLM · vLLM ·
+│                               Ollama · Fireworks · Groq · custom base_url —
 │                               any OpenAI-compatible endpoint, incl.
 │                               self-hosted / air-gapped (no data egress)
 │
@@ -64,6 +66,9 @@ vendor's audit logging and data-residency terms cover your data. For
 |---|---|
 | **OpenAI** | [OpenAI →](providers/openai.md) |
 | **Anthropic** | [Anthropic →](providers/anthropic.md) |
+| **OpenRouter** | [OpenAI-compatible providers →](providers/openai-compatible.md#openrouter-and-togetherai) |
+| **Together.ai** | [OpenAI-compatible providers →](providers/openai-compatible.md#openrouter-and-togetherai) |
+| **Other hosted or self-hosted endpoints** | [OpenAI-compatible providers →](providers/openai-compatible.md) |
 
 ## Custom providers
 

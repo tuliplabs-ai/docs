@@ -8,10 +8,10 @@ does, and where to find it.
 | Capability group | Status | Execution mode and requirements | Important limitation |
 |---|---|---|---|
 | Agent loop, tools, control policy, events | Supported | Core install; provider required only for model calls | Controls apply only where configured and wired |
-| OpenAI and Anthropic model adapters | Supported | Live; provider extra and credential required | Availability and model behavior are provider-dependent |
+| OpenAI, Anthropic, OpenRouter, and Together.ai model access | Supported | Live; provider extra and credential required | OpenRouter and Together.ai use the OpenAI-compatible transport; model capabilities vary |
 | Checkpointer and vector-store adapters | Supported interfaces | Live infrastructure for non-memory backends; matching extra/config required | Operate and test the backing service yourself |
 | `SecurityContext` reference adapters | Offline simulation | No credentials | Vendor write templates return simulated receipts unless replaced and verified |
-| Research models and reported datasets | Research-only | See each research page | Clusiana and the full policy-blindness corpus are not publicly available |
+| Published research and evaluation artifacts | Research-only | See each research page | Some source datasets and evaluated model artifacts are not publicly available |
 
 These docs target `tulip-agents` 2.15.x on Python 3.11–3.14. See the
 [compatibility policy](compatibility.md) for label definitions and upgrade
@@ -50,10 +50,10 @@ guidance.
     - **Idempotent tools** — `@tool(idempotent=True)` dedupes identical
       `(name, args)` calls inside the documented run/checkpoint scope. External
       systems still need stable idempotency keys for crash recovery.
-    - **OpenAI, Anthropic, and OpenAI-compatible providers** — OpenAI and
-      Anthropic through their official SDKs (OpenAI over the
-      `chat.completions` transport), plus any OpenAI-compatible endpoint,
-      auto-routed by model id. One `get_model()` call, any provider.
+    - **OpenAI, Anthropic, OpenRouter, Together.ai, and compatible providers** —
+      OpenAI and Anthropic direct, plus hosted and self-hosted
+      OpenAI-compatible endpoints auto-routed by model prefix. One
+      `get_model()` call, any provider.
 
 ## Agent core
 

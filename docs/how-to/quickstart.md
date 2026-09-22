@@ -15,11 +15,17 @@ guide adds a policy-controlled action.
 |---|---|
 | Python | 3.11–3.14 |
 | Tulip | 2.15.x |
-| Provider | OpenAI |
-| Credential | `OPENAI_API_KEY` |
+| Provider | OpenAI by default; OpenRouter and Together.ai alternatives below |
+| Credential | Provider-specific API key |
 | Execution mode | Live model call |
 
 For a credential-free run, skip to [try Tulip offline](#try-tulip-offline).
+
+!!! tip "Using OpenRouter or Together.ai?"
+    The same installation works. Set `OPENROUTER_API_KEY` and use
+    `model="openrouter:provider/model-id"`, or set `TOGETHER_API_KEY` and use
+    `model="together:organization/model-id"`. The suffix must match the exact
+    id in the provider's catalog. See [OpenAI-compatible providers](../concepts/providers/openai-compatible.md#openrouter-and-togetherai).
 
 ## 1. Create an environment
 
