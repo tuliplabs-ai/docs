@@ -21,13 +21,22 @@ and evaluation primitive from the rest of the SDK attaches normally.
 
 ## What it is
 
-A deep agent runs a tool loop until one of three exit conditions fires:
+A deep agent runs a tool loop until an exit condition fires:
 
 ```python
-termination = (
-    ToolCalled(submit_tool) & ConfidenceMet(min_confidence)
-) | TokenLimit(max_tokens) | MaxIterations(max_iterations)
+base = ToolCalled(submit_tool, require_success=True) & ConfidenceMet(min_confidence)
+if total_token_budget is not None:
+    termination = base | TokenLimit(total_token_budget) | MaxIterations(max_iterations)
+else:
+    termination = base | MaxIterations(max_iterations)
 ```
+
+`total_token_budget` defaults to `None`, so there is no token-based exit
+unless you set one. `require_success=True` means a submit tool that
+raises does not end the loop: the agent sees the rejection and keeps
+working. The per-completion output cap is a separate knob,
+`max_output_tokens=`; `create_deepagent` rejects `max_tokens=` with a
+`TypeError`.
 
 The conditions are composable, greppable, and unit-testable without a
 live model. The loop exits when the work is done — not after a fixed
@@ -230,14 +239,14 @@ on long research runs without losing recent reasoning steps.
 ## Observability
 
 `create_deepagent` returns a standard `tulip.Agent`, so all `deepagent.*`
-SSE events stream out whenever a `run_context` is active:
+SSE events stream out when the agent is awaited inside an active `run_context`:
 
 ```python
+import asyncio
 from tulip.observability import run_context, get_event_bus
 
-async with run_context() as rid:
-    result = agent.run_sync("Research the pricing history for this product line.")
 
+async def watch(rid: str) -> None:
     async for ev in get_event_bus().subscribe(rid):
         match ev.event_type:
             case "deepagent.subagent.spawned":
@@ -248,7 +257,20 @@ async with run_context() as rid:
                 print("  ☐", ev.data["content"])
             case "agent.terminate":
                 print("  ✓", ev.data["final_message_preview"])
+
+
+async with run_context() as rid:
+    watcher = asyncio.create_task(watch(rid))
+    await asyncio.sleep(0)  # let the subscriber register
+    result = await agent.arun("Research the pricing history for this product line.")
+    await get_event_bus().close_stream(rid)  # ends the subscriber's iterator
+    await watcher
 ```
+
+Use `await agent.arun(...)` here, not `run_sync`: inside a running event
+loop `run_sync` drives the agent on a worker thread that does not inherit
+the `run_id`, so nothing is published. The subscriber's iterator ends only
+when you call `close_stream(rid)`; `run_context` does not close it for you.
 
 | Event | When |
 |---|---|

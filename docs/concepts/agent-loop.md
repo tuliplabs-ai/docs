@@ -123,16 +123,20 @@ in its message stream.
 
 Two complementary reasoning add-ons:
 
-- **Grounding** — shares the Reflect node; scores the agent's recent
-  claims against tool results (rule-based by default; LLM-as-judge when
-  configured). Off by default; switch on via `Agent(grounding=True)`.
+- **Grounding** — runs on the final answer, before it is returned
+  (default `completion_mode="auto"` only, only when the run actually
+  called tools, and not on the part of a run continued with
+  `agent.resume()` after an interrupt or hold): a judge model scores
+  each claim extracted from the answer against the tool results, and a
+  failing score injects replan guidance and re-enters the loop, up to
+  `max_replans` times (default 2). Off by default; switch on via `Agent(grounding=True)`.
 - **Causal** — a standalone `build_causal_chain()` builder that turns
   the events your agent surfaced into a cause-effect graph and flags
   cycles or contradictions. Run it over a finished trace; it isn't an
   `Agent(...)` flag.
 
 Source:
-[`GroundingEvaluator` `reasoning/grounding.py:106`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/grounding.py#L106) ·
+[`GroundingEvaluator.evaluate_with_llm` `reasoning/grounding.py:420`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/grounding.py#L420) ·
 [`build_causal_chain` `reasoning/causal.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/causal.py).
 
 ## Terminate
@@ -192,7 +196,7 @@ observe but never mutate:
 | `ToolStartEvent` | Execute, before each tool fires |
 | `ToolCompleteEvent` | Execute, after each tool returns (sets `error` on failure) |
 | `ReflectEvent` | Reflect, after each self-evaluation |
-| `GroundingEvent` | Reflect, after each grounding pass |
+| `GroundingEvent` | the final-answer grounding pass |
 | `InterruptEvent` | Execute, when a tool requests human input |
 | `TerminateEvent` | Terminate, when the loop exits |
 
@@ -269,10 +273,10 @@ satisfied condition. The named reasons you'll see:
 | **`TokenLimit`** | cumulative model tokens exceeded the budget |
 | **`TimeLimit`** | wall-clock budget exceeded |
 | **`NoToolCalls`** | the model emitted text and no tool calls (the natural "I'm done" signal) |
-| **`ToolCalled`** | a specific tool fired (with optional args predicate) |
+| **`ToolCalled`** | a specific tool fired (with `require_success=True`, only a call that did not error counts) |
 | **`ConfidenceMet`** | the Reflexion confidence score cleared the threshold |
-| **`TextMention`** | the final message matched a regex |
-| **`CustomCondition`** | a user-supplied `check(state)` stopped the run |
+| **`TextMention`** | the final message contained the configured text (case-insensitive substring by default) |
+| **`CustomCondition`** | a user-supplied `fn(state, **ctx)` returned `(True, reason)` |
 | **`cancelled`** | the caller called `agent.cancel()` (or a hook raised to abort) |
 | **`error`** | the model (or a node) raised; the exception is re-raised and `result.stop_reason == "error"` |
 
@@ -338,10 +342,16 @@ Long-running agents accumulate every model message and every tool
 result in `state.messages`. Eventually the next Think exceeds the
 provider's context window and fails. Three remedies:
 
-1. **Wire a conversation manager** —
-   `Agent(conversation_manager=LLMCompactor(...))` protects the
-   system prompt and the most recent turns, then summarises the
-   middle on demand. Source:
+1. **Tune the conversation manager** — an agent with no
+   `conversation_manager=` already gets one: `LLMCompactor(context_length=...)`
+   when the model has registered metadata (it prunes stale tool output
+   and keeps a token-budgeted tail, with no extra model calls), and a
+   `SlidingWindowManager` otherwise. Override that default with
+   `Agent(conversation_manager=LLMCompactor(summarize_fn=..., context_length=...))`
+   to protect the system prompt and the most recent turns, then summarise
+   the middle on demand. Pass the model's window as `context_length=`:
+   a compactor you construct assumes 128,000 tokens and does not inherit
+   the window the default looked up. Source:
    [`src/tulip/memory/compactor.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/memory/compactor.py).
 2. **Tighten tool result size** — return concise structured data,
    not blobs of HTML. The model rarely needs the full source.
@@ -418,8 +428,8 @@ async for event in agent.run("Process refund request R-42: verify the order, ref
 | `tools=` | what Execute can dispatch |
 | `system_prompt=` | prepended to the message list before the first Think |
 | `reflexion=True` | enables Reflect on the configured cadence / triggers |
-| `grounding=True` | adds claim verification inside Reflect |
-| `checkpointer=` | persists state at every node so the run can resume after restart |
+| `grounding=True` | checks the final answer's claims against tool results before it returns |
+| `checkpointer=` | persists state at the end of a run and before an interrupt (for a run with a `thread_id`), so the run can resume after restart; pair with `checkpoint_every_n_iterations=` to also save inside the loop |
 | `conversation_manager=` | summarises / prunes long histories before they exceed the context window |
 | `hooks=` | observe and steer every event |
 | `termination=` | the algebra the router checks after each node |

@@ -1,8 +1,13 @@
 # Add a checkpointer backend
 
-`BaseCheckpointer` is the contract. Subclass it, implement four
-methods, advertise your capabilities. No adapter layer — you pass
-your instance directly to `Agent`.
+`BaseCheckpointer` is the contract. Subclass it, implement three
+methods — `save`, `load`, `list_checkpoints` — and override the
+`capabilities` property to advertise what your storage actually
+supports (every flag defaults to `False`). `delete` and `exists`
+ship defaults: `exists` works out of the box on top of your
+`load` / `list_checkpoints`, while `delete` raises
+`NotImplementedError` until you override it. No adapter layer —
+you pass your instance directly to `Agent`.
 
 ## Minimal implementation
 

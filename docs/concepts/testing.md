@@ -1,8 +1,9 @@
 # Testing agents
 
 Testing an agent means controlling the one part you do not own: the model.
-`tulip.testing` ships two doubles for that, so a test is deterministic, needs
-no API key, and never touches the network.
+`tulip.testing` ships two model doubles for that, so a test is deterministic,
+needs no API key, and never touches the network — plus a client that runs the
+agent and hands back a trace you can assert on.
 
 ```python
 from tulip.agent import Agent
@@ -93,6 +94,80 @@ async def test_the_agent_binds_only_the_read_tool():
 
 That style catches a class of bug an output assertion cannot: the agent
 answering plausibly while never having been given the tool it claimed to use.
+
+## `AgentTestClient` — assert on what the agent did
+
+The doubles answer "what did the model see?". `AgentTestClient` answers the
+other half — "what did the agent do?" — so a test stops rebuilding the same
+comprehensions over `result.tool_executions`. It wraps the agent you built,
+owns no configuration, and hands back an `AgentTrace`:
+
+```python
+from tulip.agent import Agent
+from tulip.testing import AgentTestClient, ScriptedModel, text, tool_call
+
+
+def test_refund_is_looked_up_first_via_client():
+    model = ScriptedModel([
+        tool_call("lookup_order", order_id="ord-4821"),
+        text("That order is eligible for a refund."),
+    ])
+    client = AgentTestClient(Agent(model=model, tools=[lookup_order, issue_refund]))
+
+    trace = client.run("Is ord-4821 refundable?")
+
+    trace.assert_tools_called("lookup_order").assert_model_calls(2)
+    trace.assert_tool_called("lookup_order", order_id="ord-4821")
+    trace.assert_tool_not_called("issue_refund")
+    trace.assert_succeeded()
+    assert trace.message == "That order is eligible for a refund."
+```
+
+`client.run()` is blocking — it calls `Agent.run_sync()` — so the test above
+is a plain `def`. In a pytest-asyncio suite, `await client.arun(prompt)`
+returns the same `AgentTrace`.
+
+| Assertion | Passes when |
+|---|---|
+| `assert_tool_called(name, **args)` | The agent called `name` — with these argument values, if given; only the arguments you name are compared |
+| `assert_tool_not_called(name)` | The agent never called `name` |
+| `assert_tools_called(*names)` | The agent called exactly these tools, in exactly this order |
+| `assert_model_calls(count)` | The agent called the model exactly `count` times |
+| `assert_tool_offered(name)` | `name` was offered to the model on the first turn |
+| `assert_succeeded()` | The run reported no error and no tool raised |
+
+A call counts once the agent sends it, whether or not the tool body runs. A
+call that a hook cancelled, or that `gate_tool` refused with its default
+`on_refusal="return"`, still appears in the trace, and `assert_succeeded()`
+still passes. `assert_tool_not_called` fails for such a call just as it does
+for one that ran, so it is the wrong check for a gate. To test a gate, assert
+on the refusal the call returned (`trace.result.tool_executions`) or on the
+audit trail. The exception is a call that pauses the run — `ask_user`, or a
+hold under `gate_tool(..., on_refusal="interrupt")`: the run stops before that
+call is recorded, so it is not in the trace and `assert_tool_not_called`
+passes.
+
+Each assertion returns the trace, so they chain, and a failure reports what
+did happen — `expected tool 'issue_refund' to be called, but the agent called:
+['lookup_order']` — rather than a bare `AssertionError`. When no helper fits,
+the trace is plain data: `message` (the final answer; unlike `AgentResult`,
+the trace has no `.text` alias), `tool_names`, `tool_calls` as
+`(name, arguments)` pairs, `failed_tools`, `model_calls`, and `result` and
+`model` for the underlying `AgentResult` and double.
+
+`assert_tool_offered` is positive only — there is no "not offered"
+counterpart — so the never-bound check from the previous section stays a raw
+assertion. `trace.model` is the double the agent ran against, so it reads the
+same `offered_tools` list:
+
+```python
+def test_client_offers_only_the_read_tool():
+    model = ScriptedModel([text("ok")])
+    trace = AgentTestClient(Agent(model=model, tools=[lookup_order])).run("status?")
+
+    trace.assert_tool_offered("lookup_order")
+    assert "issue_refund" not in trace.model.offered_tools[0]
+```
 
 ## Streaming
 

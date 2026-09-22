@@ -21,8 +21,8 @@ and an LLM sorts raw alerts into families (compute, storage, network).
 Runs on the same default (mock) as the rest of the notebooks:
 
 ```bash
-TULIP_MODEL_ID=openai.gpt-4.1 python examples/notebook_17_conditional_routing.py
-# or, fully offline:
+TULIP_MODEL_PROVIDER=openai TULIP_MODEL_ID=gpt-4o python examples/notebook_17_conditional_routing.py
+# or, the zero-setup default (mock):
 TULIP_MODEL_PROVIDER=mock python examples/notebook_17_conditional_routing.py
 ```
 

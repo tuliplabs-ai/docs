@@ -59,13 +59,16 @@ same case.
 ## Code
 
 ```python
+from tulip.models import get_model
 from tulip.multiagent import (
     HandoffReason,
     create_handoff_agent,
     create_handoff_manager,
 )
 
-model = "anthropic:claude-sonnet-4-6"
+# HandoffAgent calls model.complete() directly, so pass a model client,
+# not a "provider:model" string.
+model = get_model("anthropic:claude-sonnet-4-6")
 
 triage = create_handoff_agent(
     name="L1 Support",

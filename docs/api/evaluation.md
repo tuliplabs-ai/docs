@@ -3,6 +3,9 @@
 Test harness for agents — define `EvalCase`s, run them with `EvalRunner`, and
 collect results into an `EvalReport`.
 
+For the concepts, start with [Evaluation](../concepts/evaluation.md) and
+[Testing agents](../concepts/testing.md).
+
 ::: tulip.evaluation.framework.EvalCase
 ::: tulip.evaluation.framework.EvalResult
 ::: tulip.evaluation.framework.EvalReport

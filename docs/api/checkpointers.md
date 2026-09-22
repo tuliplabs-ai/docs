@@ -8,6 +8,8 @@ For long-term memory (durable KV store, semantic recall), see
 [Memory](memory.md). This page covers the **per-run state snapshot**
 contract used by `AgentConfig.checkpointer`.
 
+For the concepts, start with [Checkpointers](../concepts/checkpointers.md).
+
 ## Contract
 
 ::: tulip.memory.checkpointer.BaseCheckpointer
@@ -40,8 +42,10 @@ directly.
 above into the full `BaseCheckpointer` interface. For the common
 backends, use the factory functions — `redis_checkpointer(...)`,
 `postgresql_checkpointer(...)`, `mysql_checkpointer(...)`,
-`opensearch_checkpointer(...)`, `s3_checkpointer(...)` — which build
-the adapter for you.
+`opensearch_checkpointer(...)` — which build the adapter for you.
+`s3_checkpointer(...)` is the exception: it is a convenience alias that
+returns the native `S3Backend` unchanged, since `S3Backend` already
+implements `BaseCheckpointer`.
 
 ::: tulip.memory.backends.adapters.StorageBackendAdapter
 ::: tulip.memory.backends.adapters.redis_checkpointer

@@ -20,7 +20,7 @@ classifies actions and whether all side-effecting paths use the gate.
 | Moment | Tulip surface | What it does |
 |---|---|---|
 | Decide what happens next | [Agent loop](concepts/agent-loop.md) | Runs bounded reasoning, tool calls, observations, and termination |
-| Assess what may be asserted | [GSAR](concepts/gsar.md) | Scores a judge-produced, typed evidence partition and supports proceed, revise, replan, or abstain behavior |
+| Assess what may be asserted | [GSAR](concepts/gsar.md) | Scores a judge-produced, typed evidence partition and supports proceed, regenerate, replan, or abstain behavior |
 | Decide whether an action executes | [Admission](concepts/control-layer.md) | Evaluates an `Action` against `ControlPolicy` before calling the side effect |
 
 These controls compose, but none silently enables the others. Grounding and

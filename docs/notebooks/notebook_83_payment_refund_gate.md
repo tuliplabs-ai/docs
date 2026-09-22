@@ -19,7 +19,14 @@ bigger.
 action, not a security finding — there is no threat to verify, so the gate
 reasons purely over amount and scope. Everything that happens — the paid refund
 and the held one — lands on a tamper-evident ``AuditTrail``, and
-``trail.verify()`` confirms the SHA-256 chain was not altered after the fact.
+``trail.verify()`` confirms the SHA-256 chain is internally consistent: an edit,
+a reorder, or a deletion from the middle fails it. On its own it cannot catch
+records dropped off the end, or a chain rewritten and re-hashed from an edited
+record onward; the bare call this script makes returns ``True`` for both. Anchor
+``trail.head`` where the agent cannot reach it and pass it back as
+``verify(expected_head=…)``, and sign the trail, before treating it as evidence
+— see
+[what `verify()` catches](../api/control.md#what-verify-catches-and-the-one-thing-it-cannot).
 
 In this run the small refund (one ledger entry, $12.50) is paid automatically,
 while the large one ($4,000 reversing a six-charge subscription batch) trips
@@ -28,14 +35,14 @@ while the large one ($4,000 reversing a six-charge subscription batch) trips
 ``AdmissionError(require_human)``, the payout never runs, and the hold is queued
 for a human approver. Both decisions are recorded on the trail.
 
-Runs offline — no network, no credentials; the payout is a local ledger stub.
+The payout is a local ledger stub, so the script needs no credentials.
 
-Run it:
+Run it (fully offline — no model, no provider, no network):
     python examples/notebook_83_payment_refund_gate.py
 
 ## Output
 
-Running it offline — no credentials, bundled mock model — prints a small refund paid, a large one held:
+Running it offline — no model and no credentials — prints a small refund paid, a large one held:
 
 ```text
 Notebook 83: A refund gate that pays out small refunds and holds big ones

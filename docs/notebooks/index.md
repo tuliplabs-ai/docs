@@ -1,3 +1,7 @@
+---
+title: Examples catalog
+---
+
 # Examples
 
 Every example is a runnable `.py` file. Most use the bundled `MockModel` or a
@@ -13,13 +17,15 @@ flow; it is not evidence of live-model or vendor behavior.
 | Credentials | None for offline examples; named on live-example pages |
 | Source format | Self-contained Python files under `examples/` |
 
-The examples span the high-stakes actions agents actually take: refunding a
-payment, deploying to production, changing a customer's account, deleting
-personal data, resizing a cloud fleet. The pattern is the same in every
-domain — the agent proposes the action, a gate you wrote decides whether it
-runs, and every decision lands on a tamper-evident audit trail. The tracks
-below work through payments, customer support, infrastructure, and privacy
-scenarios; one dedicated track applies the same gate to security operations.
+These examples build agents with typed tools, memory, streaming, graphs, RAG,
+multi-agent shapes, and the provider and gateway matrix, on everyday work in
+payments, customer support, infrastructure, and privacy. Many examples put a
+gate you wrote in front of a consequential action: a hook that cancels the tool
+call, a graph interrupt that waits for a person, or `admit()` checking a
+`ControlPolicy`. The [gate-track examples](#gate-a-high-stakes-action) also
+record every decision, allowed or held, on a tamper-evident audit trail.
+The tracks below work through those domains; one dedicated track applies that
+gate to security operations.
 
 <div class="notebook-filter">
   <input
@@ -42,46 +48,29 @@ python examples/<file>.py
 ```
 
 !!! tip "New to Tulip?"
-    Start with **Gate a high-stakes action** — five short examples that put a
-    policy gate in front of a refund, a deploy, an account change, a data
-    deletion, and a cloud resource. Each one stands on its own. From there,
-    pick the domain track that matches your work, or skim **Foundations** for
-    the agent mechanics underneath.
-
-## Gate a high-stakes action
-
-One pattern, five domains. The agent proposes an action; `admit()` checks it
-against a `ControlPolicy` you wrote; the side effect runs only if the policy
-allows it; every decision — allowed or held — lands on a tamper-evident
-`AuditTrail`. Fooling the model does not move money, ship to production, or
-delete a record, because the gate runs in code before the action, not in the
-prompt.
-
-| Example | What it shows |
-|---|---|
-| [Refund gate (payments)][nb83] | Pay out a small refund automatically; hold a $4,000 reversal for a human |
-| [Deploy gate (infrastructure)][nb84] | Ship to staging on the agent's authority; stop every production change for a person |
-| [Account-change gate (support)][nb85] | Apply a routine credit; hold a plan upgrade or a large goodwill credit |
-| [Data-deletion gate (privacy)][nb86] | Run a GDPR export on the agent's own authority; a DPO signs off before any erasure |
-| [Cloud-resource gate (cloud)][nb87] | Resize a dev box on its own; hold terminate-prod-DB and open-IAM for a human |
+    Start with [Foundations](#foundations) — the agent loop, tools, memory,
+    streaming, hooks, and termination. Then pick the domain track that matches
+    your work, or go to [Gate a high-stakes action](#gate-a-high-stakes-action)
+    for the five-domain gate pattern.
 
 ## Foundations
 
 The agent loop itself — model, system prompt, tools, memory, streaming, and the
-hooks and termination conditions that act as your kill-switch. The examples run
-on everyday operations — payments triage, a deployment-readiness check, a
-support conversation, a GDPR request stream, a deploy-change gate — but the
-mechanics are the same whatever the agent does.
+hooks and termination conditions that bound what the loop may do and when it
+stops. The examples run on everyday operations — payments triage, a
+deployment-readiness check, a support conversation, a GDPR request stream, a
+deploy-change gate — but the mechanics are the same whatever the agent does.
 
 | Example | What it shows |
 |---|---|
 | [Basic agent][nb06] | Model + system prompt; blocking vs streaming run |
 | [Agent with tools][nb07] | A deployment-readiness check via `@tool` in a ReAct loop |
-| [Conversation memory][nb08] | A support conversation persisted to Redis and resumed |
+| [Conversation memory][nb08] | A conversation saved under a `thread_id` and resumed by a second agent on the same store |
+| [A chat loop][nb09] | A REPL where continuity comes from the checkpointer, not your code |
 | [Streaming events][nb11] | The typed event stream as the agent runs |
 | [SSE streaming][nb13] | Server-sent events for a payments-operations dashboard |
 | [Lifecycle hooks][nb12] | Audit + guardrail hooks around every tool call |
-| [Hooks — advanced][nb14] | Cancel or retry mid-flight — a change gate for a deploy agent |
+| [Hooks — advanced][nb14] | Cancel a destructive call mid-flight — a change gate for a deploy agent |
 | [Termination conditions][nb15] | Stop when the ticket is resolved; bound runaway loops |
 
 ## Graphs & composition
@@ -118,7 +107,7 @@ debate.
 | [Specialist agents][nb27] | Named domain experts |
 | [A2A protocol][nb28] | Cross-process A2A — a payment-risk agent a partner bank can call |
 | [DeepAgent][nb29] | Reflexion + grounding + subagents for a fleet reliability review |
-| [Map-reduce review][nb30] | `Send` fan-out / reduce over support tickets |
+| [Map-reduce support triage][nb30] | `Send` fan-out / reduce over support tickets |
 | [Supervisor + critic loop][nb31] | Refinement loop that grounds a report before it ships |
 | [Adversarial debate + judge][nb32] | Incident vs noise, adjudicated to a typed `Verdict` |
 | [Multi-agent + human-in-the-loop][nb33] | Three HITL patterns in one file |
@@ -219,6 +208,23 @@ call through a cost-tracked gateway.
 | [LiteLLM gateway][nb71] | Route through a model gateway |
 | [LiteLLM gateway — cost tracking][nb72] | Per-team cost tracking and budgets |
 
+## Gate a high-stakes action
+
+One pattern, five domains. The agent proposes an action; `admit()` checks it
+against a `ControlPolicy` you wrote; the side effect runs only if the policy
+allows it; every decision — allowed or held — lands on a tamper-evident
+`AuditTrail`. Fooling the model does not move money, ship to production, or
+delete a record, because the gate runs in code before the action, not in the
+prompt.
+
+| Example | What it shows |
+|---|---|
+| [Refund gate (payments)][nb83] | Pay out a small refund automatically; hold a $4,000 reversal for a human |
+| [Deploy gate (infrastructure)][nb84] | Ship to staging on the agent's authority; stop every production change for a person |
+| [Account-change gate (support)][nb85] | Apply a routine credit; hold a plan upgrade or a large goodwill credit |
+| [Data-deletion gate (privacy)][nb86] | Run a GDPR export on the agent's own authority; a DPO signs off before any erasure |
+| [Cloud-resource gate (cloud)][nb87] | Resize a dev box on its own; hold terminate-prod-DB and open-IAM for a human |
+
 ## Security operations
 
 The most fully worked domain track — point a red-team suite at another AI,
@@ -228,7 +234,7 @@ incident response.
 
 | Example | What it shows |
 |---|---|
-| [Red-team an AI agent][nb75] | Grounded findings or abstentions across the OWASP-ASI / MITRE-ATLAS suite |
+| [Red-team an AI agent][nb75] | Grounded findings or abstentions across the OWASP-ASI probe suite; findings carry OWASP and MITRE ATLAS tags |
 | [Red-team a support chatbot][nb76] | Prompt-injection, jailbreak, and data-leak probes against a live endpoint |
 | [Verify findings][nb78] | An independent skeptic refutes a hallucinated "critical" before it drives an action |
 | [CI security gate][nb77] | Fail the build when an agent regression ships a vulnerability |
@@ -242,6 +248,7 @@ incident response.
 [nb06]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_06_basic_agent.py
 [nb07]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_07_agent_with_tools.py
 [nb08]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_08_agent_memory.py
+[nb09]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_09_chat_loop.py
 [nb11]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_11_agent_streaming.py
 [nb12]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_12_agent_hooks.py
 [nb13]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_13_sse_streaming.py

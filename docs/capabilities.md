@@ -8,7 +8,7 @@ does, and where to find it.
 | Capability group | Status | Execution mode and requirements | Important limitation |
 |---|---|---|---|
 | Agent loop, tools, control policy, events | Supported | Core install; provider required only for model calls | Controls apply only where configured and wired |
-| OpenAI, Anthropic, OpenRouter, and Together.ai model access | Supported | Live; provider extra and credential required | OpenRouter and Together.ai use the OpenAI-compatible transport; model capabilities vary |
+| OpenAI, Anthropic, Azure OpenAI, Bedrock, OpenRouter, and Together.ai model access | Supported | Live; provider extra and credential required | Azure and Bedrock are native transports; OpenRouter and Together.ai use the OpenAI-compatible transport; model capabilities vary |
 | Checkpointer and vector-store adapters | Supported interfaces | Live infrastructure for non-memory backends; matching extra/config required | Operate and test the backing service yourself |
 | `SecurityContext` reference adapters | Offline simulation | No credentials | Vendor write templates return simulated receipts unless replaced and verified |
 | Published research and evaluation artifacts | Research-only | See each research page | Some source datasets and evaluated model artifacts are not publicly available |
@@ -23,7 +23,8 @@ guidance.
     - **The control runtime — let an agent act, on your terms.** A
       side-effecting action (a refund, a production deploy, a GDPR deletion)
       runs only after it clears a `ControlPolicy` you write: `approve()`
-      weighs it, `admit()` runs it *only if* the policy allows, and a supplied
+      weighs it, `admit()` runs it only on an allow, or on a hold a named
+      person approves (`approved_by=`), and a supplied
       `AuditTrail` records each decision (each entry is chained to
       the one before it — editing any record breaks `verify()`). Policy →
       approval → admission → audit, enforced in code, not convention.
@@ -43,16 +44,18 @@ guidance.
     - **GSAR** — typed-grounding safety layer from
       [arXiv:2604.23366 (2026)](https://arxiv.org/abs/2604.23366):
       four-way claim partition (grounded / ungrounded / contradicted /
-      complementary) + tiered replanning decisions. An agent's claim becomes
-      a typed `Evidence` only above the threshold, else it **abstains**, and
+      complementary) + tiered replanning decisions. A claim graded by
+      `ground_finding()` becomes a typed `Evidence` only above the threshold,
+      else it **abstains**, and
       `verify()` challenges it before it drives an action.
     - **Termination algebra** — `MaxIterations(10) | TextMention("DONE") & ConfidenceMet(0.9)` is real Python (`__or__` / `__and__` overloads). Greppable, unit-testable, serialisable.
     - **Idempotent tools** — `@tool(idempotent=True)` dedupes identical
       `(name, args)` calls inside the documented run/checkpoint scope. External
       systems still need stable idempotency keys for crash recovery.
-    - **OpenAI, Anthropic, OpenRouter, Together.ai, and compatible providers** —
-      OpenAI and Anthropic direct, plus hosted and self-hosted
-      OpenAI-compatible endpoints auto-routed by model prefix. One
+    - **OpenAI, Anthropic, Azure OpenAI, Bedrock, and compatible providers** —
+      OpenAI, Anthropic, Azure OpenAI and Bedrock as native transports, plus
+      hosted and self-hosted OpenAI-compatible endpoints (OpenRouter,
+      Together.ai and more) auto-routed by model prefix. One
       `get_model()` call, any provider.
 
 ## Agent core
@@ -60,7 +63,7 @@ guidance.
 | Feature | What it does | Surface |
 |---|---|---|
 | **Agent** + `AgentConfig` + `AgentResult` | The Think → Execute → Reflect → Terminate loop | `tulip.agent` · [Agent loop](concepts/agent-loop.md) |
-| **Termination algebra** | Stop conditions for a write — `(ToolCalled("issue_refund") & ConfidenceMet(0.9)) \| TextMention(r"\bESCALATE\b") \| MaxIterations(10)` caps a refund run | `tulip.core.termination` · [Termination](concepts/termination.md) |
+| **Termination algebra** | Stop conditions for a write — `(ToolCalled("issue_refund") & ConfidenceMet(0.9)) \| TextMention("ESCALATE") \| MaxIterations(10)` caps a refund run | `tulip.core.termination` · [Termination](concepts/termination.md) |
 | **Idempotent tools** | `@tool(idempotent=True)` reuses results for identical calls in the documented run/checkpoint scope | `tulip.tools.decorator` · [Idempotency](concepts/idempotency.md) |
 | **Reflexion** | Self-evaluation node in the ReAct cycle; rewrites the next turn when the last one was wrong | `Agent(reflexion=True)` · [Reasoning](concepts/reasoning.md) |
 | **Grounding** | LLM-as-judge claim verification against tool results; below-threshold triggers replanning | `Agent(grounding=True)` · [Reasoning](concepts/reasoning.md) |
@@ -112,36 +115,44 @@ result = await desk.execute("Resolve the duplicate charge on order 8842 if risk 
 ## Security — a worked example domain
 
 The most fully built domain package, and the proof the chain holds under
-pressure: point an agent at an AI or at infrastructure, and every finding is
-grounded or abstained, verified, gated, and audited. The same chain — grounding,
-gating, audit — is what makes any agent you build with Tulip safe to let act,
-whatever the domain.
+pressure: point an agent at an AI or at infrastructure, and every finding comes
+back grounded or abstained, ready to be verified, gated, and audited. The same
+chain — grounding, gating, audit — applies to any domain: a claim graded by
+`ground_finding()` becomes evidence only when it clears the GSAR threshold, a
+side effect routed through `admit()` runs only on an allow decision or on a hold
+a named person approves, and `admit()` records every decision it makes (allowed,
+held or denied) on the trail you pass. What it cannot do is gate a side effect
+that never passes through it, or classify your actions for you — an action left
+labelled `environment="staging"` never matches a policy that holds production,
+so see [Guarantees and boundaries](why-tulip.md).
 
 ![A candidate finding plus typed, weighted evidence pass through ground_finding — only claims above the GSAR threshold become an Evidence; the rest abstain with a recorded reason](img/patterns/grounded-findings.svg){ .diagram }
 
 | Feature | What it does | Surface |
 |---|---|---|
-| **Grounded findings** | A claim becomes a typed `Evidence` only above the GSAR threshold — else an `Abstention`. No ungrounded `Evidence` can be constructed. | `ground_finding` · [Grounded findings](concepts/security.md) |
+| **Grounded findings** | `ground_finding` returns a typed `Evidence` only when the claim clears the GSAR threshold — else an `Abstention`. Build findings through it, not by constructing `Evidence` directly. | `ground_finding` · [Grounded findings](concepts/security.md) |
 | **Target** | One handle over any AI under assessment — remote endpoint, in-process `Agent`, A2A peer, or callable | `Target.endpoint/.agent/.a2a/.from_callable` · [Agentic AI-security](concepts/agentic-ai-security.md) |
-| **Red-teaming** | OWASP-ASI / MITRE-ATLAS probe suite → grounded `Evidence` or `Abstention` | `red_team(target)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
+| **Red-teaming** | OWASP-ASI probe suite → grounded `Evidence` (tagged OWASP LLM / ASI / MITRE ATLAS) or `Abstention` | `red_team(target)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
 | **Assurance** | Grounded guardrail-coverage posture across the suite | `assure(target)` |
 | **Verification** | An independent skeptic challenges a finding's evidence and rescores confidence | `verify(finding) -> VerificationResult` · [Verify findings](notebooks/notebook_78_verify_findings.md) |
-| **Policy + approval** | Weigh an action against evidence, verification, and a `ControlPolicy` → allow / require_human / deny | `approve(action, policy=…)` · [SecurityContext](concepts/security-context.md) |
+| **Policy + approval** | Weigh an action against evidence, verification, and a `ControlPolicy` → allow / hold / deny (`allow` / `require_human` / `deny` in the API) | `approve(action, policy=…)` · [SecurityContext](concepts/security-context.md) |
 | **Admission gate** | Run a side-effecting action only if it clears the chain; `admit(trail=...)` records the decision to the audit trail you pass; else raises `AdmissionError` | `admit(...)` · `ctx.actions.execute(...)` · [SecurityContext](concepts/security-context.md) |
 | **SecurityContext** | Investigate by domain (logs / endpoint / identity / cloud / threat-intel / actions), not by vendor | `SecurityContext()` · [SecurityContext](concepts/security-context.md) |
-| **Audit trail** | Hash-chained, tamper-evident record of every action; exports JSONL for a SIEM | `AuditTrail` · [Observability](concepts/observability.md) |
+| **Audit trail** | Hash-chained, tamper-evident record of every entry written to it, including each decision `admit(trail=...)` makes; exports JSONL for a SIEM | `AuditTrail` · [Observability](concepts/observability.md) |
 | **Cloud posture (read-only)** | Spec-driven AWS auditing — `describe_aws` introspects botocore models; `use_aws` runs read-only calls, writes refused by construction | `tulip.security.aws` · [Cloud posture](concepts/cloud-posture.md) |
 | **Inference fingerprinting** | Timing side-channel model/hardware fingerprint → grounded `FingerprintFinding` or abstention | `fingerprint_to_finding` · [Grounded findings](concepts/security.md) |
 | **Governed agent** | An `Agent` with grounding + guardrails + audit trail on by default | `governed_agent(...)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
 
 ```python
-# A finding only exists above the GSAR bar — else it abstains. No public
-# path constructs an ungrounded Evidence.
+# A finding only exists above the GSAR bar — else it abstains. ground_finding never
+# returns an ungrounded Evidence.
 from tulip.security import ground_finding, Severity, is_finding
 
 result = ground_finding(
     title="Expired TLS certificate on 192.0.2.10:443",
+    description="Certificate expired 3 days ago; clients see TLS errors.",
     severity=Severity.HIGH, asset="192.0.2.10:443",
+    remediation="Renew and redeploy the certificate.",
     partition=partition,  # GSAR claim partition from tool evidence
 )
 if is_finding(result):
@@ -152,7 +163,7 @@ else:
 
 ```python
 # The action chain: investigate → verify → policy → admission gate.
-# isolate_host fires only if the chain clears; production → require_human.
+# isolate_host fires only if the chain clears; production → hold (require_human).
 from tulip.control import Action
 from tulip.security import SecurityContext, verify
 
@@ -162,7 +173,7 @@ await ctx.actions.execute(
     Action(name="isolate_host", asset="WS-0142", environment="production"),
     lambda: ctx.endpoint.isolate("WS-0142"),   # side effect, gated
     finding=finding, verdict=verdict,
-)   # raises AdmissionError if policy denies; pass admit(trail=...) to record either way
+)   # raises AdmissionError unless the policy allows (here production → hold); call admit(..., trail=trail, approved_by=...) directly to record it or approve the hold
 ```
 
 ## Observability
@@ -173,7 +184,7 @@ await ctx.actions.execute(
 | **`run_context()`** | ContextVar-based opt-in gate — zero allocations when inactive | `tulip.observability.run_context` |
 | **Agent yield bridge** | `@_bus_bridge` on `Agent.run` transparently republishes 9 `TulipEvent` types as `agent.*` SSE events | `tulip.agent.runtime_loop` |
 | **`EventBusHook`** | `HookProvider` that bridges all agent lifecycle hooks onto the bus (for non-async / pre-built agents) | `tulip.observability.EventBusHook` |
-| **Canonical event catalogue** | 60+ `EV_*` constants across 10 prefixes (`agent.*`, `multiagent.*`, `composition.*`, `router.*`, `research.*`, `rag.*`, `memory.*`, `a2a.*`, `skills.*`, `deepagent.*`) | `tulip.observability.emit` · [SSE event catalogue](concepts/sse-events.md) |
+| **Canonical event catalogue** | 60+ `EV_*` constants across 10 prefixes (`agent.*`, `multiagent.*`, `composition.*`, `tool.*`, `research.*`, `rag.*`, `memory.*`, `a2a.*`, `skills.*`, `deepagent.*`) | `tulip.observability.emit` · [SSE event catalogue](concepts/sse-events.md) |
 
 ## Reasoning
 
@@ -216,8 +227,8 @@ await ctx.actions.execute(
 
 | Feature | What it does | Surface |
 |---|---|---|
-| `SlidingWindowManager` | Keeps the last N messages; drops the rest | `tulip.memory.compactor` · [Conversation management](concepts/conversation-management.md) |
-| `SummarizingManager` | LLM rollup of older turns | `tulip.memory.compactor` |
+| `SlidingWindowManager` | Keeps the last N messages; drops the rest | `tulip.memory.conversation` · [Conversation management](concepts/conversation-management.md) |
+| `SummarizingManager` | LLM rollup of older turns | `tulip.memory.conversation` |
 | **`LLMCompactor`** | Budget-aware compaction with head + tail protection | `tulip.memory.compactor` |
 | Long-term key-value store | Cross-run user prefs / results with optimistic-locking `version` counter | `tulip.memory.store` |
 
@@ -259,8 +270,10 @@ await ctx.actions.execute(
 |---|---|---|
 | OpenAI | All commercial models (gpt-5.5, o-series, etc) | `tulip.models.native.openai` · [OpenAI](concepts/providers/openai.md) |
 | Anthropic | Claude 4.x (e.g. `claude-sonnet-4-6`) — direct API | `tulip.models.native.anthropic` · [Anthropic](concepts/providers/anthropic.md) |
+| Azure OpenAI | OpenAI models on a deployment-named Azure resource | `tulip.models.native.azure` · [Azure OpenAI](concepts/providers/azure.md) |
+| Amazon Bedrock | Chat models on Bedrock (Nova, Claude, Llama, Mistral and more) through one Converse-API client | `tulip.models.native.bedrock` · [Amazon Bedrock](concepts/providers/bedrock.md) |
 | Auto-routing | `get_model("anthropic:claude-sonnet-4-6")` picks transport from id | `tulip.models.registry.get_model` |
-| Decorators | Failover · pooled · cached · rate-limited wrappers over any provider | `tulip.models.decorators` |
+| Resilience helpers | Failover classification, credential pooling, prompt-cache breakpoints, rate-limit buckets | `tulip.models.failover` · `tulip.models.pooled` · `tulip.models.caching` · `tulip.models.rate_limits` · [Resilience](concepts/providers/resilience.md) |
 
 ## Skills + Playbooks
 

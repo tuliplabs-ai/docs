@@ -35,8 +35,8 @@ decision never ships to the customer on its own.
 Runs on the same default (mock) as the rest of the notebooks:
 
 ```bash
-TULIP_MODEL_ID=openai.gpt-4.1 python examples/notebook_20_advanced_patterns.py
-# or, fully offline:
+TULIP_MODEL_PROVIDER=openai TULIP_MODEL_ID=gpt-4o python examples/notebook_20_advanced_patterns.py
+# or, the zero-setup default (mock):
 TULIP_MODEL_PROVIDER=mock python examples/notebook_20_advanced_patterns.py
 ```
 

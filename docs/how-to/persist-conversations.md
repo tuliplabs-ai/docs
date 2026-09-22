@@ -1,3 +1,7 @@
+---
+title: Persist conversations
+---
+
 # Persist conversations across restarts
 
 The agent keeps conversation state in `AgentState`. Pass a
@@ -19,6 +23,7 @@ matters: you pass the **native** ones straight to `Agent`, and you
 - `FileCheckpointer` — JSON files on disk; single-machine dev
 - `HTTPCheckpointer` — talks to a remote checkpoint service you run
 - `S3Backend` — S3-compatible object storage; lifecycle policies, region replication
+  (`s3_checkpointer(...)` is a convenience alias that returns an `S3Backend`)
 
 **Storage-backed checkpointers** (wrap a dict-shaped storage with a
 factory):
@@ -27,9 +32,8 @@ factory):
 - `postgresql_checkpointer(...)` — Postgres (self-hosted or managed)
 - `mysql_checkpointer(...)` — MySQL (via the official Connector/Python async driver)
 - `opensearch_checkpointer(...)` — OpenSearch (self-hosted or managed)
-- `s3_checkpointer(...)` — an S3-compatible bucket
 
-The native ones are normal classes — `S3Backend(...)` and
+The native ones are normal classes — instantiate one, e.g. `S3Backend(...)`, and
 hand it to `Agent`. The storage-backed ones are the underlying
 `RedisBackend` / `PostgreSQLBackend` / `MySQLBackend` / etc. wrapped by an adapter; if
 you instantiate the backend class directly and pass it to `Agent`,
@@ -51,7 +55,7 @@ checkpointer = S3Backend(
 )
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",   # any model — see concepts/models.md
+    model="openai:gpt-4o-mini",   # any model — see concepts/models.md
     tools=[...],
     checkpointer=checkpointer,
 )
@@ -65,7 +69,7 @@ from tulip.memory.backends import postgresql_checkpointer
 checkpointer = postgresql_checkpointer(
     dsn="postgresql://tulip:tulip@db.example.com:5432/tulip",
 )
-agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[...], checkpointer=checkpointer)
+agent = Agent(model="openai:gpt-4o-mini", tools=[...], checkpointer=checkpointer)
 ```
 
 MySQL with the official async driver:
@@ -76,7 +80,7 @@ from tulip.memory.backends import mysql_checkpointer
 checkpointer = mysql_checkpointer(
     dsn="mysql://tulip:tulip@db.example.com:3306/tulip",
 )
-agent = Agent(model="anthropic:claude-sonnet-4-6", tools=[...], checkpointer=checkpointer)
+agent = Agent(model="openai:gpt-4o-mini", tools=[...], checkpointer=checkpointer)
 ```
 
 ## 3. Use a stable thread_id
@@ -122,6 +126,11 @@ await agent2.run("Which case are we on?", thread_id="t1").__anext__()
 # The model sees the earlier user turn.
 ```
 
-Tulip's integration suite has
-this exact test against a live S3 bucket. See
-`tests/integration/test_checkpointer_adapters.py`.
+Tulip's suite covers pieces of this shape, not the whole of it:
+`tests/integration/test_checkpointer_adapters.py::TestAgentWithCheckpointer::test_agent_resumes_from_checkpoint`
+checks that a run saves the thread's checkpoint and that it loads back
+with at least two messages (it does not check their content), against
+`MemoryCheckpointer` with a single `Agent`, and `tests/unit/test_memory_backends_s3.py` exercises
+`S3Backend` save/load against an in-process `moto` mock. Neither starts
+a second `Agent` on the same thread, and there is no live-bucket test
+in the SDK repo — run the snippet above against your own backend.

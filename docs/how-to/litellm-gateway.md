@@ -62,13 +62,23 @@ The `examples/litellm-gateway/` directory ships a working sample:
 ```bash
 cd examples/litellm-gateway/
 
-# Populate the provider credentials the gateway will use for upstream
-# calls. These live in the *gateway's* environment, not in your Tulip app.
+# Provider credentials for upstream calls, plus the gateway's admin token
+# and Postgres password. These live in the *gateway's* environment, not in
+# your Tulip app.
 export OPENAI_API_KEY="sk-..."
 export ANTHROPIC_API_KEY="sk-ant-..."
+export LITELLM_MASTER_KEY="sk-master-$(openssl rand -hex 32)"  # admin token for /key/generate
+export LITELLM_DB_PASSWORD="$(openssl rand -hex 16)"          # postgres pw
 
-docker compose up
+# Start detached, so the exports above stay in this shell for the curls below.
+docker compose up -d
+# Optional: follow the gateway's startup log (Ctrl-C stops following only).
+# docker compose logs -f litellm
 ```
+
+The compose file reads `OPENAI_API_KEY`, `LITELLM_MASTER_KEY`, and
+`LITELLM_DB_PASSWORD` with the `${VAR:?}` form, so it refuses to start
+if any of them is unset.
 
 The gateway listens on `http://localhost:4000` and exposes the model
 aliases declared in `config.yaml`. The sample ships six:
@@ -80,8 +90,12 @@ Verify with a `curl`:
 
 ```bash
 curl -s http://localhost:4000/v1/models \
-  -H "Authorization: Bearer $LITELLM_VIRTUAL_KEY" | jq '.data[].id'
+  -H "Authorization: Bearer $LITELLM_MASTER_KEY" | jq '.data[].id'
 ```
+
+Then issue a scoped virtual key in "Issuing per-team virtual keys"
+below, and re-run this with `$LITELLM_VIRTUAL_KEY` to confirm the key's
+model allowlist.
 
 ## Issuing per-team virtual keys
 
@@ -114,6 +128,12 @@ Response (truncated):
 }
 ```
 
+Export the returned `key`; the rest of this page uses it:
+
+```bash
+export LITELLM_VIRTUAL_KEY="sk-..."   # the "key" field from the response
+```
+
 The gateway enforces every field at request time:
 
 - **Model allowlist** — a key with `models: ["gpt-4o"]`
@@ -142,8 +162,7 @@ counts and computed cost. No extra config beyond connecting the DB.
 The full admin / analytics API is documented at
 [docs.litellm.ai/docs/proxy/cost_tracking](https://docs.litellm.ai/docs/proxy/cost_tracking);
 the snippets below cover the three endpoints the sample deployment
-relies on, with sample output captured live from this PR's
-validation run.
+relies on.
 
 ```bash
 # Per-request spend log (flushed asynchronously every ~10s by default).
@@ -152,6 +171,10 @@ curl http://localhost:4000/spend/logs \
 
 # Aggregate spend grouped by virtual key.
 curl http://localhost:4000/global/spend/keys \
+  -H "Authorization: Bearer $LITELLM_MASTER_KEY"
+
+# Aggregate spend grouped by model.
+curl http://localhost:4000/global/spend/models \
   -H "Authorization: Bearer $LITELLM_MASTER_KEY"
 ```
 
@@ -166,6 +189,9 @@ Sample output:
 /global/spend/keys
   · key=sk-<example-vkey-1>...  total_spend=$0.000034
   · key=sk-<example-vkey-2>...  total_spend=$0.000014
+
+/global/spend/models
+  · model=openai/gpt-4o  total_spend=$0.000048
 ```
 
 LiteLLM ships an internal pricing table covering every model it
@@ -174,20 +200,19 @@ is keyed by `api_key`, `user`, `team_id`, and any custom field in
 `metadata`, so the same SQL surface answers "what did team X spend
 this week?" and "what did model Y cost across all teams?".
 
-The full admin / analytics API is documented at
-[docs.litellm.ai/docs/proxy/cost_tracking](https://docs.litellm.ai/docs/proxy/cost_tracking).
-
 ## Pointing Tulip at the gateway
 
 Use the existing `OpenAIModel` — that's the LiteLLM-compatible client:
 
 ```python
+import os
+
 from tulip.agent import Agent
 from tulip.models.native.openai import OpenAIModel
 
 model = OpenAIModel(
     model="gpt-4o",                  # alias from gateway config.yaml
-    api_key="$LITELLM_VIRTUAL_KEY",                      # virtual key issued by the gateway
+    api_key=os.environ["LITELLM_VIRTUAL_KEY"],  # virtual key issued by the gateway
     base_url="http://localhost:4000",            # the LiteLLM AI Gateway
 )
 
@@ -224,7 +249,7 @@ python examples/notebook_07_agent_with_tools.py
 
 The sample [`helm-values.yaml`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/litellm-gateway/helm-values.yaml)
 in `examples/litellm-gateway/` plugs into LiteLLM's official Helm chart
-([`ghcr.io/berriai/litellm-helm`](https://github.com/BerriAI/litellm/tree/main/deploy/charts/litellm-helm)).
+([`ghcr.io/berriai/litellm-helm`](https://github.com/BerriAI/litellm/tree/main/helm/litellm-helm)).
 The recommended deployment shape is:
 
 - One LiteLLM gateway Deployment per environment.
@@ -314,7 +339,7 @@ The platform-grade pieces it earns them:
 The pattern lets the platform team **set policy once** and application
 teams **consume it through a single contract** — without anyone writing
 provider-specific integration code or holding provider credentials.
-LiteLLM's own [enterprise documentation](https://docs.litellm.ai/docs/proxy/enterprise)
+LiteLLM's own [enterprise documentation](https://docs.litellm.ai/docs/enterprise)
 covers each surface (callbacks, cache, guardrails, audit) in depth.
 
 ## See also
@@ -326,4 +351,4 @@ covers each surface (callbacks, cache, guardrails, audit) in depth.
   — working `config.yaml`, `docker-compose.yml`, and `helm-values.yaml`.
 - [LiteLLM AI Gateway quickstart](https://docs.litellm.ai/docs/proxy/quick_start)
 - [LiteLLM `config.yaml` reference](https://docs.litellm.ai/docs/proxy/configs)
-- [LiteLLM Helm chart](https://github.com/BerriAI/litellm/tree/main/deploy/charts/litellm-helm)
+- [LiteLLM Helm chart](https://github.com/BerriAI/litellm/tree/main/helm/litellm-helm)

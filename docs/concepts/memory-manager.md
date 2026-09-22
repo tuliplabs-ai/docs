@@ -23,12 +23,25 @@ context window ever filling up with raw history.
 All memories are persisted via a
 [`BaseStore`](checkpointers.md#the-built-in-store-inmemorystore) backend
 — the same store abstraction used for cross-thread key-value storage.
-The built-in `InMemoryStore` is the only `BaseStore` that ships — it
+Three `BaseStore` implementations ship. The built-in `InMemoryStore`
 covers local development and tests, but it is process-local and not
-durable. For distributed or persistent production workloads, implement
-a custom `BaseStore` subclass over Redis / Postgres / etc. (or use
-`Mem0MemoryManager`); no durable `BaseStore` backend ships out of the
-box.
+durable. `HolographicStore` (SQLite + FTS5, no external infrastructure)
+is durable when constructed with a file path —
+`HolographicStore(path="memories.db")`; its default `path=":memory:"`
+is not. `PgMemory` (Postgres + pgvector, per-tenant row-level security,
+needs the `postgresql` extra) is the shared, multi-tenant option. It
+treats the first namespace element as the tenant, so put the tenant id
+first in `namespace_prefix`, and its `search()` ranks by meaning only
+when you pass it an `embedder` — without one, ranking is
+lexical/associative token matching. The built-in
+`LLMMemoryManager.retrieve()` sends no query, though, so with `PgMemory`
+it returns the most recently updated memories and the `embedder` does
+not change what gets injected. For relevance-ranked recall, override
+`retrieve()` (see [Context bloat vs. recall](#context-bloat-vs-recall))
+and call `self.store.search(ns, query=..., limit=limit)`.
+`HolographicStore` and `PgMemory` both live in
+[`tulip.memory.store_backends`](../api/memory.md#durable-store-backends).
+For any other backend, subclass `BaseStore` (or use `Mem0MemoryManager`).
 
 Storage layout inside the store:
 
@@ -138,9 +151,13 @@ or tenant:
 ```python
 manager = LLMMemoryManager(
     store=shared_store,
-    namespace_prefix=("tenants", tenant_id, "users", user_id),
+    namespace_prefix=(tenant_id, "users", user_id),
 )
 ```
+
+Put the tenant id first. `PgMemory` uses the first namespace element as
+its row-level-security tenant, so a fixed first element such as
+`"tenants"` would put every tenant behind the same boundary.
 
 Each combination gets its own set of memories — no cross-contamination.
 
@@ -151,7 +168,7 @@ The SDK exposes memory along a spectrum, from "works everywhere" to
 
 | Path | Manager class | When to pick it |
 |---|---|---|
-| Portable / multi-backend | `LLMMemoryManager` + any `BaseStore` (the built-in `InMemoryStore` or a custom subclass) | You need backend portability, an LLM-free extractor, or a test-friendly path |
+| Portable / multi-backend | `LLMMemoryManager` + any `BaseStore` (`InMemoryStore`, `HolographicStore`, `PgMemory`, or a custom subclass) | You need backend portability, an LLM-free extractor, or a test-friendly path |
 | Managed | `Mem0MemoryManager` ([`mem0ai`](https://pypi.org/project/mem0ai/)) | You want a managed memory layer with LLM-tuned recall and scoped retrieval by `user_id` without writing your own extractor |
 
 ### Managed memory — `Mem0MemoryManager`
@@ -186,18 +203,20 @@ backend, fall back to the portable path below.
 ### Portable path (any BaseStore backend)
 
 `LLMMemoryManager` works against any `BaseStore` implementation. Use
-this for the built-in `InMemoryStore`, or a custom `BaseStore`
-subclass over your own backend, or when you need a deterministic
-regex-based extractor:
+this for `InMemoryStore`, `HolographicStore`, `PgMemory`, or a custom
+`BaseStore` subclass over your own backend, or when you need a
+deterministic regex-based extractor:
 
 ```python
 from tulip.memory.store import InMemoryStore
+from tulip.memory.store_backends import HolographicStore
 
 # In-memory — tests, demos, single process
 manager = LLMMemoryManager(store=InMemoryStore())
 
-# For durable cross-thread memory, implement BaseStore over your
-# backend of choice and pass it the same way.
+# Durable, no external infrastructure — needs a file path
+# (the default path=":memory:" is not durable)
+manager = LLMMemoryManager(store=HolographicStore(path="memories.db"))
 ```
 
 ## What gets injected
@@ -293,17 +312,22 @@ regardless of how many sessions have accumulated.
     default of 20). To use a different cap, override `retrieve()` as
     shown below and pass your own `limit`.
 
-For larger memory sets, plug in a vector-capable `BaseStore` backend
-and override `retrieve` to run a semantic similarity search against the
-current prompt before injecting:
+For larger memory sets, plug in a store whose `search()` ranks by
+relevance (`PgMemory` with an `embedder` ranks by meaning) and override
+`retrieve` to search against the current prompt before injecting. Pass
+the prompt text as `query` to `self.store.search()`: `PgMemory` embeds
+it for you, and none of the shipped stores implements
+`search_by_embedding()` (the `BaseStore` default raises
+`StoreCapabilityError`).
 
 ```python
 async def retrieve(self, limit: int = 20) -> list[Memory]:
-    query_vec = await embedder.embed(self._current_prompt)
-    results = await self.store.search_by_embedding(
-        self._ns(MemoryType.FEEDBACK), query_vec, limit=limit
+    # self._current_prompt is yours to set, e.g. from the last user message
+    # in an on_session_start override before it calls super().
+    items = await self.store.search(
+        self._ns(MemoryType.FEEDBACK), query=self._current_prompt, limit=limit
     )
-    return [Memory.from_store_value(r.item.value) for r in results]
+    return [Memory.from_store_value(item.value) for item in items]
 ```
 
 ## See also
@@ -313,9 +337,10 @@ async def retrieve(self, limit: int = 20) -> list[Memory]:
 - [Checkpointers](checkpointers.md) — thread-level state persistence
   and the native checkpointer backends.
 - [Cross-thread store](checkpointers.md#cross-thread-store) — the
-  `BaseStore` interface. Note: only `InMemoryStore` ships as a
-  `BaseStore` today; the checkpointer backends are a separate KV
-  interface and do **not** implement `BaseStore`, so durable cross-thread
-  memory means writing your own `BaseStore` (or using `Mem0MemoryManager`).
+  `BaseStore` interface. Note: the checkpointer backends are a separate
+  KV interface and do **not** implement `BaseStore`; for durable
+  cross-thread memory use `HolographicStore` or `PgMemory` (see
+  [Where memories live](#where-memories-live)), your own `BaseStore`, or
+  `Mem0MemoryManager`.
 - [Hooks](hooks.md) — intercept `memory.manager.*` events for custom
   logging or routing.

@@ -15,7 +15,9 @@ What you'll see:
 - `@entrypoint` — the top-level coroutine; tracks every task it awaits.
 - `pipeline.get_result()` returns an `EntrypointResult` with per-task
   metadata.
-- Same execution semantics as `StateGraph`, written imperatively.
+- Plain `async`/`await` control flow — no graph object, so no state
+  reducers, conditional edges, checkpointing or interrupt/resume. Reach
+  for `StateGraph` when you need any of those.
 
 The notebook walks through four parts: a two-task fetch-and-assess
 pipeline, `@task(retry_attempts=3)` riding out a flaky payment
@@ -26,8 +28,8 @@ assessment.
 Runs on the same default (mock) as the rest of the notebooks:
 
 ```bash
-TULIP_MODEL_ID=openai.gpt-4.1 python examples/notebook_23_functional_api.py
-# or, fully offline:
+TULIP_MODEL_PROVIDER=openai TULIP_MODEL_ID=gpt-4o python examples/notebook_23_functional_api.py
+# or, the zero-setup default (mock):
 TULIP_MODEL_PROVIDER=mock python examples/notebook_23_functional_api.py
 ```
 

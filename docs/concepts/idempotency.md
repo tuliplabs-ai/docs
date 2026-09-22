@@ -2,10 +2,12 @@
 
 > Tulip deduplicates identical tool calls within a documented execution scope.
 
-The model may retry. With `idempotent=True`, an identical call in the same
-agent run reuses the recorded result instead of invoking the tool body again.
-When supported execution state is restored from a checkpoint, that recorded
-result can also prevent a replay after resume.
+The model may retry. With `idempotent=True`, an identical call later in the
+same `agent.run()` reuses the recorded result instead of invoking the tool body
+again. When `agent.run(..., thread_id=...)` reloads a checkpointed thread, that
+recorded result can also prevent a replay. A run continued with
+`agent.resume()` does not check for a prior match; see
+[How it works](#how-it-works).
 
 If you ever plan to run an agent that **refunds**, **deploys**,
 **pages**, **emails**, or **writes**, this is the most important
@@ -26,8 +28,9 @@ single page on the docs site.
 Inside a single agent run, the SDK hashes the tool's
 `(name, arguments)` tuple as the model emits each call. **The first
 call with a given key hits the function body** and the result is
-recorded. **Every subsequent call with the same key short-circuits
-to the cached response** without invoking the body.
+recorded. **A later call with the same key in the `run()` loop
+short-circuits to the cached response** without invoking the body
+(exceptions below).
 
 ```python
 from tulip.tools import tool
@@ -44,10 +47,29 @@ The argument hash is the trust boundary:
 - **Different call**: the model emits `issue_refund("ord-4822", 120.0)` →
   different key, body runs.
 
-Dedup compares the **raw arguments dict** the model emitted, exactly as
-it emitted it — a plain `dict == dict` equality on `(tool_name,
-arguments)`. There is no JSON canonicalization and **no schema
-normalization**: defaults are *not* filled in before the comparison, so
+Dedup compares the arguments **as they reach the tool** — the dict the
+model emitted, after any [`on_before_tool_call`](hooks.md) hooks have run.
+A call from an earlier turn is matched with a plain `dict == dict` equality
+on `(tool_name, arguments)`; a duplicate inside the same model response is
+matched on a sorted-key JSON serialisation of the arguments. The two agree
+for ordinary arguments, but not on number type: `120` and `120.0` match
+across turns, not within one response. Both checks run in the `run()` loop,
+including a run that reloads a checkpointed thread with `thread_id`. They do
+not run after `agent.resume()` answers an interrupt: the continued run
+executes each tool call without looking for a prior match, so an identical
+idempotent call runs the body again. A held call that
+`resume(perform_dangling=True)` runs is not recorded in `tool_executions` at
+all, so no later call can match it. Both sides of the comparison are
+normally post-hook: each call the loop runs, or serves from the cache, is
+recorded with the hook-modified arguments, so a before-hook that normalises
+arguments (for example, upper-casing an order id) makes a new call and its
+earlier twin agree. A call a hook cancels is recorded with the arguments the
+model emitted, so for an idempotent tool a later identical call can match
+that cancelled record and return its cancel message without running the
+body. A hook only affects calls made after it is installed; it does not
+retroactively match executions already recorded with un-normalised
+arguments. Without such a hook there is **no schema normalization**:
+defaults are *not* filled in before the comparison, so
 a call that omits an optional argument and a call that passes that
 argument's default value are treated as **different keys** and both fire
 the body. (Dict equality is itself order-independent, so key order alone
@@ -86,7 +108,7 @@ inside the agent runtime; they do not create distributed exactly-once delivery.
 
 ### Replays after checkpoint resume
 
-When a checkpointer resumes a stalled run, the model may decide to
+When `agent.run(..., thread_id=...)` reloads a checkpointed thread, the model may decide to
 re-issue tool calls it's already seen. Idempotent tools see the
 cache pre-populated from the checkpoint and skip the side effect on
 replay. (This requires `tool_executions` to be restored from the
@@ -98,7 +120,7 @@ it.)
 | Concept | Idempotency is… | Idempotency is *not*… |
 |---|---|---|
 | Scope | within a single agent run | cross-run — restart and the cache is gone (use a [checkpointer](checkpointers.md)) |
-| Failure | one fire per identical call | retry — if the body raises, the exception propagates as the cached "result" |
+| Failure | one fire per identical call in the `run()` loop | retry — if the body raises, the exception propagates as the cached "result" |
 | Boundary | per-agent | network — two different agents both calling `issue_refund(o, a)` each fire once |
 
 If you need cross-run idempotency, configure a checkpointer and an idempotent
@@ -136,7 +158,7 @@ def page_oncall(case_id: str, summary: str) -> str:
 ```
 
 The agent can iterate while reasoning about whether to refund. Repeated calls
-with identical raw arguments reuse the cached result in the supported scope.
+with identical arguments reuse the cached result in the supported scope.
 For a real payment or page, the tool body should also pass a stable
 idempotency key to the provider.
 
@@ -152,7 +174,8 @@ idempotency key to the provider.
 ## Source and notebook
 
 - [`@tool` decorator with idempotency hook](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/tools/decorator.py)
-- [`_find_matching_execution`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py#L114) — where the dedup actually happens, in the ReAct loop's Execute node.
+- [`find_matching_execution`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/tools/executor.py#L21) — the argument match itself.
+- [`_maybe_cached_idempotent_result`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/agent/runtime_loop.py#L2163) — where the `Agent` runtime checks for a prior matching call before invoking the tool body.
 - [`notebook_07_agent_with_tools.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_07_agent_with_tools.py) — walks through the `@tool` decorator end-to-end (idempotency covered in the agent-loop walkthrough).
 
 ## See also

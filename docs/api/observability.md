@@ -15,6 +15,10 @@ For the agent's typed `TulipEvent` stream (the thing
 this page covers the **lower-level** observability bus that
 `TulipEvent`s are mirrored onto for cross-process consumption.
 
+For the concepts, start with
+[Observability](../concepts/observability.md#in-process-sse-eventbus)
+and [the SSE event catalogue](../concepts/sse-events.md).
+
 ## Event bus
 
 ::: tulip.observability.event_bus.EventBus

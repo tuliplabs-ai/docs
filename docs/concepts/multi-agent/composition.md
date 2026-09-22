@@ -7,8 +7,7 @@ function: do A, then B, then C — with optional fan-out and merge.
 
 ## What it is
 
-Three `BaseModel`-shaped pipeline classes, all wrapping a list of
-agents (or other pipelines):
+Three `BaseModel`-shaped pipeline classes, each wrapping one or more agents:
 
 | Class | Shape |
 |---|---|
@@ -16,8 +15,16 @@ agents (or other pipelines):
 | `ParallelPipeline(agents=[...])` | one input fans out to all N agents; results merge |
 | `LoopAgent(agent=..., max_loops=N)` | run one agent repeatedly until a condition holds or N is hit |
 
-Each composes an `Agent` and walks like one — an async `.run`
-returning a `PipelineResult`, the same event stream.
+Each has an async `.run(task)` that calls each of its agents' `arun`
+(or `run_sync`, for agents without `arun`) and returns one
+`PipelineResult`. A pipeline has no `arun` or `run_sync` of its own, and
+its result carries `final_output` rather than `.message`. So a pipeline is
+not itself agent-shaped, and pipelines do not nest: a pipeline placed
+inside another never runs, and the outer pipeline returns
+`success=False`.
+
+Inside an active `run_context`, the pipeline's `composition.*` stage,
+fan-out and loop events go to the same event bus as its agents' events.
 
 ## When to use it
 
@@ -69,16 +76,6 @@ answers = await parallel.run(
 # Loop: revise the draft until the review clears, max 5 loops
 revise = LoopAgent(agent=reviser_agent, max_loops=5)
 final = await revise.run(initial_draft)
-```
-
-```python
-# Compose nested — Sequential of (Parallel + LoopAgent)
-end_to_end = SequentialPipeline(agents=[
-    ParallelPipeline(agents=[web_search_agent, data_query_agent]),
-    draft,
-    LoopAgent(agent=reviser, max_loops=5),
-])
-result = await end_to_end.run("Why did checkout conversion drop last week?")
 ```
 
 ## Notebooks

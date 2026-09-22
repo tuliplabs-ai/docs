@@ -51,7 +51,7 @@ Offline:
 
 Pin a strong-enough model for the structured postmortem schema:
 
-    TULIP_MODEL_ID=openai.gpt-4.1 python examples/notebook_63_incident_response.py
+    TULIP_MODEL_PROVIDER=openai TULIP_MODEL_ID=gpt-4o python examples/notebook_63_incident_response.py
 
 ## Source
 

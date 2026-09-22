@@ -26,11 +26,11 @@ postmortem: Postmortem = result.parsed   # validated, not free text
 
 `output_schema` validates the model's final answer against a Pydantic
 schema. The workflow's terminal node returns a typed object — `Verdict`,
-`Postmortem`, `PurchaseOrder`, `ContractDecision` — that the rest of
+`Postmortem`, `ConcessionDecision`, `ContractDecision` — that the rest of
 your system can consume without a brittle JSON re-parse.
 
 Used by notebooks [32 (debate)][t44], [63 (incident)][t46],
-[64 (vendor review)][t47], [65 (DPA review)][t48].
+[64 (concession approval)][t47], [65 (DPA review)][t48].
 
 → See [Structured output](../structured-output.md).
 
@@ -88,9 +88,10 @@ self-correction, flip the flag.
 agent = Agent(config=AgentConfig(model="anthropic:claude-sonnet-4-6", grounding=True))
 ```
 
-Each claim in the model's output is scored against the tool result it
-supposedly came from. Below-threshold claims get dropped or sent back
-for revision. For typed grounding (entity-level evidence and
+The configured grounding judge scores the final answer against the tool
+evidence collected during the run; if the score is below the threshold
+(0.65 by default), the loop replans, up to `max_replans` times (2 by
+default). For typed grounding (entity-level evidence and
 attribution), use [GSAR](../gsar.md).
 
 → See [Reasoning](../reasoning.md) · [GSAR](../gsar.md).
@@ -131,8 +132,10 @@ agent = Agent(config=AgentConfig(
 ```
 
 OpenTelemetry wired through every event. Hooks let you observe and
-steer per-turn (`BeforeToolCallEvent`, `AfterToolCallEvent`,
-`BeforeInvocationEvent`, etc.) without touching the graph.
+steer each model and tool call (`BeforeModelCallEvent`,
+`AfterModelCallEvent`, `BeforeToolCallEvent`, `AfterToolCallEvent`)
+and wrap the whole run with the `on_before_invocation` /
+`on_after_invocation` methods, without touching the graph.
 
 → See [Observability](../observability.md) · [Hooks](../hooks.md).
 

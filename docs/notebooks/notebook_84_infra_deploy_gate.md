@@ -47,7 +47,7 @@ Run it (fully offline — no model, no provider, no network):
 
 ## Output
 
-Running it offline — no credentials, bundled mock model — prints a deploy admitted and a deploy denied:
+Running it offline — no model and no credentials — prints a staging deploy allowed and a production rollback held:
 
 ```text
 Notebook 84: An ops agent that ships to staging on its own and waits for a human in production

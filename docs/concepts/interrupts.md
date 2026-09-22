@@ -1,3 +1,7 @@
+---
+title: Interrupts
+---
+
 # Interrupts & human-in-the-loop
 
 Sometimes the agent shouldn't decide alone. A human approves the
@@ -10,9 +14,11 @@ Tulip treats human approval as
 it surfaces a question to your app and resumes when the human
 responds.
 
-For consequential actions the same pause is enforced by the runtime,
-not offered to the model — a policy answering `require_human` holds the
-action at the [admission gate](security-context.md).
+For consequential actions the check is enforced by the runtime, not
+offered to the model — a policy that answers hold (`require_human`) stops the
+action at the [admission gate](control-layer.md#the-enforcement-boundary),
+and with `on_refusal="interrupt"` and an approval store the run itself
+pauses until a named person decides ([below](#a-hold-that-pauses-the-run)).
 
 ## The shape
 
@@ -32,7 +38,7 @@ def issue_refund(order_id: str, amount: float) -> dict:
     return billing.refund(order_id, amount)
 
 agent = Agent(
-    model="anthropic:claude-sonnet-4-6",
+    model="openai:gpt-4o-mini",
     tools=[lookup_order, issue_refund],
     # ``ask_user`` is auto-registered only in explicit-completion mode; the
     # default is "auto", where it is absent and the prompt below would ask
@@ -103,7 +109,7 @@ agent = Agent(
     hooks=[SteeringHook(
         # A model instance, not a provider string — the hook calls
         # ``.complete()`` on whatever it is given.
-        model=get_model("anthropic:claude-sonnet-4-6"),
+        model=get_model("openai:gpt-4o-mini"),
         policy="Reject any tool call that doesn't match the user's stated request.",
     )],
 )
@@ -112,6 +118,75 @@ agent = Agent(
 When the judge votes "no", the call is rejected and the agent
 re-plans. This is policy enforcement, not human review — but it's
 the same shape: a checkpoint between Think and Execute.
+
+## A hold that pauses the run
+
+`ask_user` pauses when the *model* asks. For a gated tool the runtime
+decides: wrap it with `gate_tool(..., on_refusal="interrupt")` and an
+approval store, and a hold (`require_human`) parks the run at the held call
+instead of handing the model a refusal. The checkpointer keeps the
+conversation, the store keeps the pending approval, and the run waits for a
+named person to decide.
+
+```python
+from tulip.agent import Agent
+from tulip.control import AuditTrail, ControlPolicy, FileApprovals, gate_tool
+from tulip.core.events import InterruptEvent
+from tulip.memory.backends.file import FileCheckpointer
+
+store = FileApprovals("approvals.json")
+refund = gate_tool(
+    issue_refund,
+    policy=ControlPolicy(),   # no verification supplied, so the call is held
+    approval=store,
+    on_refusal="interrupt",
+    trail=AuditTrail(),
+)
+agent = Agent(
+    model="openai:gpt-4o-mini",
+    tools=[lookup_order, refund],
+    checkpointer=FileCheckpointer("checkpoints"),
+)
+
+async for event in agent.run("Refund order ord-4821.", thread_id="t1"):
+    if isinstance(event, InterruptEvent):
+        approval_id = event.metadata["approval_id"]   # the run is parked
+
+# Later, even in a new process that rebuilds the same agent and store:
+store.decide(approval_id, "approved", by="alice@example.com")
+async for event in agent.resume("approved", thread_id="t1", perform_dangling=True):
+    print(event)
+```
+
+What it does, and where it stops:
+
+- **A restart is survived only by durable parts.** `FileApprovals` keeps
+  approvals in one JSON file; `InMemoryApprovals` lives in this process and
+  is gone on restart, so use it for tests and demos. Resuming in a new
+  process also needs the checkpointer and the same `thread_id`.
+- **`perform_dangling=True` is what performs the action.** It re-invokes the
+  held call, which finds the decision. Without it, `resume` folds
+  `"approved"` in as the call's text result. Nothing re-invokes the call,
+  and the model usually treats it as done, so the approved action does not
+  happen.
+- **An approved call runs at most once; a policy deny never pauses.** The
+  approved call is weighed against the policy again when it is redeemed, so
+  a deny such as a spend limit still refuses it, and the approval is
+  consumed immediately before the side effect, so a repeated call holds
+  again instead of riding an old yes. A call the person denies returns a
+  refusal the model reads. A policy deny is refused on the spot — no one
+  approves past it.
+- **An approval names one call.** Its id is derived from the principal, the
+  tool and the arguments, plus `ControlPolicy(version=...)` and
+  `gate_tool(approval_context=...)` when set, so a call with different
+  arguments waits for its own decision.
+- **Anyone named can decide unless you say otherwise.** Pass an
+  `ApprovalAuthority` to the store to require roles, a quorum or
+  delegations. `FileApprovals` serialises writers within one process only.
+
+This is the pausing alternative to the
+[bridge-polling hold](../api/control.md#holding-an-action-for-a-human), where
+the held call returns an `approval_id` the agent polls and the run carries on.
 
 ## Cancelling a run mid-flight
 
@@ -170,7 +245,7 @@ debugging, or branch off a new thread from the partial conversation.
 - [Incident response](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_63_incident_response.py)
   — `interrupt()` as the page-the-human gate after severity
   classification.
-- [Vendor security review](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)
+- [Support concession approval](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)
   — three stacked `interrupt()` gates on the top tier.
 - [Contract review](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_65_contract_review.py)
   — `interrupt()` for human counsel inside a refinement loop.

@@ -11,7 +11,7 @@
       status: "… Held for approval", tone: "hold",
       summary: "The production label triggers a human hold. No deploy function runs.",
       evidence: "CI passed · image checkout-api:1.8.2 · production", decision: "require_human",
-      audit: "deploy checkout-api · require_human · production policy", line: "human"
+      audit: "deploy checkout-api · hold (require_human) · production policy", line: "human"
     },
     prohibited: {
       status: "× Denied", tone: "deny",
@@ -35,10 +35,17 @@
       evidence: root.querySelector("[data-demo-evidence]"), decision: root.querySelector("[data-demo-decision]"),
       audit: root.querySelector("[data-demo-audit]")
     };
+    const tablist = root.querySelector('[role="tablist"]');
+    const panel = root.querySelector('[role="tabpanel"]');
     function select(name) {
       const scenario = scenarios[name];
       if (!scenario) return;
-      buttons.forEach((button) => button.setAttribute("aria-selected", String(button.dataset.demoScenario === name)));
+      buttons.forEach((button) => {
+        const selected = button.dataset.demoScenario === name;
+        button.setAttribute("aria-selected", String(selected));
+        button.tabIndex = selected ? 0 : -1;
+        if (selected && panel && button.id) panel.setAttribute("aria-labelledby", button.id);
+      });
       Object.entries(fields).forEach(([key, node]) => { if (node) node.textContent = scenario[key]; });
       fields.status.className = "action-demo__status action-demo__status--" + scenario.tone;
       root.querySelectorAll("[data-code-line]").forEach((line) => {
@@ -46,6 +53,20 @@
       });
     }
     buttons.forEach((button) => button.addEventListener("click", () => select(button.dataset.demoScenario)));
+    if (tablist) tablist.addEventListener("keydown", (event) => {
+      const list = Array.from(buttons);
+      const current = list.indexOf(event.target);
+      if (current < 0) return;
+      let next;
+      if (event.key === "ArrowRight") next = (current + 1) % list.length;
+      else if (event.key === "ArrowLeft") next = (current - 1 + list.length) % list.length;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = list.length - 1;
+      else return;
+      event.preventDefault();
+      select(list[next].dataset.demoScenario);
+      list[next].focus();
+    });
     select("staging");
   }
 

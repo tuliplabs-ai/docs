@@ -1,4 +1,4 @@
-# Notebook 09: a chat loop — actually talking to your agent
+# A Chat Loop
 
 Every other example in this suite is a batch script: it asks one thing,
 prints the answer, and exits. That is the right shape for teaching a
@@ -13,6 +13,7 @@ from the saved state. Swap ``MemoryCheckpointer`` for Redis or Postgres and
 the same conversation survives a restart.
 
 Key ideas:
+
 - A ``thread_id`` names the conversation; the checkpointer stores it.
 - The loop keeps no history of its own — the agent's state is the history.
 - Tool calls are printed as they happen, so you can see the agent act
@@ -21,17 +22,32 @@ Key ideas:
   ``thread_id`` draws: same agent, no shared memory.
 
 Run it:
-    .venv/bin/python examples/notebook_09_chat_loop.py
+
+```
+.venv/bin/python examples/notebook_09_chat_loop.py
+```
 
 Non-interactive (CI, or just to see the shape) — the script detects a
 non-tty and replays a scripted conversation instead of prompting:
-    echo "" | .venv/bin/python examples/notebook_09_chat_loop.py
+
+```
+echo "" | .venv/bin/python examples/notebook_09_chat_loop.py
+```
 
 Live model:
-    TULIP_MODEL_PROVIDER=openai TULIP_MODEL_ID=gpt-4o
-    (or TULIP_MODEL_PROVIDER=anthropic, or any OpenAI-compatible
-    provider: ollama, vllm, groq, together, openrouter, ...).
-Set TULIP_MODEL_PROVIDER=mock for an offline run.
+
+```
+TULIP_MODEL_PROVIDER=openai TULIP_MODEL_ID=gpt-4o .venv/bin/python examples/notebook_09_chat_loop.py
+```
+
+Set `OPENAI_API_KEY` first. For Anthropic, set `ANTHROPIC_API_KEY`, use
+`TULIP_MODEL_PROVIDER=anthropic`, and set `TULIP_MODEL_ID` to a Claude model or
+leave it out to use the example's default. For any OpenAI-compatible
+endpoint, such as ollama, vllm, groq, together or openrouter, keep
+`TULIP_MODEL_PROVIDER=openai`, set `OPENAI_BASE_URL` to its URL,
+`OPENAI_API_KEY` to its key (any non-empty value for a local server that
+needs none) and `TULIP_MODEL_ID` to a model it serves.
+Set `TULIP_MODEL_PROVIDER=mock` for an offline run.
 
 ## Source
 

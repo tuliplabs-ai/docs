@@ -18,6 +18,10 @@ For checkpointing (state persistence between runs), see
 production target. Note those are *checkpointer* backends (per-thread
 state); the cross-thread **store** layer below is a separate contract.
 
+For the concepts, start with [Long-term memory](../concepts/memory-manager.md),
+[Conversation management](../concepts/conversation-management.md) and
+[the cross-thread store](../concepts/checkpointers.md#cross-thread-store).
+
 ## Conversation management
 
 ::: tulip.memory.conversation.ConversationManager
@@ -62,13 +66,22 @@ Both shipped in 2.2.0.
 `LLMMemoryManager` is the default — it uses an auxiliary model to
 extract and categorize memories at session end and retrieves the
 top-k relevant entries at session start. `NoopMemoryManager` is the
-pass-through used in tests.
+pass-through used in tests. `Mem0MemoryManager` (behind the `mem0`
+extra, `pip install "tulip-agents[mem0]"`) hands the finished
+conversation to the open-source mem0 library, which does its own
+extraction and keeps the memories in mem0's own vector store rather
+than a `BaseStore`.
 
 ::: tulip.memory.manager.BaseMemoryManager
 ::: tulip.memory.manager.LLMMemoryManager
 ::: tulip.memory.manager.NoopMemoryManager
 ::: tulip.memory.manager.Memory
 ::: tulip.memory.manager.MemoryType
+::: tulip.memory.managers.mem0.Mem0MemoryManager
+    options:
+      docstring_options:
+        warn_unknown_params: false
+        warn_missing_types: false
 
 ## Delta checkpointing
 

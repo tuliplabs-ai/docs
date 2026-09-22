@@ -47,10 +47,10 @@ PAGES: dict[str, str] = {
     "notebook_75_agent_red_team": "what a red-team run reports",
     "notebook_79_soc_alert_triage": "the triage an analyst would otherwise do",
     "notebook_83_payment_refund_gate": "a small refund paid, a large one held",
-    "notebook_84_infra_deploy_gate": "a deploy admitted and a deploy denied",
+    "notebook_84_infra_deploy_gate": "a staging deploy allowed and a production rollback held",
     "notebook_85_support_account_gate": "the account action that needed a human",
     "notebook_86_data_deletion_gate": "a GDPR erasure, and the chain that proves it",
-    "notebook_87_cloud_resource_gate": "spend held at the policy boundary",
+    "notebook_87_cloud_resource_gate": "a staging resize allowed and a production terminate held",
 }
 
 _MARKER = "## Output"
@@ -103,11 +103,23 @@ def run_notebook(stem: str, sdk: Path) -> str:
     return completed.stdout.rstrip("\n")
 
 
-def render(stem: str, why: str, output: str) -> str:
+def uses_model(stem: str, sdk: Path) -> bool:
+    """Whether the notebook builds a model at all.
+
+    Most gate notebooks call ``admit()`` directly and never touch a model, so a
+    lead-in claiming a "bundled mock model" would describe something the reader
+    cannot find in the source. Read it from the source rather than asserting it.
+    """
+    script = sdk / "examples" / f"{stem}.py"
+    return script.is_file() and "get_model" in script.read_text()
+
+
+def render(stem: str, why: str, output: str, *, with_model: bool = True) -> str:
     """The page section, with an end marker so ``--update`` can find it again."""
+    how = "no credentials, bundled mock model" if with_model else "no model and no credentials"
     return (
         f"\n{_MARKER}\n\n"
-        f"Running it offline — no credentials, bundled mock model — prints "
+        f"Running it offline — {how} — prints "
         f"{why}:\n\n"
         f"```text\n{output}\n```\n"
         f"<!-- notebook-output:end -->\n"
@@ -121,11 +133,11 @@ def page_for(stem: str) -> Path:
     return path
 
 
-def apply(stem: str, why: str, output: str, *, write: bool) -> bool:
+def apply(stem: str, why: str, output: str, *, write: bool, with_model: bool = True) -> bool:
     """Update or verify one page. Returns True when it already matched."""
     path = page_for(stem)
     text = path.read_text()
-    section = render(stem, why, output)
+    section = render(stem, why, output, with_model=with_model)
 
     if _BLOCK.search(text):
         updated = _BLOCK.sub(lambda _: section, text, count=1)
@@ -154,7 +166,7 @@ def main(argv: list[str]) -> int:
     stale = []
     for stem, why in PAGES.items():
         output = run_notebook(stem, sdk)
-        if not apply(stem, why, output, write=args.update):
+        if not apply(stem, why, output, write=args.update, with_model=uses_model(stem, sdk)):
             stale.append(stem)
 
     if args.update:

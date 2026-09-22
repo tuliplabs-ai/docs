@@ -37,6 +37,7 @@ the notebooks run offline against a bundled model — setting only
 | Variable | Used by |
 |---|---|
 | `OPENAI_API_KEY` | `OpenAIModel`, `OpenAIEmbeddings` |
+| `OPENAI_BASE_URL` | OpenAI-shaped endpoint override — points the notebooks at a proxy or the LiteLLM gateway |
 | `ANTHROPIC_API_KEY` | `AnthropicModel` |
 | `COHERE_API_KEY` | `CohereEmbeddings`, `CohereReranker` |
 
@@ -54,7 +55,7 @@ self-hosted deployments and proxies. Local servers (`ollama`, `vllm`,
 
 | Variable | Used by |
 |---|---|
-| `REDIS_URL` | Redis checkpointer — notebooks 08, 68 |
+| `REDIS_URL` | Redis checkpointer — notebook 68 |
 | `S3_BUCKET` | S3 checkpointer — notebook 52 |
 | `S3_ENDPOINT_URL` | S3-compatible endpoint (MinIO, R2) — notebook 52 |
 
@@ -81,6 +82,7 @@ Notebooks 71 and 72. See [the gateway how-to](litellm-gateway.md).
 | Variable | Used by |
 |---|---|
 | `TULIP_AWS_PROFILE` | AWS cloud-posture tools — notebook 73 |
+| `TULIP_AWS_REGION` | AWS cloud-posture tools — default `us-east-1` |
 | `AWS_ACCESS_KEY_ID` | Standard AWS credential chain |
 | `AWS_SECRET_ACCESS_KEY` | Standard AWS credential chain |
 | `SCANNER_API_KEY` | Vulnerability-scanner adapter — notebook 70 |

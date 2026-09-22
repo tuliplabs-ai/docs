@@ -9,17 +9,20 @@ all first-class.
 
 ## What it is
 
-- **`StateGraph(state_schema=...)`** — a builder bound to a typed
-  state shape (your own dataclass or BaseModel).
+- **`StateGraph(state_schema=...)`** — a builder that takes an optional
+  Pydantic `BaseModel` declaring the state fields and their reducers.
 - **`add_node(name, agent_or_callable)`** — a unit of work.
 - **`add_edge(src, dst)`** — unconditional transition.
 - **`add_conditional_edges(src, fn)`** — `fn(state) → next_node_name`
   picks the next node dynamically.
-- **`compile()`** — produces a runnable graph; async `execute` and
-  `run_sync` walk like any agent.
+- **`compile()`** — returns the runnable graph. `run_sync(...)` /
+  `invoke(...)` give you the final state dict; `await execute(...)`
+  gives you the full `GraphResult` (`final_state`, `node_results`,
+  `interrupt`).
 
-State is a typed value object with custom **reducers** that control
-how each node's output merges into shared fields.
+State is carried and returned as a plain dict. `state_schema`
+supplies the custom **reducers** that control how each node's output
+merges into shared fields; it does not coerce state into the model.
 
 ## When to use it
 
@@ -42,7 +45,7 @@ how each node's output merges into shared fields.
 ## Code
 
 ```python
-from tulip.multiagent import StateGraph, END
+from tulip.multiagent import StateGraph, START, END
 from pydantic import BaseModel, Field
 
 class ResearchState(BaseModel):
@@ -58,17 +61,18 @@ graph.add_node("investigate", investigate_agent)
 graph.add_node("report", report_agent)
 graph.add_node("review", review_agent)
 
+graph.add_edge(START, "plan")
 graph.add_edge("plan", "investigate")
 graph.add_edge("investigate", "report")
 graph.add_edge("report", "review")
 
 graph.add_conditional_edges(
     "review",
-    lambda state: END if state.confidence >= 0.85 else "investigate",
+    lambda state: END if state.get("confidence", 0.0) >= 0.85 else "investigate",
 )
 
 result = graph.compile().run_sync({"prompt": "Research why checkout conversion dropped last week."})
-print(result.report)
+print(result["report"])
 ```
 
 ## Per-node policies
@@ -97,16 +101,22 @@ For map/reduce inside a graph use the `Send` primitive from
 from tulip.core.send import Send
 
 def fan_out_review(state):
-    return [Send("review_one", {"vendor": v}) for v in state.vendors]
+    return [Send(node="review_one", payload={"vendor": v}) for v in state["vendors"]]
 
-graph.add_conditional_edges("plan", fan_out_review)
+graph.add_node("fan_out", fan_out_review)
 graph.add_node("review_one", review_one_vendor_agent)
-graph.add_edge("review_one", "merge")
 graph.add_node("merge", merge_reviews_agent)
+graph.add_edge("plan", "fan_out")
+graph.add_edge("fan_out", "merge")
 ```
 
-Each `Send` becomes a parallel invocation of the target node with
-the given partial state. The merge node sees all results.
+The fan-out happens when a **node** returns `Send`s; whatever a
+router passed to `add_conditional_edges` returns is read as node
+names. Each `Send` names its own target, so `review_one` needs no
+incoming edge: the targets run in parallel, each with the current
+state plus that Send's payload. Once every Send has finished, each
+successful result is stored in state under that Send's `send_id`,
+and control follows `fan_out`'s own edge to `merge`.
 
 ## Mermaid visualisation
 

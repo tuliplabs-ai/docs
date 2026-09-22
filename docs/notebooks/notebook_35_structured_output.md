@@ -20,7 +20,7 @@ route on. Every part below fires a real model call and prints a
 The bundled mock model is the default; set `TULIP_MODEL_PROVIDER` for a live provider:
 
 ```bash
-TULIP_MODEL_ID=openai.gpt-4.1 python examples/notebook_35_structured_output.py
+TULIP_MODEL_PROVIDER=openai TULIP_MODEL_ID=gpt-4o python examples/notebook_35_structured_output.py
 ```
 
 Offline:

@@ -16,6 +16,10 @@ and the [walkthrough notebook](../notebooks/notebook_28_a2a_protocol.md).
 `A2AServer` exposes an agent over the protocol; `A2AClient` calls one. Neither
 requires the other side to be built with Tulip.
 
+To publish a compiled `StateGraph` instead of an agent, wrap it in
+`tulip.server.GraphRunnable` and pass that as `agent=` — see
+[Serving a graph](server.md#serving-a-graph).
+
 ::: tulip.a2a.protocol.A2AServer
 ::: tulip.a2a.protocol.A2AClient
 

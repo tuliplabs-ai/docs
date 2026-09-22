@@ -39,8 +39,8 @@ from tulip.security import SecurityAdapter, ToolAdapter  # the protocol + a conc
 
 ## Conformance — required
 
-Every adapter must pass the core conformance kit (`tulip.security.testing` —
-the `langchain-tests` analog):
+Every adapter must pass the core conformance kit (`tulip.security.testing`) —
+the shared contract test every integration is held to:
 
 ```python
 from tulip.security.testing import assert_adapter_conformance, assert_tool_returns_json

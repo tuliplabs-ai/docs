@@ -1,9 +1,13 @@
 # Agentic AI red-teaming
 
 The centerpiece of ``tulip.security``: point a ``Target`` at an AI system
-and run the OWASP-ASI / MITRE-ATLAS red-team suite. Every result is a grounded
+and run the OWASP-ASI probe suite (``suite="owasp-asi"``, or ``"owasp-llm"``
+for the LLM-application subset). Every result is a grounded
 ``Evidence`` (the attack landed, with tool-backed evidence) or an ``Abstention``
-(no evidence — so nothing is asserted).
+(no evidence — so nothing is asserted). Each ``Evidence`` carries the taxonomy
+tags its probe assigns — one or more OWASP LLM, OWASP ASI or MITRE ATLAS ids (for
+example ``LLM01``, ``ASI02``, ``AML.T0054``) — so findings map onto the framework
+your reviewers use.
 
 That abstain-by-construction property matters because AI scorers can
 hallucinate vulnerabilities; Tulip does not ship a finding it cannot
@@ -20,7 +24,7 @@ Run it:
 
 ## Output
 
-Running it offline — no credentials, bundled mock model — prints what a red-team run reports:
+Running it offline — no model and no credentials — prints what a red-team run reports:
 
 ```text
 Agentic AI red-team — grounded findings or abstentions (offline demo)

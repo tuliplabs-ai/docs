@@ -102,7 +102,12 @@ providers the prompted fallback validates client-side and replays.
 For streaming UIs, you often want to render the model in flight as
 fields populate — not wait for the full response. `StructuredStream`
 wraps any agent event iterator and yields incrementally validated
-Pydantic instances:
+Pydantic instances. Partials come from token chunks, so start the run
+with `stream_tokens=True` — without it no `ModelChunkEvent` is emitted,
+the loop body never runs, and nothing raises. Even with the flag, a
+model that has no `stream()` method, or whose `server_stateful`
+attribute is `True`, emits no chunks, so only `stream.final` can be
+filled:
 
 ```python
 from tulip.streaming import StructuredStream
@@ -112,7 +117,10 @@ agent = Agent(
     output_schema=TriageList,
 )
 
-stream = StructuredStream(agent.run("Score the 3 open tickets."), schema=TriageList)
+stream = StructuredStream(
+    agent.run("Score the 3 open tickets.", stream_tokens=True),
+    schema=TriageList,
+)
 async for partial in stream:
     ui.render(partial)               # may have 0, 1, 2, then 3 tickets
 final: TriageList | None = stream.final
@@ -125,8 +133,16 @@ By default identical consecutive partials are deduplicated; pass
 `emit_unchanged=True` to surface every parseable chunk.
 
 A partial is only yielded when **all required fields** are present —
-optional fields may still be `None` or absent. If the stream ends
-without a single valid partial, `stream.final` is `None`.
+optional fields may still be `None` or absent. When the run ends with a
+`TerminateEvent`, `stream.final` is parsed from the run's final message
+(or from the token buffer if that message is empty), even if no partial
+ever validated. If that parse fails, it falls back to the last partial,
+and it is `None` when neither validated. A run that pauses for input or
+approval — an `InterruptEvent` from `ask_user`, or from a call held
+under `on_refusal="interrupt"` — ends without a `TerminateEvent`, so
+`stream.final` stays `None` even if partials arrived. A run that raises
+passes the exception out of the `async for` loop, and `stream.final`
+stays `None`.
 
 ## Composing with tools
 
@@ -163,6 +179,6 @@ builder, validation-error formatter.
 - [`notebook_63_incident_response.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_63_incident_response.py)
   — typed `Postmortem` as the terminal artifact of an incident graph.
 - [`notebook_64_procurement_approval.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_64_procurement_approval.py)
-  — typed `PurchaseOrder` from a tiered approval flow.
+  — typed `ConcessionDecision` from a risk-tiered approval flow.
 - [`notebook_65_contract_review.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/notebook_65_contract_review.py)
   — typed `ContractDecision` from a parallel-review + negotiation loop.

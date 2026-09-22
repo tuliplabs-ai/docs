@@ -28,9 +28,15 @@ agent.run_sync("What did we conclude?",                           thread_id="tic
 # → "The return on ord-4821 is eligible. Want me to draft the refund for manager approval?"
 ```
 
-The `thread_id` is the unit of conversation. Every node that runs
-saves state to the checkpointer; every fresh `agent.run_sync(...,
-thread_id=...)` call rehydrates state before the first Think.
+The `thread_id` is the unit of conversation. With `checkpointer=`
+alone, state is saved when the run finishes or raises, and before the
+agent pauses on an interrupt; pass `checkpoint_every_n_iterations=1`
+to also save at the end of each loop iteration that executes tool
+calls, so a process that dies mid-run keeps its progress up to the
+last such save. A run continued with `agent.resume(...)` does not save
+per iteration: it is saved when it finishes, raises, or pauses again.
+Every fresh `agent.run_sync(..., thread_id=...)` call rehydrates state
+before the first Think.
 
 ## Threads, not sessions
 
@@ -105,9 +111,19 @@ bug — you'll race on the checkpoint. Three patterns to avoid that:
 ## Compaction — keep long threads in budget
 
 After dozens of turns, even the most disciplined conversation
-exceeds the model's context window. The `LLMCompactor` is the
-built-in `ConversationManager` that summarises old turns while
-protecting:
+exceeds the model's context window, so an agent manages its context
+by default. With no `conversation_manager`, an agent whose model has
+registered metadata (a built-in entry, or one you add with
+`tulip.models.metadata.register_metadata`) gets
+`LLMCompactor(context_length=<model window>)` with no summariser.
+Stale tool output is pruned and a token-budgeted tail is kept, with
+no extra model calls. When the window is unknown, the agent falls
+back to `SlidingWindowManager(window_size=max(20, max_iterations * 2))`.
+Pass `NullManager()` to turn management off.
+
+`LLMCompactor` is the token-aware built-in `ConversationManager`: it
+compacts old turns (and summarises them if you pass `summarize_fn`)
+while protecting:
 
 - The system prompt.
 - The first N user/assistant turns (the "anchor" of the
@@ -117,18 +133,20 @@ protecting:
 ```python
 from tulip.memory.compactor import LLMCompactor
 
-async def summarise(messages: list) -> str:
+async def summarise(messages: list, previous_summary: str | None) -> str:
     """Your summarise function — typically a small-model call."""
     ...
 
+# Every argument has a default. Set context_length to your model's window:
+# an LLMCompactor you pass yourself does not look it up (default 128_000).
 agent = Agent(
     ...,
     conversation_manager=LLMCompactor(
         context_length=128_000,        # the model's context window
-        trigger_fraction=0.85,         # compact when usage hits 85%
-        head_turns=2,                  # first 2 turns kept verbatim
-        tail_token_fraction=0.4,       # ~40% of budget reserved for recent turns
-        summarize_fn=summarise,
+        trigger_fraction=0.85,         # compact when usage hits 85% (default 0.8)
+        head_turns=2,                  # first 2 turns kept verbatim (default)
+        tail_token_fraction=0.4,       # ~40% of budget for recent turns (default 0.5)
+        summarize_fn=summarise,        # optional; without it the middle is dropped
     ),
 )
 ```

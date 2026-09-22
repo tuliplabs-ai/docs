@@ -29,7 +29,7 @@ print(report.summary())
 | You're swapping models (gpt-4o → gpt-5, llama-3.3 → llama-4) | **yes — same suite, two providers, diff the report** |
 | You're debating "is the agent better than last week?" | **yes — nightly soak with `n=20` per case to see variance** |
 | One-shot exploration, scratch agent | no — overhead's not worth it |
-| Heavy LLM-as-judge needed (open-ended quality) | the harness covers structural checks; pair it with a custom judge tool for free-text grading |
+| Heavy LLM-as-judge needed (open-ended quality) | **yes — set a `rubric` on the case and give the runner an `LLMJudge` ([below](#llm-as-judge-for-open-ended-quality))** |
 
 ## Getting started
 
@@ -124,27 +124,41 @@ runner.run(smoke)
 The built-in checks are structural ("did the right tool fire?", "did
 the answer mention 'reputation'?"). For free-text quality
 ("is the triage rationale sound?", "is the finding correctly grounded?"),
-wrap a judge model as a tool and key on its verdict:
+write a `rubric` on the case and give the runner an `LLMJudge`:
 
 ```python
-from tulip.tools.decorator import tool
+import asyncio
 
-@tool
-def judge(answer: str) -> dict:
-    """LLM-graded quality verdict (0.0–1.0 + reasoning)."""
-    return judge_model.run_sync(f"Grade this answer: {answer}").message
+from tulip.evaluation import EvalCase, EvalRunner, LLMJudge
+from tulip.models import get_model
 
-# Then in the case:
-EvalCase(
+case = EvalCase(
     name="sound_triage_rationale",
     prompt="Explain why alert SOC-4821 is a false positive.",
-    expected_tools=["judge"],
-    expected_output_contains=["benign"],  # at minimum
+    expected_output_contains=["benign"],  # structural checks still run
+    rubric="Passes if it names the evidence that makes the alert benign.",
 )
+
+judge = LLMJudge(model=get_model("openai:gpt-4o"))
+runner = EvalRunner(agent=agent, judge=judge)
+report = asyncio.run(runner.arun([case]))
 ```
 
-A future SDK release may bundle a typed judge directly into
-`EvalCase`; for today, this pattern is the path.
+Grading requires `await runner.arun(cases)` — the judge is a model call,
+and `run()` is synchronous. `run()` never reads `rubric` at all, so a
+rubric case passed to it is scored on its structural checks alone and
+can report green with the rubric silently unevaluated. On `arun()`, a
+rubric case with no judge configured fails loudly instead, under a
+`rubric:no_judge_configured` check.
+
+On a graded case, `EvalResult.score` is the judge's 0–1 score, not the
+fraction of checks passed. A judge reply that cannot be parsed yields
+`Verdict(unparseable=True)` and is recorded as a failing
+`judge_unparseable:...` check rather than a silent pass. Use a different
+model from the one under test where you can — a model grading its own
+output is measuring self-consistency, not correctness. `LLMJudge` and
+`Verdict` are documented in the
+[evaluation API reference](../api/evaluation.md#grading-an-answer-that-has-no-single-right-string).
 
 ## Common gotchas
 

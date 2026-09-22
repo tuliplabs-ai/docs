@@ -3,6 +3,9 @@
 The high-level entry point — configure an `Agent`, run it, and read
 back a typed `AgentResult`.
 
+For the concepts, start with [Agent](../concepts/agent.md) and
+[the agent loop](../concepts/agent-loop.md).
+
 ## `Agent` class
 
 ```text

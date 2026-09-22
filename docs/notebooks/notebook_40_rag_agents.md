@@ -21,9 +21,10 @@ copilot; it reads the Index — the internal runbook knowledge base.
 - Best-practice notes on chunk size, prompt design, and metadata
   filters for ops corpora.
 
-Backend: an in-memory `QdrantVectorStore` keeps the demo dependency-free. Swap
-`_make_store` for any other Tulip vector store (pgvector, OpenSearch,
-Qdrant, Chroma) for a durable backend.
+Backend: the pure-Python `InMemoryVectorStore` keeps the demo dependency-free
+and runnable anywhere. Swap `_make_store` for any other Tulip vector store
+(`PgVectorStore`, `OpenSearchVectorStore`, `QdrantVectorStore`,
+`ChromaVectorStore`) for a durable backend.
 
 ## Run it
 
