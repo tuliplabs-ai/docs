@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Decorative bloom motif for the homepage hero. It is the tulip mark's own
+  three petals (docs/img/mark.svg) drawn as outlines rather than fills, with
+  the centre petal echoed twice as it opens. Purely ornamental: the hero
+  element that carries it is aria-hidden, and it is never the logo itself.
+  Opacity is set by .tulip-hero__motif in docs/stylesheets/tulip.css so the
+  same file works on the light and the dark canvas.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="petalMotif" x1="18" y1="10" x2="84" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F59AB4"/>
+      <stop offset="0.55" stop-color="#EA4F86"/>
+      <stop offset="1" stop-color="#D6336C"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#petalMotif)" stroke-linejoin="round" stroke-linecap="round">
+    <path stroke-width="1.7" d="M50 86 C 30 78 17 58 19 34 C 34 42 47 60 50 86 Z"/>
+    <path stroke-width="1.7" d="M50 86 C 70 78 83 58 81 34 C 66 42 53 60 50 86 Z"/>
+    <path stroke-width="1.7" d="M50 86 C 44 60 44 38 50 18 C 56 38 56 60 50 86 Z"/>
+    <path stroke-width="1.1" opacity="0.75" d="M50 86 C 41 58 41 33 50 10 C 59 33 59 58 50 86 Z"/>
+    <path stroke-width="0.8" opacity="0.5"  d="M50 86 C 38 56 38 29 50 3 C 62 29 62 56 50 86 Z"/>
+  </g>
+</svg>

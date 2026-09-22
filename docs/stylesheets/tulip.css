@@ -226,7 +226,7 @@ html {
   --md-footer-fg-color:         #F4F4F5;
   --md-footer-fg-color--light:  #B4B4BC;
 
-  --md-code-bg-color:           #1B1E26;
+  --md-code-bg-color:           #15181E;
   --md-code-fg-color:           #F4F4F5;
 
   --md-shadow-z1: 0 0 0.2rem rgba(0,0,0,.4), 0 0.2rem 0.4rem rgba(0,0,0,.3);
@@ -2043,4 +2043,217 @@ form.md-header__option {
 @media screen and (max-width: 48em) {
   .md-typeset .tl-dia { padding: var(--tl-space-sm); overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .md-typeset .tl-dia svg { min-width: 600px; }
+}
+
+/* ---------------------------------------------------------------------------
+   Homepage bands and the hero bloom motif.
+
+   The landing page is one long markdown article, so its only rhythm used to be
+   heading spacing. These two pieces give it a shape without touching a word of
+   the copy:
+
+   1. `.tl-band` sections break out of the centred article column and run the
+      full width of the viewport, so the page reads as bands — paper, tint,
+      ink, paper, tint, paper — instead of one flat scroll.
+   2. `.tulip-hero__motif` puts the mark's own petal geometry behind the hero
+      as a large, low-contrast outline drawing. Brand presence, not a logo
+      pasted at size.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --tl-band-tint: #F1F1F5;
+  --tl-band-deep: #131317;
+}
+[data-md-color-scheme="slate"] {
+  --tl-band-tint: #171A21;
+  --tl-band-deep: #0A0C10;
+}
+
+/* A band is 100vw wide and centred on the article column, which is itself
+   centred in the viewport — so the escape is symmetric. 100vw counts the
+   scrollbar, which would otherwise leave the page scrollable sideways by a few
+   pixels; clipping on `.md-main` (which spans the same area) removes that
+   without touching the sticky header, and `clip` rather than `hidden` means no
+   new scroll container is created. */
+.md-main:has(.tl-band) {
+  overflow-x: clip;
+}
+
+.md-typeset .tl-band {
+  position: relative;
+  width: 100vw;
+  max-width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  margin-block: 0;
+  padding-block: clamp(2.4rem, 5vw, 3.8rem);
+}
+
+/* Re-constrain the band's contents to the same column the unbanded sections
+   use: Material's 61rem grid with its 0.8rem content inset. Keeping both
+   numbers here is what makes a banded heading line up exactly with the hero
+   above it. */
+.md-typeset .tl-band__inner {
+  max-width: 61rem;
+  margin-inline: auto;
+  padding-inline: 0.8rem;
+}
+
+/* `.md-typeset > p` caps prose at a readable measure. Inside a band the text is
+   a grandchild, so the cap has to be restated or the banded paragraphs run the
+   full 61rem while the unbanded ones stay at 48rem. */
+.md-typeset .tl-band__inner > p,
+.md-typeset .tl-band__inner > ul,
+.md-typeset .tl-band__inner > ol,
+.md-typeset .tl-band__inner > blockquote {
+  max-width: 48rem;
+}
+
+/* A band opens with its own heading, so drop the heading's top margin — the
+   band's padding is the spacing. */
+.md-typeset .tl-band__inner > h2:first-child {
+  margin-top: 0;
+}
+
+.md-typeset .tl-band--tint {
+  background: var(--tl-band-tint);
+  border-block: 1px solid var(--tl-rule-subtle);
+}
+
+/* The ink band carries the dark token set in BOTH colour schemes: in light mode
+   that inverts it against the page, and in dark mode it simply stays dark and a
+   shade deeper than the canvas. Every component inside it — the control demo,
+   the execution flow, the status pills — is already token-driven, so redefining
+   the tokens here is all the inversion that is needed. */
+.md-typeset .tl-band--deep {
+  background: var(--tl-band-deep);
+  color: #F4F4F5;
+
+  --tulip-ink:         #F4F4F5;
+  --tulip-mute:        #B4B4BC;
+  --tulip-paper:       #131317;
+  --tulip-surface:     #1E222B;
+  --tulip-code-inline: #D4D4D8;
+
+  --tl-text:           #F4F4F5;
+  --tl-text-soft:      #D3D3DB;
+  --tl-text-mute:      #A1A1AA;
+  --tl-bg:             #131317;
+  --tl-bg-soft:        #1E212A;
+  --tl-surface:        #1E222B;
+  --tl-surface-raised: #272C36;
+  --tl-rule:           #383D49;
+  --tl-rule-subtle:    #252932;
+  --tl-rule-strong:    #434A56;
+
+  /* `--tl-red` and `--tl-red-deep` are aliases resolved on `:root`, so they do
+     not follow a redefined `--tl-accent` here — they have to be set too. */
+  --tl-accent:        #F472B6;
+  --tl-accent-hover:  #EC4899;
+  --tl-accent-subtle: #4A0A26;
+  --tl-red:           #F472B6;
+  --tl-red-deep:      #EC4899;
+  --tl-red-light:     #F9A8D4;
+  --tl-link:          #F9A8D4;
+  --tl-on-accent:     #111318;
+  --tl-focus:         #F472B6;
+
+  --tl-allow-fg:      #6EE7A8;
+  --tl-allow-bg:      #0B2E1B;
+  --tl-allow-border:  #15803D;
+  --tl-hold-fg:       #FCD34D;
+  --tl-hold-bg:       #3A2708;
+  --tl-hold-border:   #B45309;
+  --tl-deny-fg:       #FCA5A5;
+  --tl-deny-bg:       #3B1113;
+  --tl-deny-border:   #B91C1C;
+  --tl-abstain-fg:    #D3D3DB;
+  --tl-abstain-bg:    #252932;
+  --tl-abstain-border:#434A56;
+
+  --md-typeset-color:           #F4F4F5;
+  --md-typeset-a-color:         #F9A8D4;
+  --md-default-fg-color:        #F4F4F5;
+  --md-default-fg-color--light: #D4D4D8;
+  --md-code-bg-color:           #15181E;
+  --md-code-fg-color:           #F4F4F5;
+}
+
+/* Headings and body text inside the ink band take the inverted ink directly:
+   several base rules name `--tulip-ink` at a specificity the band cannot win
+   by token redefinition alone when the rule hardcodes a colour. */
+.md-typeset .tl-band--deep h2,
+.md-typeset .tl-band--deep h3,
+.md-typeset .tl-band--deep p,
+.md-typeset .tl-band--deep li,
+.md-typeset .tl-band--deep dd,
+.md-typeset .tl-band--deep strong {
+  color: var(--tulip-ink);
+}
+.md-typeset .tl-band--deep a {
+  color: var(--tl-link);
+}
+
+/* The brand hairline that runs under the site header, reused as the ink band's
+   top edge so the dark slab reads as part of the same system. */
+.md-typeset .tl-band--deep::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--tulip-grad);
+}
+
+/* Hero bloom — the mark's petals, opened and drawn as outlines. The hero clips
+   its overflow on desktop, so the drawing bleeds off the left edge instead of
+   sitting in a box. */
+.tulip-hero__motif {
+  position: absolute;
+  z-index: -2;
+  /* Anchored to the hero's bottom-left corner and mostly clipped by it, so
+     what shows is the upper sweep of the petals in the sparse area beside the
+     install chip — never a watermark behind the headline. */
+  bottom: -15rem;
+  left: -11rem;
+  width: min(32rem, 52vw);
+  aspect-ratio: 1;
+  transform: rotate(-12deg);
+  background: url("../img/petal-motif.svg") center / contain no-repeat;
+  opacity: 0.13;
+  pointer-events: none;
+}
+[data-md-color-scheme="slate"] .tulip-hero__motif {
+  opacity: 0.2;
+}
+
+@media (max-width: 76em) {
+  /* The stacked hero switches to `overflow: visible` so the code column can
+     breathe; `clip` on the inline axis alone keeps the motif from adding a few
+     pixels of sideways scroll without re-clipping the vertical overflow.
+     (`clip` + `visible` is the one legal mixed pair.) */
+  .md-typeset .tulip-hero {
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+  .tulip-hero__motif {
+    bottom: auto;
+    top: -2rem;
+    left: auto;
+    right: -4.5rem;
+    width: 13rem;
+    transform: rotate(-12deg);
+    opacity: 0.1;
+  }
+  [data-md-color-scheme="slate"] .tulip-hero__motif {
+    opacity: 0.14;
+  }
+}
+
+@media (max-width: 48em) {
+  .md-typeset .tl-band {
+    padding-block: 2rem;
+  }
+  .tulip-hero__motif {
+    right: -5rem;
+    width: 10rem;
+  }
 }
