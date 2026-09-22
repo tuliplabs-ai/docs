@@ -9,24 +9,7 @@ Tulip separates deciding what to do from deciding whether a consequential
 action may execute. This page is the domain-neutral map. `SecurityContext` is
 one worked application of the same control primitives.
 
-```mermaid
-flowchart LR
-  U[request] --> L[agent loop]
-  L --> T[tool proposal]
-  L --> G[optional grounding]
-  G --> L
-  T --> C[classify as Action]
-  C --> P{ControlPolicy}
-  P -->|allow| E[execute side effect]
-  P -->|hold| H[approval store]
-  P -->|deny| X[do not execute]
-  H -->|approved + resumed| E
-  H -->|denied| X
-  P --> A[(AuditTrail)]
-  H --> A
-  E --> A
-  L <--> S[(checkpointer)]
-```
+{{ tulip_diagram control-layer-flow }}
 
 A hold is `require_human` in the API: `ApprovalDecision.outcome` is
 `ApprovalOutcome.REQUIRE_HUMAN`. These pages use the words allow, hold and

@@ -1187,38 +1187,6 @@ form.md-header__option {
 }
 
 /* ---------------------------------------------------------------------------
-   Diagrams — responsive sizing for the agent-loop SVG and similar.
-   --------------------------------------------------------------------------- */
-.md-typeset img[src*="agent-loop"],
-.md-typeset img[src*="multi-agent-patterns"],
-.md-typeset img[src*="img/patterns/"],
-.md-typeset img.diagram {
-  display: block;
-  width: 100%;
-  max-width: 720px;
-  height: auto;
-  margin: 1.5rem auto;
-}
-.md-typeset img[src*="multi-agent-patterns"] {
-  max-width: 920px;
-}
-
-/* The architecture diagrams (agent-loop, multi-agent-patterns, the
-   per-pattern SVGs under img/patterns/, and the architecture / sequence
-   topologies) are authored against a light background. In dark mode the
-   dark-grey strokes and labels vanish, so render them on a near-white
-   card. */
-[data-md-color-scheme="slate"] .md-typeset img[src*="agent-loop"],
-[data-md-color-scheme="slate"] .md-typeset img[src*="multi-agent-patterns"],
-[data-md-color-scheme="slate"] .md-typeset img[src*="img/patterns/"],
-[data-md-color-scheme="slate"] .md-typeset img[src*="architecture"],
-[data-md-color-scheme="slate"] .md-typeset img.diagram {
-  background-color: #FBF9F8;
-  padding: 1rem;
-  border-radius: 0.5rem;
-}
-
-/* ---------------------------------------------------------------------------
    Dark-mode logo handling.
    - tulip wordmark → live text in var(--tulip-ink), which flips per scheme;
      no filter.
@@ -1989,4 +1957,90 @@ form.md-header__option {
   .execution-flow__audit {
     grid-column: 1;
   }
+}
+
+/* ===================================================================
+   Diagram system. Diagrams are SVG inlined by the build hook
+   ({{ tulip_diagram name }}), so every shape reads the live --tl-* tokens
+   and follows the light/dark toggle exactly. An <img> cannot see the page's
+   theme, which is why the old diagrams sat on a white card in dark mode.
+
+   Authoring vocabulary (classes on SVG elements; see docs/diagrams/README.md):
+     g.node[.primary|.allow|.hold|.deny|.abstain|.optional|.end] > rect + text
+     text.sub            secondary line inside a node (mono, muted)
+     path.edge[.allow|.hold|.deny|.dashed]   connector; arrowheads via marker
+     text.label + rect.label-bg              edge label on a knockout
+     g.store > path      datastore (cylinder)
+     g.decision > polygon
+     g.lane > rect + text.lane-title         grouping band
+     text.note           footnote inside the figure
+   Status classes always carry a text label too: colour is never the only cue.
+   =================================================================== */
+.md-typeset .tl-dia {
+  /* Material sizes <figure> to fit-content; an SVG that is width:100% of a
+     fit-content parent has nothing to resolve against and falls back to the
+     browser's 300px default. Give the figure the column width instead. */
+  width: 100%;
+  margin: var(--tl-space-xl) auto;
+  max-width: 860px;
+  padding: var(--tl-space-lg);
+  border: 1px solid var(--tl-rule);
+  border-radius: var(--tl-radius-lg);
+  background: var(--tl-surface);
+}
+.md-typeset .tl-dia svg { display: block; width: 100%; height: auto; overflow: visible; }
+/* geometricPrecision: the viewBox scales the text, and Chrome otherwise hints
+   each glyph's advance at the unscaled size, which spaces small labels
+   unevenly ("r eflection"). The page's ss01/cv11 features stay out of diagrams. */
+.tl-dia svg text {
+  font-family: var(--tulip-sans); fill: var(--tl-text);
+  text-rendering: geometricPrecision; font-feature-settings: normal;
+}
+
+.tl-dia .node rect { fill: var(--tl-bg); stroke: var(--tl-rule-strong); stroke-width: 1.5; }
+.tl-dia .node text { font-size: 15px; font-weight: 600; text-anchor: middle; dominant-baseline: middle; }
+.tl-dia .node text.sub {
+  font-family: var(--tulip-mono); font-size: 11.5px; font-weight: 500;
+  fill: var(--tl-text-mute);
+}
+.tl-dia .node.primary rect { fill: var(--tl-accent-subtle); stroke: var(--tl-accent); stroke-width: 2; }
+.tl-dia .node.primary text { fill: var(--tl-accent); }
+.tl-dia .node.primary text.sub { fill: var(--tl-text-soft); }
+.tl-dia .node.optional rect { stroke-dasharray: 6 4; }
+.tl-dia .node.end rect { fill: var(--tl-text); stroke: var(--tl-text); }
+.tl-dia .node.end text { fill: var(--tl-text-inverse); }
+.tl-dia .node.end text.sub { fill: var(--tl-text-inverse); opacity: 0.75; }
+.tl-dia .node.allow rect   { fill: var(--tl-allow-bg);   stroke: var(--tl-allow-border); }
+.tl-dia .node.allow text   { fill: var(--tl-allow-fg); }
+.tl-dia .node.hold rect    { fill: var(--tl-hold-bg);    stroke: var(--tl-hold-border); }
+.tl-dia .node.hold text    { fill: var(--tl-hold-fg); }
+.tl-dia .node.deny rect    { fill: var(--tl-deny-bg);    stroke: var(--tl-deny-border); }
+.tl-dia .node.deny text    { fill: var(--tl-deny-fg); }
+.tl-dia .node.abstain rect { fill: var(--tl-abstain-bg); stroke: var(--tl-abstain-border); }
+.tl-dia .node.abstain text { fill: var(--tl-abstain-fg); }
+
+.tl-dia .edge { fill: none; stroke: var(--tl-text-mute); stroke-width: 1.6; }
+.tl-dia .edge.dashed { stroke-dasharray: 5 4; }
+.tl-dia .edge.allow { stroke: var(--tl-allow-fg); }
+.tl-dia .edge.hold  { stroke: var(--tl-hold-fg); }
+.tl-dia .edge.deny  { stroke: var(--tl-deny-fg); }
+.tl-dia .arrowhead { fill: var(--tl-text-mute); }
+.tl-dia .label { font-size: 12.5px; font-weight: 500; fill: var(--tl-text-soft); text-anchor: middle; dominant-baseline: middle; }
+.tl-dia .label-bg { fill: var(--tl-surface); }
+
+.tl-dia .store path { fill: var(--tl-bg); stroke: var(--tl-rule-strong); stroke-width: 1.5; }
+.tl-dia .decision polygon { fill: var(--tl-bg); stroke: var(--tl-rule-strong); stroke-width: 1.5; }
+.tl-dia .lane rect { fill: var(--tl-bg-soft); stroke: var(--tl-rule-subtle); }
+.tl-dia .lane-title {
+  font-family: var(--tulip-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; fill: var(--tl-text-mute);
+}
+.tl-dia .note { font-size: 12.5px; fill: var(--tl-text-mute); text-anchor: middle; }
+
+/* On a phone the column is ~330px, which would shrink a diagram's labels to
+   about a third of their size. Below tablet width a diagram keeps a readable
+   minimum and pans sideways inside its frame; the page itself never scrolls. */
+@media screen and (max-width: 48em) {
+  .md-typeset .tl-dia { padding: var(--tl-space-sm); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .md-typeset .tl-dia svg { min-width: 600px; }
 }

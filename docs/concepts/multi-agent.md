@@ -9,7 +9,7 @@ in one process or scale across a mesh, every shape backed by the same
 `Agent` class, the same event stream, and the same primitives. Compose the
 shape that fits the work.
 
-![Multi-agent workflow shapes — Composition, Orchestrator + Specialists, Swarm, Handoff, StateGraph, Functional, A2A](../img/multi-agent-patterns.svg)
+{{ tulip_diagram multi-agent-patterns }}
 
 !!! tip "Don't know which shape to use?"
     See [Pick a shape](#pick-a-shape) — three questions get you there. For
@@ -49,28 +49,7 @@ Three questions get you to the right shape almost every time:
 
 The decision tree below is the same questions in diagram form.
 
-```text
-                ┌── do agents need to talk across processes / runtimes? ──┐
-                │                                                         │
-              yes ──→  A2A                                                no
-                                                                          │
-                  ┌─── need explicit control flow? ───┐
-                  │                                   │
-                yes                                   no
-                  │                                   │
-        ┌─────────┴───────────┐         ┌─────────────┴────────────┐
-        │                     │         │                          │
-   linear / fan-out       cycles?     central router?         no router
-   no cycles               yes          yes                     │
-        │                  │            │                       │
-   Composition         StateGraph   Orchestrator + Specialists   Swarm
-                                                                  │
-                                                              one agent
-                                                              hands off?
-                                                                  │
-                                                             yes  │  no
-                                                                Handoff
-```
+{{ tulip_diagram choose-a-shape }}
 
 Writing your own glue (asyncio fan-out, retries, schedulers)? Use the
 **Functional API** (`@task`, `@entrypoint`) — a thin wrapper that brings

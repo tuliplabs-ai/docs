@@ -29,11 +29,7 @@ This notebook covers:
 - `execute(...)` returns the authoritative final state plus a
   `GraphResult` with timing and iteration metrics.
 
-```text
-START → gather → draft → review → END (ship grounded Evidence | abstain)
-                   ↑         │
-                   └── revise (cap: 2)
-```
+{{ tulip_diagram supervisor-critic-loop }}
 
 The seeded scenario: DLP scan `DLP-4471` flags an unmasked `email`
 column in the analytics `customer_export` view. The grounded claims

@@ -3,7 +3,7 @@
 The functional API is the Tulip's "agent as a task" shape — `@task` and `@entrypoint` decorators
 that bring agent runs into the regular asyncio universe.
 
-![Functional pattern — @entrypoint at top fans out to multiple @task agents via asyncio.gather, results merge into a list](../../img/patterns/functional.svg){ .diagram }
+{{ tulip_diagram functional }}
 
 ## What it is
 
@@ -11,8 +11,8 @@ Two decorators:
 
 | Decorator | What it does |
 |---|---|
-| **`@task`** | Wraps a coroutine that calls an `Agent`. Returns a `Task` you can `await`, `gather`, retry, time-out — anything asyncio gives you. |
-| **`@entrypoint`** | Marks the top-level coroutine of a workflow. You `await` it like any coroutine; it also records the last run on `.last_result` / `.get_result()` for inspection. |
+| **`@task`** | Wraps a coroutine that calls an `Agent`. Calling it returns a plain coroutine you can `await`, `gather`, retry, time-out — anything asyncio gives you. |
+| **`@entrypoint`** | Marks the top-level coroutine of a workflow. You `await` it like any coroutine and get the body's return value unchanged; it also keeps an `EntrypointResult` for the last run (the value, a `TaskResult` for each task that ran, the duration and any error), which `.get_result()` returns. |
 
 These are **not a new orchestration runtime**. They're a thin shim
 that lets agents participate in plain asyncio. The point is to
@@ -41,17 +41,22 @@ or anything else you already use.
 
 ## Code
 
+Inside a task, call the agent with `await agent.arun(...)`. `run_sync`
+blocks the event loop until its run finishes, so tasks that use it run
+one after another even under `asyncio.gather`; with `arun` their model
+calls overlap.
+
 ```python
 import asyncio
 from tulip.multiagent.functional import task, entrypoint
 
 @task
-async def summarize_doc(doc: dict) -> dict:
+async def summarize_doc(doc: dict) -> str:
     """Run the review agent against one document."""
-    return review_agent.run_sync(f"Summarize {doc['title']}.").message
+    return (await review_agent.arun(f"Summarize {doc['title']}.")).message
 
 @entrypoint
-async def summarize_all(docs: list[dict]) -> list[dict]:
+async def summarize_all(docs: list[dict]) -> list[str]:
     """Summarize every document in parallel; gather the results."""
     return await asyncio.gather(*[summarize_doc(d) for d in docs])
 
@@ -68,11 +73,11 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 @task
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=0.5))
-async def summarize_doc(doc: dict) -> dict:
-    return review_agent.run_sync(f"Summarize {doc['title']}.").message
+async def summarize_doc(doc: dict) -> str:
+    return (await review_agent.arun(f"Summarize {doc['title']}.")).message
 
 @entrypoint
-async def summarize_all_with_deadline(docs: list[dict]) -> list[dict]:
+async def summarize_all_with_deadline(docs: list[dict]) -> list[str]:
     async with asyncio.timeout(60):                # 60s wall-clock cap
         return await asyncio.gather(*[summarize_doc(d) for d in docs])
 ```
@@ -85,17 +90,20 @@ including parallel batches inside sequential phases:
 ```python
 @task
 async def shortlist_docs(queue: list[dict]) -> list[dict]:
-    return review_agent.run_sync(f"Pick the top 5 from {len(queue)}.").message
+    titles = "\n".join(d["title"] for d in queue)
+    reply = await review_agent.arun(f"Pick the top 5 of these titles, one per line:\n{titles}")
+    picked = set(reply.message.splitlines())
+    return [d for d in queue if d["title"] in picked]
 
 @task
-async def summarize(doc: dict) -> dict:
-    return review_agent.run_sync(f"Summarize {doc['title']}.").message
+async def summarize(doc: dict) -> str:
+    return (await review_agent.arun(f"Summarize {doc['title']}.")).message
 
 @entrypoint
-async def end_to_end(queue: list[dict]) -> dict:
+async def end_to_end(queue: list[dict]) -> str:
     shortlisted = await shortlist_docs(queue)               # phase 1
     summaries = await asyncio.gather(*[summarize(d) for d in shortlisted])  # phase 2 (parallel)
-    final = editor_agent.run_sync(f"Draft the review digest from: {summaries}").message  # phase 3
+    final = (await editor_agent.arun(f"Draft the review digest from: {summaries}")).message  # phase 3
     return final
 ```
 

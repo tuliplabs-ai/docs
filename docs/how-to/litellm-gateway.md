@@ -11,18 +11,7 @@ change. The gateway carries the parts of the integration that genuinely
 belong in a gateway: virtual keys, per-team budgets, fallback chains,
 centralised observability, cost reporting, caching, and guardrails.
 
-```text
-Tulip agent
-   │  OpenAIModel(base_url="http://litellm-gateway:4000", api_key="<virtual-key>")
-   ▼
-LiteLLM Proxy Server  (config.yaml carries every provider + key)
-   │
-   ├──► OpenAI direct
-   ├──► Anthropic
-   ├──► AWS Bedrock
-   ├──► Azure OpenAI
-   └──► … 100+ providers
-```
+{{ tulip_diagram litellm-gateway }}
 
 !!! note "Tulip has zero `litellm` dependency"
     The `litellm` package only lives inside the gateway's Docker

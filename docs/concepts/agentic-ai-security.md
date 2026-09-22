@@ -27,7 +27,7 @@ on the roadmap), and produce a grounded `Evidence` record or an explicit
 > (red-team · assure; monitor is roadmap) × an *output* (grounded `Evidence` |
 > `Abstention`) × being *itself trustworthy by construction*.
 
-![The trust chain: a Target is probed by red_team or assure, grounded by GSAR into a Finding or an Abstention, and only an approved action passes the admission gate](../img/patterns/trust-chain.svg){ .diagram }
+{{ tulip_diagram trust-chain }}
 
 ## Why this, and why now
 

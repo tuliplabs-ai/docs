@@ -7,16 +7,14 @@ immutable state that flows through. This page is the architectural
 reference — what each node does, why it exists, what it emits, and how
 to extend it.
 
-![Agent loop — Think → Execute → Reflect → Terminate, with idempotent dedupe at Execute, Reflexion and Causal at Reflect, and composable termination algebra at Terminate](../img/agent-loop.svg)
+{{ tulip_diagram agent-loop }}
 
 The loop is implemented in
+[`src/tulip/agent/runtime_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/agent/runtime_loop.py):
+`AgentRuntimeMixin.run`, which `Agent` mixes in. The separate
 [`src/tulip/loop/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/src/tulip/loop)
-and is composed of four files:
-[`react.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/react.py) (the runner),
-[`nodes.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py) (Think / Execute / Reflect / Terminate),
-[`router.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/router.py) (transitions),
-and [`runner.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/runner.py)
-(the loop driver that wires the nodes together).
+package is a deprecated second ReAct implementation that `Agent` has
+never used.
 
 ## Origin: ReAct, then refinement
 
@@ -29,19 +27,11 @@ The SDK keeps the spirit and adds three things:
 - **Action becomes Execute** — a real node in the graph that owns
   tool dispatch *and* idempotency dedup, not a callback.
 - **Reflect becomes its own node** — a structured self-evaluation step
-  that runs *between* Execute and the next Think. The router can route
-  to Reflect on a fixed cadence, on tool errors, or when loop-detection
-  trips.
+  that runs *between* Execute and the next Think, when Reflexion is
+  configured and its interval is due.
 - **Terminate becomes algebra** — stopping is a tree of typed conditions
-  composed with `&` and `|`, evaluated after every iteration.
-
-```text
-                ┌──── another iteration ─────┐
-                │                            ▼
-   ┌────────┐    ┌────────┐    ┌─────────┐    ┌────────────┐
-   │  Think │───▶│ Execute│───▶│ Reflect │───▶│ Terminate? │──── done
-   └────────┘    └────────┘    └─────────┘    └────────────┘
-```
+  composed with `&` and `|`, evaluated at the start of every iteration,
+  before Think.
 
 ## State
 
@@ -57,9 +47,9 @@ The state value object carries:
   system prompt, the user's prompt, every model message, and every
   tool result.
 - **`tool_executions`** — a chronological list of every tool call,
-  its arguments, its result, and a hash of `(name, kwargs)` used by
-  Execute for idempotent dedup.
-- **`iterations`** — the running iteration counter, consumed by
+  its arguments and its result (or error), which Execute searches for
+  idempotent dedup.
+- **`iteration`** — the running iteration counter, consumed by
   termination conditions.
 - **`metadata`** — a free-form dict for hooks and applications to
   thread their own data.
@@ -72,9 +62,11 @@ fire. It emits a `ThinkEvent` with the model's reasoning content (when
 the provider exposes it — extended-thinking models do; older models
 don't) and a `ModelChunkEvent` per streamed token.
 
-If the model returned text and no tool calls, the router transitions
-straight to Terminate. If it returned tool calls, the router goes
-to Execute.
+If the model made no tool calls, the run ends, after the grounding
+pass when grounding is on (an answer that fails it can send the loop
+round again). That is the default `completion_mode="auto"`;
+`"explicit"` keeps looping instead. If the model made tool calls, the
+loop goes to Execute.
 
 ## Execute
 
@@ -87,11 +79,11 @@ behaviours make it different from a "just run the function" callback:
    cached result is returned; the body never runs. The model can
    retry, loop, or panic without firing the tool a second time.
    Implementation:
-   [`_find_matching_execution()` `loop/nodes.py:114`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py#L114-L144) — called from `ExecuteNode.execute` at [`loop/nodes.py:195`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/nodes.py#L195).
+   [`find_matching_execution()` `tools/executor.py:21`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/tools/executor.py#L21) — called from `_maybe_cached_idempotent_result` in [`agent/runtime_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/agent/runtime_loop.py).
 
 2. **Parallel dispatch.** Tool calls returned in the same model
-   response fire concurrently. Execute awaits them all before
-   returning to the router. Errors in one tool don't cancel the
+   response fire concurrently. Execute awaits them all before the
+   loop moves on. Errors in one tool don't cancel the
    others; each tool's error becomes a tool-error message in the
    state.
 
@@ -104,22 +96,30 @@ the run-trace can still tell a re-fired call from a fresh one.
 ## Reflect
 
 The Reflect node runs a structured self-evaluation between Execute
-and the next Think. It's gated — the router decides when to Reflect
-rather than going straight back to Think:
+and the next Think. It's gated on a fixed cadence, and otherwise
+control goes straight back to Think:
 
-- **Fixed cadence.** `reflexion_interval=N` reflects every N
-  iterations (default disabled).
-- **On tool error.** Reflect always runs after a tool that raised.
-- **On loop detection.** The Reflector tracks the recent
-  tool-execution sequence and triggers Reflect when it spots a
-  repeating pattern.
+- **Fixed cadence.** `reflexion=ReflexionConfig(evaluate_every_n_iterations=N)`
+  reflects on every iteration whose number is a multiple of N;
+  `reflexion=True` uses N=1, every iteration. Reflexion is off by
+  default.
+
+That interval is the only trigger. Tool errors and repeating tool
+patterns are what the Reflector looks at once it runs, not reasons to
+run it. Separately, in the default `completion_mode="auto"`, the loop
+ends the run with `tool_loop` when the same tool calls with the same
+arguments repeat across `tool_loop_threshold` (default 3) consecutive
+iterations, whether or not Reflexion is on.
 
 The Reflector itself
-([`Reflector` class — `reasoning/reflexion.py:70`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/reflexion.py#L70))
-asks the model to evaluate its last step, adjusts a confidence
-score, and emits a `ReflectEvent` carrying the `assessment`,
-`guidance`, and `new_confidence`. The next Think sees the reflection
-in its message stream.
+([`Reflector` class — `reasoning/reflexion.py:69`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/reasoning/reflexion.py#L69))
+scores the iteration without calling a model: it checks recent
+iterations for a repeating tool pattern, counts the iteration's
+successful and failed tool calls, and adjusts a confidence score. The
+loop then emits a `ReflectEvent` carrying the `assessment`,
+`guidance`, and `new_confidence`. When the reflection carries
+guidance, the loop adds it to the messages as a system message
+(unless `include_guidance=False`), so the next Think sees it.
 
 Two complementary reasoning add-ons:
 
@@ -141,9 +141,9 @@ Source:
 
 ## Terminate
 
-After every iteration the router checks the agent's `terminate`
-condition. The condition is a typed object — `MaxIterations`,
-`TokenLimit`, `TimeLimit`, `NoToolCalls`, `ToolCalled`,
+At the start of every iteration, before Think, the loop checks the
+agent's `termination` condition. The condition is a typed object —
+`MaxIterations`, `TokenLimit`, `TimeLimit`, `NoToolCalls`, `ToolCalled`,
 `ConfidenceMet`, `TextMention`, or `CustomCondition` — composable
 with `&` (And) and `|` (Or):
 
@@ -159,30 +159,35 @@ terminate = (
 
 The composite itself is a `TerminationCondition` whose `check()`
 walks the tree and short-circuits on the first satisfied branch. The
-router emits a `TerminateEvent` carrying the satisfied condition's
-name + reason, then exits the loop.
+loop emits a `TerminateEvent` carrying the satisfied condition's
+reason, then exits.
 
 Source:
 [`src/tulip/core/termination.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/core/termination.py).
 
 ## The router
 
-Transitions between nodes are decided by
-[`Router` class — `loop/router.py:36`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/router.py#L36) (the `route_from_reflect` rule lives at [line 126](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/loop/router.py#L126)).
-It is a pure function of `(current_node, state)` returning the next
-node — no hidden state, no side effects, no surprises. Three rules:
+There is no separate router object: transitions between nodes are
+the control flow of `AgentRuntimeMixin.run` in
+[`agent/runtime_loop.py`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/src/tulip/agent/runtime_loop.py).
+(The `Router` class in the deprecated `tulip/loop/` package is not on
+this path.) The rules:
 
 | From | To | When |
 |---|---|---|
-| Think | Execute | the model returned tool calls |
-| Think | Terminate | the model returned text only |
-| Execute | Reflect | the cadence / error / loop-detection rule fires |
-| Execute | Think | otherwise |
-| Reflect | Think | always (Reflect feeds back into the next Think) |
-| any | Terminate | `terminate.check(state)` returns true |
+| iteration start | Terminate | a termination check fires (see [Terminate](#terminate)) |
+| iteration start | Think | otherwise |
+| Think | Execute | the model made tool calls |
+| Think | Terminate | no tool calls, in `completion_mode="auto"` — through the grounding pass first when grounding is on and the run has called tools |
+| grounding pass | next iteration | the answer fails grounding and replans remain |
+| Execute | Reflect | Reflexion is configured and the iteration number is a multiple of `evaluate_every_n_iterations` |
+| Execute | next iteration | otherwise |
+| Reflect | next iteration | always (Reflect feeds back into the next Think) |
 
-Termination is checked after every node, not just at the top of the
-loop, so an agent can stop mid-cycle if a condition fires.
+Termination is checked once per iteration, at the top of the loop
+before Think, not after every node. A condition that becomes true
+during Execute or Reflect ends the run at the next iteration boundary,
+before the next model call.
 
 ## Events
 
@@ -191,7 +196,7 @@ observe but never mutate:
 
 | Event | Emitted by |
 |---|---|
-| `ThinkEvent` | Think, when the model returns reasoning |
+| `ThinkEvent` | Think, once per iteration |
 | `ModelChunkEvent` | Think, per streamed chunk |
 | `ToolStartEvent` | Execute, before each tool fires |
 | `ToolCompleteEvent` | Execute, after each tool returns (sets `error` on failure) |
@@ -245,14 +250,15 @@ Iteration by iteration:
 |---|---|---|
 | 1 | Think | Model emits a tool call: `lookup_order(order_id="ord-4821")`. Streams `ThinkEvent` + `ModelChunkEvent`s. |
 | 1 | Execute | Runs `lookup_order`. Tool is **not** marked idempotent (read-only) so no dedup. Result added to `state.tool_executions`. Emits `ToolStartEvent`, `ToolCompleteEvent`. |
-| 1 | Reflect | Skipped — first iteration, no error, no loop. Router goes back to Think. |
-| 1 | Terminate? | `MaxIterations(8)` not yet hit. `ToolCalled("issue_refund")` not satisfied. Continue. |
+| 1 | Reflect | Skipped — this agent reflects every second iteration (`evaluate_every_n_iterations=2`), so reflection is not due. Control goes back to Think. |
+| 1 | Terminate? | Checked at the start of the next iteration: `MaxIterations(8)` not yet hit. `ToolCalled("issue_refund")` not satisfied. Continue. |
 | 2 | Think | The order record confirms an eligible return, so the model emits `issue_refund(order_id="ord-4821", request_id="R-42")`. |
-| 2 | Execute | Tool is `idempotent=True`. Execute hashes `("issue_refund", {order_id: "ord-4821", request_id: "R-42"})` and walks `state.tool_executions` for matches. None — so the body fires. Refund receipt `RF-58291` returned. |
-| 2 | Reflect | Reflexion runs (the cadence trigger fires). Confidence assessed at 0.93. `ReflectEvent` emitted. |
-| 2 | Terminate? | `ToolCalled("issue_refund")` ✓ AND `ConfidenceMet(0.9)` ✓. The AND branch fires; the OR short-circuits true. Loop exits with `TerminateEvent(reason="tool_called:issue_refund AND confidence_met")`; `result.stop_reason` normalizes to `"terminal_tool"`. |
+| 2 | Execute | Tool is `idempotent=True`. Execute walks `state.tool_executions` for an earlier `issue_refund` call with equal arguments (`{order_id: "ord-4821", request_id: "R-42"}`). None — so the body fires. Refund receipt `RF-58291` returned. |
+| 2 | Reflect | Reflexion runs (iteration 2 is due). The iteration's one successful call raises confidence from 0.0 to 0.15. `ReflectEvent` emitted. |
+| 2 | Terminate? | Checked at the start of iteration 3: `ToolCalled("issue_refund")` ✓ but `ConfidenceMet(0.9)` ✗ (0.15), so the AND branch is false, and `MaxIterations(8)` is not hit. Continue. |
+| 3 | Think | The refund is done, so the model answers in text with no tool calls. In the default `completion_mode="auto"` the run ends with `TerminateEvent(reason="complete")`; `result.stop_reason == "complete"`. |
 
-Total: **two iterations, two tool calls, one Reflect, one Terminate**.
+Total: **three iterations, two tool calls, one Reflect, one Terminate**.
 
 If the model had hallucinated and re-emitted `issue_refund` with the
 same args on iteration 3 (it didn't, but it could), Execute would
@@ -277,8 +283,8 @@ satisfied condition. The named reasons you'll see:
 | **`ConfidenceMet`** | the Reflexion confidence score cleared the threshold |
 | **`TextMention`** | the final message contained the configured text (case-insensitive substring by default) |
 | **`CustomCondition`** | a user-supplied `fn(state, **ctx)` returned `(True, reason)` |
-| **`cancelled`** | the caller called `agent.cancel()` (or a hook raised to abort) |
-| **`error`** | the model (or a node) raised; the exception is re-raised and `result.stop_reason == "error"` |
+| **`cancelled`** | the caller called `agent.cancel()` |
+| **`error`** | the model (or a node, or a hook inside the loop) raised; the loop emits `TerminateEvent(reason="error")` and re-raises the exception, so `arun()` / `run_sync()` raise it instead of returning a result |
 
 Note that `result.stop_reason` is **normalized** to a fixed set of
 literals (`complete`, `terminal_tool`, `confidence_met`,
@@ -315,20 +321,21 @@ class CostGuardHook(HookProvider):
 ```python
 import asyncio
 
-run = asyncio.create_task(agent.run(prompt))
+run = asyncio.create_task(agent.arun(prompt))
 # … later, on a timeout, on a user click, on whatever:
 run.cancel()
 ```
 
-The runner observes the cancellation between nodes and exits cleanly.
-In-flight tool calls running on asyncio see the standard
-`CancelledError` propagate through their await points; cooperative
-tools can catch it to release resources before re-raising.
+The cancellation lands at whatever the run is awaiting — typically a
+model call or a tool call — rather than between nodes. In-flight tool
+calls running on asyncio see the standard `CancelledError` propagate
+through their await points; cooperative tools can catch it to release
+resources before re-raising.
 
 ### Via `agent.cancel()`
 
-`agent.cancel()` sets a flag the runner polls between nodes. The
-loop exits at the next safe point with a
+`agent.cancel()` sets a flag the loop checks at the start of each
+iteration. The loop exits at the next iteration boundary with a
 `TerminateEvent(reason="cancelled")` (`result.stop_reason ==
 "cancelled"`). For thread-bound runs, the
 state still flushes to the checkpointer before exit, so the
@@ -377,11 +384,11 @@ five times, then hits `MaxIterations` and gives up. Two fixes:
 
 ### Idempotency key collisions
 
-If two semantically-different calls happen to produce the same
-`(name, kwargs)` hash, Execute will dedup the second one and the
+If two semantically-different calls happen to carry the same tool
+name and equal arguments, Execute will dedup the second one and the
 agent will get a stale receipt. Fix by including a per-request
-identifier in the args (e.g., `request_id`) so the hash discriminates
-distinct calls.
+identifier in the args (e.g., `request_id`) so distinct calls have
+distinct arguments.
 
 ## Putting it together
 
@@ -405,7 +412,7 @@ agent = Agent(
     reflexion=True,                    # turn Reflect on
     grounding=True,                    # claim verification
     checkpointer=S3Backend(...),
-    hooks=[StructuredLoggingHook(level="INFO")],
+    hooks=[StructuredLoggingHook()],     # logs at INFO by default
     termination=(
         ToolCalled("issue_refund") & ConfidenceMet(0.9)
     ) | MaxIterations(10),
@@ -427,13 +434,13 @@ async for event in agent.run("Process refund request R-42: verify the order, ref
 | `model=` | which provider Think calls |
 | `tools=` | what Execute can dispatch |
 | `system_prompt=` | prepended to the message list before the first Think |
-| `reflexion=True` | enables Reflect on the configured cadence / triggers |
+| `reflexion=True` | enables Reflect on every iteration; `ReflexionConfig(evaluate_every_n_iterations=N)` for every Nth |
 | `grounding=True` | checks the final answer's claims against tool results before it returns |
 | `checkpointer=` | persists state at the end of a run and before an interrupt (for a run with a `thread_id`), so the run can resume after restart; pair with `checkpoint_every_n_iterations=` to also save inside the loop |
 | `conversation_manager=` | summarises / prunes long histories before they exceed the context window |
 | `hooks=` | observe and steer every event |
-| `termination=` | the algebra the router checks after each node |
-| `max_iterations=` | shorthand cap; equivalent to `termination=MaxIterations(N)` |
+| `termination=` | the algebra the loop checks at the start of each iteration |
+| `max_iterations=` | the built-in iteration cap (default 20); reaching it triggers one last model call, without tools, for a final summary |
 | `tool_execution=` | `"concurrent"` (default) or `"sequential"` |
 
 ## Where to next

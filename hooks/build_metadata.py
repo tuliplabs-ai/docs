@@ -31,6 +31,12 @@ _SDK_MAIN_LINK = re.compile(
 #: Only a plain release has a tag to pin to; a dev or local build does not.
 _RELEASE = re.compile(r"^\d+\.\d+\.\d+$")
 
+#: ``{{ tulip_diagram agent-loop }}`` inlines docs/diagrams/agent-loop.svg.
+_DIAGRAM_TOKEN = re.compile(r"\{\{\s*tulip_diagram\s+([a-z0-9][a-z0-9-]*)\s*\}\}")
+_XML_PROLOG = re.compile(r"<\?xml[^>]*\?>\s*")
+_COMMENT = re.compile(r"<!--.*?-->", re.S)
+_ID_ATTR = re.compile(r'\bid="([^"]+)"')
+
 
 def _sdk_version() -> str:
     try:
@@ -100,6 +106,33 @@ def pin_sdk_links(markdown: str, version: str, checkout: Path | None) -> str:
     return _SDK_MAIN_LINK.sub(pin, markdown)
 
 
+def render_diagram(name: str, docs_dir: Path) -> str:
+    """Inline one diagram so it themes with the page.
+
+    Diagrams live as SVG under docs/diagrams and style themselves with the
+    ``.tl-dia`` classes in tulip.css, which read the --tl-* tokens. Inlined,
+    they follow the light/dark toggle; as an <img> they could not see it.
+    Every id is prefixed with the diagram name so two diagrams on one page
+    cannot collide on a marker or a <title>.
+    """
+    path = docs_dir / "diagrams" / f"{name}.svg"
+    if not path.is_file():
+        raise RuntimeError(f"{{{{ tulip_diagram {name} }}}} names {path}, which does not exist")
+    svg = _COMMENT.sub("", _XML_PROLOG.sub("", path.read_text()))
+    ids = set(_ID_ATTR.findall(svg))
+    for old in sorted(ids, key=len, reverse=True):
+        new = f"{name}--{old}"
+        svg = re.sub(rf'\bid="{re.escape(old)}"', f'id="{new}"', svg)
+        svg = svg.replace(f"url(#{old})", f"url(#{new})").replace(f'href="#{old}"', f'href="#{new}"')
+        svg = re.sub(
+            r'(aria-(?:labelledby|describedby)="[^"]*)\b' + re.escape(old) + r'\b',
+            lambda m: m.group(1) + new, svg,
+        )
+    # Blank lines would end the raw-HTML block early and hand the rest to Markdown.
+    body = "\n".join(line for line in svg.strip().splitlines() if line.strip())
+    return f'\n<figure class="tl-dia">\n{body}\n</figure>\n'
+
+
 def on_config(config: Any) -> Any:
     extra = dict(config.get("extra", {}))
     extra["sdk_version"] = _sdk_version()
@@ -126,5 +159,8 @@ def on_page_markdown(markdown: str, *, config: Any, **_: Any) -> str:
         events = _events()
         rendered = rendered.replace(EVENT_COUNT_TOKEN, _event_count(events))
         rendered = rendered.replace(EVENT_PREFIXES_TOKEN, _event_prefixes(events))
+    if "tulip_diagram" in rendered:
+        docs_dir = Path(config["docs_dir"])
+        rendered = _DIAGRAM_TOKEN.sub(lambda m: render_diagram(m.group(1), docs_dir), rendered)
     checkout = extra.get("sdk_checkout")
     return pin_sdk_links(rendered, sdk_version, Path(checkout) if checkout else None)

@@ -11,14 +11,15 @@ format that any conforming runtime can speak — so an
 SDK-built agent can call a non-SDK A2A peer (or be called by one)
 without an adapter.
 
-![A2A pattern — two processes (Process A research team with A2AServer; Process B planning team with A2AClient), connected by an HTTP+SSE arc, agents inside each process](../../img/patterns/a2a.svg){ .diagram }
+{{ tulip_diagram a2a }}
 
 ## Wire surface
 
 `A2AServer` is v1.0-first while preserving the older Tulip/pre-v1
 surface. Clients that request v1.0 send `A2A-Version: 1.0`; clients
-that request another version, or use the old method names, continue to
-hit the legacy dispatcher.
+that use the old method names continue to hit the legacy dispatcher. A
+JSON-RPC request to `POST /` that names any other `A2A-Version` is
+rejected with a version-not-supported error.
 
 `A2AServer` exposes:
 
@@ -56,7 +57,7 @@ shape (`text`, `raw`, `url`, `data`) and back.
 
 - ❌ **Single-process** — use one of the in-process patterns; HTTP
   round-trips are pure overhead.
-- ❌ **Tight latency requirements** — A2A adds 10–50ms per hop.
+- ❌ **Tight latency requirements** — every A2A hop is an HTTP round-trip.
 - ❌ The peer is **always the same agent** — just call it directly.
 
 ## Code
@@ -134,8 +135,11 @@ By default `A2AClient` sends `A2A-Version: 1.0` and uses the v1.0 method
 names. If it talks to an older peer that returns a legacy Task directly,
 the client still accepts it and maps it back into the SDK `Task` model.
 To force the older JSON-RPC method names from the client, pass
-`protocol_version=None` or another non-`"1.0"` value and call the legacy
-helpers.
+`protocol_version=None`: the same methods then send `message/send`,
+`message/stream`, `tasks/get` and `tasks/cancel` with no `A2A-Version`
+header, and `list_tasks()` raises, since it needs v1.0. Any other value
+is sent as the `A2A-Version` header, and `A2AServer` rejects the
+JSON-RPC calls that carry it.
 
 ### Streaming
 
@@ -184,20 +188,33 @@ back into SDK `Task` objects, returning `(tasks, next_page_token)`.
 
 ## Cross-process delegation
 
-Delegation goes through `A2AClient.send_message()` first, so calls to a remote
-agent use the v1.0 path by default. If the remote peer answers that
-`SendMessage` is not found, the client falls back to the legacy flat
-`/a2a/invoke` convenience call.
+Delegate through `A2AClient.send_message()`, so calls to a remote agent use
+the v1.0 path by default. `send_message()` does not fall back on its own: when
+the peer answers with a JSON-RPC error, such as `SendMessage` not found, it
+raises `RuntimeError`. To reach an older peer that answers `SendMessage` with
+method not found (`-32601`) but still serves the flat `/a2a/invoke` endpoint,
+catch that error and call `client.invoke()`. A peer with no JSON-RPC route at
+`POST /` fails the HTTP request instead, and `send_message()` raises
+`httpx.HTTPStatusError`, which the example below does not catch.
 
 ```python
 import asyncio
 
-from tulip.a2a import A2AClient
+from tulip.a2a import A2AClient, Message, TextPart
 
 
 async def main():
-    client = A2AClient("https://research.example.com")
-    reply = await client.send_message("Summarise the Q3 incident reports.")
+    client = A2AClient("https://research.example.com", api_key="rotate-this-secret")
+    prompt = "Summarise the Q3 incident reports."
+    try:
+        task = await client.send_message(
+            Message(role="user", parts=[TextPart(text=prompt)], messageId="m-3")
+        )
+        reply = task.artifacts[-1].parts[0].text
+    except RuntimeError as exc:
+        if "A2A error -32601" not in str(exc):  # -32601: method not found
+            raise
+        reply = await client.invoke(prompt)
     print(reply)
 
 
@@ -249,7 +266,10 @@ use `Message` + `client.send_message()` so they can read the full
 ## See also
 
 - [Multi-agent overview](../multi-agent.md) — pick a shape.
-- [Agent Server](../server.md) — the in-process FastAPI wrapper that
-  A2A is built on top of.
-- [Conversation Management](../conversation-management.md) —
-  `contextId` flows across A2A so peers share context.
+- [Agent Server](../server.md) — the FastAPI invoke/stream server.
+  `A2AServer` is a separate server that wraps an agent through the same
+  `run()` contract.
+- [Conversation Management](../conversation-management.md) — history
+  that survives across requests needs a `thread_id`. `A2AServer` runs
+  the agent on the message text without one, so `contextId` groups
+  tasks but does not carry the agent's conversation.

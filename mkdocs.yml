@@ -11,7 +11,7 @@ strict: true
 exclude_docs: |
   internal/
   doc-gen/
-  img/patterns/README.md
+  diagrams/README.md
 
 theme:
   name: material

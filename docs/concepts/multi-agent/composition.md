@@ -3,7 +3,7 @@
 The composition primitives are for flows you can write as a regular
 function: do A, then B, then C — with optional fan-out and merge.
 
-![Composition pattern — sequential chain on top, parallel fan-out + merge on the bottom](../../img/patterns/composition.svg){ .diagram }
+{{ tulip_diagram composition }}
 
 ## What it is
 
