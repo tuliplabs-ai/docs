@@ -1,0 +1,149 @@
+# tulip
+
+tulip is an open-source Python agent framework: typed tools, streamed events, memory,
+RAG, multi-agent shapes and any OpenAI-compatible provider. When a tool would move money
+or change a real system, a policy you write is checked in your own process before it runs.
+
+## Install
+
+    pip install tulip-agents            # enough for the offline version
+    pip install "tulip-agents[llm]"     # to reach your own OpenAI-compatible endpoint
+
+## The first agent
+
+    from tulip import Agent, tool
+
+    ORDERS = {"A-1009": "shipped, due Thursday"}
+
+
+    @tool
+    def order_status(order_id: str) -> str:
+        """Where an order is right now."""
+        return ORDERS[order_id]
+
+
+    agent = Agent(
+        model="openai-compatible:your-model",
+        tools=[order_status],
+    )
+
+## Run it
+
+    export TULIP_OPENAI_COMPATIBLE_BASE_URL=https://your-endpoint/v1
+    tulip run agent.py:agent "Where is order A-1009?"
+
+The CLI is `tulip run | resume | approvals | audit | serve`; `tulip <command> --help`
+prints the flags.
+
+## Watch the run as typed events
+
+    import asyncio
+
+    from tulip import TerminateEvent, ToolCompleteEvent, ToolStartEvent
+
+    from agent import agent
+
+
+    async def main():
+        async for event in agent.run("Refund $40 on order A-1009"):
+            match event:
+                case ToolStartEvent(tool_name=name, arguments=args):
+                    print("calling", name, args)
+                case ToolCompleteEvent(result=result):
+                    print("result ", result)
+                case TerminateEvent(reason=reason):
+                    print("stopped", reason)
+
+
+    asyncio.run(main())
+
+## Remember a thread across processes
+
+    from tulip.memory.backends import FileCheckpointer
+
+    agent = Agent(..., checkpointer=FileCheckpointer("checkpoints"))
+
+## A helper agent as a tool
+
+    helper = Agent(model=MODEL, tools=[return_window])
+    agent = Agent(model=MODEL, tools=[order_status, helper.as_tool("returns", "Questions about returns.")])
+
+## A policy in front of a tool that moves money
+
+    from tulip.control import Action, AuditTrail, ControlPolicy, FileApprovals, gate_tool
+
+    trail = AuditTrail()
+
+    refund = gate_tool(
+        issue_refund,
+        policy=ControlPolicy(
+            require_human_over_usd=500,    # over $500 waits for a person
+            require_verification_score=0,  # nothing here produces a score
+        ),
+        action=lambda name, args: Action(
+            name=name,
+            asset=args["order_id"],
+            kind="payment",
+            cost_usd=args["amount_usd"],
+        ),
+        approval=FileApprovals("approvals.json"),
+        on_refusal="interrupt",
+        trail=trail,
+    )
+
+A bare ControlPolicy() holds every call that arrives without a VerificationResult, so a
+policy that scores no verification sets require_verification_score=0. An approval covers
+the same tool and arguments from any thread until it is used.
+
+## Test it with no model
+
+    from tulip.control import FileApprovals
+    from tulip.testing import AgentTestClient, ScriptedModel, text, tool_call
+
+    import agent
+    from shop import payments
+
+    SHIPPED = text("Order A-1009 is shipped, due Thursday.")
+
+
+    def test_it_answers_from_its_tool():
+        model = ScriptedModel([tool_call("order_status", order_id="A-1009"), SHIPPED])
+
+        run = AgentTestClient(agent.build(model)).run("Where is order A-1009?")
+
+        run.assert_tools_called("order_status")
+        assert "Thursday" in run.message
+
+
+    def test_a_big_refund_waits_for_a_person(monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        paid = []
+        monkeypatch.setattr(payments, "refund", lambda *a: paid.append(a) or "ok")
+        call = tool_call("issue_refund", order_id="A-1009", amount_usd=4200)
+        model = ScriptedModel([call, text("that refund is waiting")])
+
+        AgentTestClient(agent.build(model)).run("Refund $4,200 on order A-1009")
+
+        assert paid == []
+        assert [p.tool for p in FileApprovals("approvals.json").pending()] == ["issue_refund"]
+
+## Where things are
+
+- Build an agent: https://tulipagents.ai/how-to/quickstart/
+- Tools: https://tulipagents.ai/concepts/tools/
+- Events: https://tulipagents.ai/concepts/events/
+- Memory and checkpoints: https://tulipagents.ai/concepts/checkpointers/
+- Multi-agent shapes: https://tulipagents.ai/concepts/multi-agent/
+- Test offline: https://tulipagents.ai/concepts/testing/
+- Gate a tool: https://tulipagents.ai/how-to/first-controlled-action/
+- Write a policy: https://tulipagents.ai/concepts/policy-authoring/
+- Approvals: https://tulipagents.ai/concepts/interrupts/
+- Audit trail: https://tulipagents.ai/concepts/control-layer/
+- MCP: https://tulipagents.ai/concepts/mcp/
+- Serve over HTTP: https://tulipagents.ai/concepts/server/
+
+## Ask a human before
+
+- Ask first: wrapping a new tool with gate_tool, choosing a threshold, or naming approvers
+- Ask first: serving an agent anywhere but localhost
+- Go ahead: reading these docs, running the examples, running offline tests
