@@ -2,14 +2,12 @@
 
 ## About &amp; disclaimer
 
-**Tulip is maintained independently by The Tulip Authors.** The current
-maintainers develop the project in the open and do not claim endorsement by
-model providers or integration vendors. Tulip began as a fork, so its history
-also includes inherited code described under [Provenance](#provenance); the
-independence statement applies to present maintenance, not authorship of every
-historical line.
+**Tulip is maintained independently by The Tulip Authors.** The maintainers
+develop the project in the open and do not claim endorsement by model providers
+or integration vendors. Its licensing history is described under
+[Provenance](#provenance).
 
-**Organizations and corporations are welcome to use the open-source tulip SDK at production grade, at no cost**, under the Apache License, Version 2.0.
+Released under the Apache License, Version 2.0.
 
 ### Disclaimer of warranty and liability
 
@@ -17,7 +15,7 @@ The software is provided **"AS IS", without warranty of any kind**, express or i
 
 ### Responsible use
 
-tulip ships offensive-capable security tooling — red-team agents, model and hardware fingerprinting, and similar reconnaissance capabilities. **Use it only against systems you own or are explicitly authorized to test.** Running these capabilities against systems you do not own or have not been authorized to assess may be unlawful.
+The core `tulip-agents` package does not include offensive-capable tooling. The separate, opt-in `tulip-agents-security` package does — red-team agents, model and hardware fingerprinting, and similar reconnaissance capabilities. **Use it only against systems you own or are explicitly authorized to test.** Running these capabilities against systems you do not own or have not been authorized to assess may be unlawful.
 
 *This page is not legal advice. Consult your own counsel.*
 
@@ -33,9 +31,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ### Provenance
 
-Tulip began as a fork of an earlier project released under the **Universal Permissive License v1.0 (UPL-1.0)**. Those original portions remain available under the UPL-1.0; all new contributions are licensed under the Apache License, Version 2.0. See the [`NOTICE`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/NOTICE) file for attribution details.
+Releases of Tulip before 1.0.0 were published under the **Universal Permissive License v1.0 (UPL-1.0)**. The project was relicensed to the Apache License, Version 2.0 at 1.0.0. Code as it stood in those releases remains available under the UPL-1.0; all changes and additions since 1.0.0 are licensed under the Apache License, Version 2.0. The [`NOTICE`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/NOTICE) file and the [`LICENSES/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/LICENSES) directory list both license texts and the files that date from the UPL-1.0 releases.
 
-Full text: [LICENSE](https://github.com/tuliplabs-ai/tulip-agents/blob/main/LICENSE) · [NOTICE](https://github.com/tuliplabs-ai/tulip-agents/blob/main/NOTICE)
+Full text: [LICENSE](https://github.com/tuliplabs-ai/tulip-agents/blob/main/LICENSE) · [NOTICE](https://github.com/tuliplabs-ai/tulip-agents/blob/main/NOTICE) · [LICENSES/](https://github.com/tuliplabs-ai/tulip-agents/tree/main/LICENSES)
 
 ---
 

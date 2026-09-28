@@ -1,6 +1,6 @@
 # Agentic AI red-teaming
 
-The centerpiece of ``tulip.security``: point a ``Target`` at an AI system
+The centerpiece of ``tulip_security`` (the `tulip-agents-security` package): point a ``Target`` at an AI system
 and run the OWASP-ASI probe suite (``suite="owasp-asi"``, or ``"owasp-llm"``
 for the LLM-application subset). Every result is a grounded
 ``Evidence`` (the attack landed, with tool-backed evidence) or an ``Abstention``

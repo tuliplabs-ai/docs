@@ -3,9 +3,9 @@
 The admission gate: decide whether a consequential action may run, and
 record the decision either way.
 
-`tulip.control` is the domain-neutral surface. The implementations live under
-`tulip.security` for historical reasons — that is where the layer grew up —
-and are re-exported here, which is the import path to use.
+`tulip.control` is the domain-neutral surface, and the import path to use.
+Older releases shipped these under `tulip.security`; that path still resolves,
+with a deprecation warning, until 3.0.
 
 For the concepts, start with [The control layer](../concepts/security-context.md)
 and [Writing a policy that holds](../concepts/policy-authoring.md).
@@ -16,8 +16,8 @@ and [Writing a policy that holds](../concepts/policy-authoring.md).
 runs the action only if it was allowed. A held or denied action raises
 `AdmissionError` carrying the `ApprovalDecision` that explains why.
 
-::: tulip.security.admit.admit
-::: tulip.security.admit.AdmissionError
+::: tulip.control.admission.admit
+::: tulip.control.admission.AdmissionError
 
 ## Deciding
 
@@ -26,17 +26,17 @@ an action and a policy and returns the outcome. Rules combine by taking the
 strongest result, so deny beats hold beats allow (in the API,
 `ApprovalOutcome.DENY` > `REQUIRE_HUMAN` > `ALLOW`).
 
-::: tulip.security.policy.approve
-::: tulip.security.policy.ControlPolicy
-::: tulip.security.policy.ApprovalDecision
-::: tulip.security.policy.ApprovalOutcome
+::: tulip.control.policy.approve
+::: tulip.control.policy.ControlPolicy
+::: tulip.control.policy.ApprovalDecision
+::: tulip.control.policy.ApprovalOutcome
 
 ## Describing an action
 
 A policy matches on what an action *is* — its environment, kind, blast
 radius, and tags — never on the name of the tool performing it.
 
-::: tulip.security.policy.Action
+::: tulip.control.policy.Action
 
 ## Gating a tool
 
@@ -270,7 +270,7 @@ policy matches on are not hand-written per call site.
 ::: tulip.control.action.DerivedLabels
 ::: tulip.control.action.asset_from_args
 ::: tulip.control.action.UNDETERMINED_TAG
-::: tulip.security.policy.SANDBOXED_TAG
+::: tulip.control.policy.SANDBOXED_TAG
 
 ## The record
 
@@ -360,27 +360,27 @@ keep the key they were signed with, so give the verifier both public keys.
 Signing needs the `cryptography` package (`pip install "tulip-agents[audit]"`);
 an unsigned trail needs nothing and exports exactly as before.
 
-::: tulip.security.audit.AuditTrail
-::: tulip.security.audit.AuditRecord
-::: tulip.security.audit.AuditSigner
-::: tulip.security.audit.Ed25519Signer
-::: tulip.security.audit.verify_jsonl
-::: tulip.security.secure.AuditHook
+::: tulip.control.audit.AuditTrail
+::: tulip.control.audit.AuditRecord
+::: tulip.control.audit.AuditSigner
+::: tulip.control.audit.Ed25519Signer
+::: tulip.control.audit.verify_jsonl
+::: tulip.control.governed.AuditHook
 
 ## Governed agents
 
 An `Agent` pre-wired with grounding, guardrails, and an audit trail.
 
-::: tulip.security.secure.governed_agent
-::: tulip.security.secure.GovernedAgent
-::: tulip.security.secure.GovernanceProfile
+::: tulip.control.governed.governed_agent
+::: tulip.control.governed.GovernedAgent
+::: tulip.control.governed.GovernanceProfile
 
 ## Verification
 
 Evidence quality and adversarial refutation, feeding the
 `require_verification_score` and `min_severity` rules on a policy.
 
-::: tulip.security.verify.verify
-::: tulip.security.verify.VerificationResult
-::: tulip.security.findings.Evidence
-::: tulip.security.taxonomy.Severity
+::: tulip.control.verification.verify
+::: tulip.control.verification.VerificationResult
+::: tulip.control.findings.Evidence
+::: tulip.control.taxonomy.Severity

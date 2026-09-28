@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  SecurityContext, as built by tulip.security.context (v2.16.0):
+  SecurityContext, as built by tulip_security.context (v2.16.0):
     SecurityContext          a frozen dataclass with one field per port:
                              logs, endpoint, identity, cloud, threat_intel, actions
     domain port -> provider  each field is a Protocol; its default_factory is the bundled reference

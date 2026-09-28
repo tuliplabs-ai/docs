@@ -15,7 +15,7 @@ example.
 
 ```python
 import asyncio
-from tulip.security import SecurityContext
+from tulip_security import SecurityContext
 
 
 async def main():
@@ -71,7 +71,7 @@ Core never imports a vendor. A live provider is a class you write that satisfies
 the domain port, and you inject it explicitly:
 
 ```python
-from tulip.security import SecurityContext
+from tulip_security import SecurityContext
 
 
 class MyIdentity:  # satisfies the identity port
@@ -84,7 +84,7 @@ ctx = SecurityContext(identity=MyIdentity())
 
 Keep an offline path: resolve credentials from the environment and fall back to a
 deterministic sample when none are present, so the same code runs in CI. Cloud
-posture is the one live provider in core: `tulip.security.aws`
+posture is the one live provider in core: `tulip_security.aws`
 (`pip install tulip-agents[aws]`). [Build an integration](../how-to/build-an-integration.md)
 walks through writing one.
 
@@ -98,7 +98,7 @@ gated. `SecurityContext` puts the trust spine right in the path:
 ```python
 import asyncio
 from tulip.control import Action, verify
-from tulip.security import Evidence, SecurityContext, Severity
+from tulip_security import Evidence, SecurityContext, Severity
 
 
 async def main():

@@ -7,7 +7,7 @@ it back for revision. The loop caps at two revisions to bound runtime.
 The point is the *last* step, not the loop: a report that reads well is
 not the same as a report that is grounded. Before anything ships, the
 reviewer runs the drafted finding through `ground_finding` — the GSAR
-grounding gate from `tulip.security`. A finding is emitted only when its
+grounding gate from `tulip.control`. A finding is emitted only when its
 evidence partition clears the proceed threshold; otherwise the call
 returns an `Abstention` and nothing reaches the privacy queue. An
 unproven PII-exposure claim is a false positive *by construction* and

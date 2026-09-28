@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  The cloud-posture agent, as built by tulip.security:
+  The cloud-posture agent, as built by tulip_security:
     create_soc_analyst (soc.py)   -> create_deepagent with describe_aws, use_aws and submit_posture;
                                      the run ends when submit_posture succeeds with enough confidence
     use_aws (aws.py)              -> the operation must start with a read verb (READONLY_PREFIXES),

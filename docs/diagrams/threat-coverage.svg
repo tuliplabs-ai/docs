@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Threat coverage, as encoded by tulip.security.taxonomy and examples/scenarios (v2.16.0):
+  Threat coverage, as encoded by tulip.control.taxonomy and examples/scenarios (v2.16.0):
     OwaspLLM (LLM01-LLM10), OwaspASI (ASI01-ASI10) and AtlasTechnique (a representative
     subset of MITRE ATLAS)   -> every ID is covered by at least one scenario gist
     a gist                   -> states one threat and the IDs it covers, shows the unsafe
@@ -9,7 +9,7 @@
                                 ground_finding / ground_fingerprint), a pattern (allowlist /
                                 audit), or both
     run_all.py               -> runs every gist under the mock model, exits non-zero if any fails
-  Recording a result is a separate, optional step (tulip.security.grounded.ground_finding):
+  Recording a result is a separate, optional step (tulip.control.grounded.ground_finding):
     proceed                  -> Evidence; its taxonomy field is optional (default []) and can carry the same IDs
     regenerate / replan      -> Abstention
   Not every gist records one: guardrail gists block or redact, grounding gists abstain.

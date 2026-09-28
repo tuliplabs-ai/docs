@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Grounded findings, as routed by tulip.security.grounded.ground_finding:
+  Grounded findings, as routed by tulip.control.grounded.ground_finding:
     score    = gsar_score(partition)   only the partition is scored; the candidate's
                                        title, severity, asset ... are carried, never scored
                grounded + complementary claims count for the finding,

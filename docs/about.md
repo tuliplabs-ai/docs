@@ -13,11 +13,17 @@ from model or integration vendors.
 
 ## Project history
 
-Tulip began as a fork of an earlier UPL-1.0 project. The inherited portions
-remain under that license; subsequent Tulip contributions are Apache-2.0. The
-repository [`NOTICE`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/NOTICE)
-records attribution. “Maintained independently” describes the current project;
-it does not mean every historical line originated with the current maintainers.
+Tulip's releases before 1.0.0 were published under the Universal Permissive
+License v1.0 (UPL-1.0). The project relicensed itself to Apache-2.0 at 1.0.0;
+code as it stood in those releases remains available under the UPL-1.0, and
+everything since is Apache-2.0. The repository's
+[`NOTICE`](https://github.com/tuliplabs-ai/tulip-agents/blob/main/NOTICE) and
+[`LICENSES/`](https://github.com/tuliplabs-ai/tulip-agents/tree/main/LICENSES)
+record which files date from the UPL-1.0 releases.
+
+“Tulip Labs” is the name of the GitHub organization,
+[`tuliplabs-ai`](https://github.com/tuliplabs-ai), that the project is
+published under.
 
 ## Assessing maintenance
 

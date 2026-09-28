@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  The control layer, as wired by tulip.control.gate_tool and tulip.security.admit (v2.16.0):
+  The control layer, as wired by tulip.control.gate_tool and tulip.control.admission (v2.16.0):
     agent loop -> Action          a gated tool call; gate_tool resolves its Action (control/action.py)
     Action     -> ControlPolicy   admit() calls approve(), strongest outcome wins (security/admit.py)
     ControlPolicy -> AuditTrail   admit() records every decision, allowed or not, before acting

@@ -65,7 +65,7 @@ server.run(host="0.0.0.0", port=8080)
 
 The SOC variant is one swap:
 `tools=security_toolset(siem=True, edr=True, threat_intel=True)` (from
-`tulip.security`) and a `ToolCalled("isolate_host")` terminal.
+`tulip_security`, in the `tulip-agents-security` package) and a `ToolCalled("isolate_host")` terminal.
 
 ### 2. Call `/invoke` (one-shot)
 

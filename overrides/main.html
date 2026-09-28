@@ -11,7 +11,7 @@
   og:title / twitter:title in extrahead below; on the homepage both
   use tab_title, so the tab and the unfurl carry one spelling.
 #}
-{% set tab_title = "tulip agents — the open-source Python agent framework" %}
+{% set tab_title = "tulip agents — a policy gate, approvals and audit for Python agents" %}
 {% block htmltitle %}
   {% set seo_title = page.meta.title if page and page.meta and page.meta.title else (page.title | striptags if page and page.title else none) %}
   {% set section = page.url.split('/')[0] if page and page.url and '/' in page.url.rstrip('/') else '' %}

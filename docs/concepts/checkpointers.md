@@ -24,7 +24,7 @@ containment receipt, the case record carried forward.
 from tulip.agent import Agent
 from tulip.memory.backends import S3Backend
 
-from tulip.security import security_toolset
+from tulip_security import security_toolset
 
 agent = Agent(
     model="{{ tulip_example_model }}",

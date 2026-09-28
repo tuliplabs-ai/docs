@@ -1,5 +1,5 @@
 site_name: tulip agents
-site_description: "An open-source Python agent framework: typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one Agent class — with a policy gate, approvals, and an audit trail you can put in front of the actions that change real systems."
+site_description: "A policy gate, approvals and an audit trail for the actions Python agents take: every consequential action clears a policy you write before the side effect. Build on the full runtime, or put the gate around the agent you already have."
 site_url: https://tulipagents.ai/
 repo_url: https://github.com/tuliplabs-ai/tulip-agents
 repo_name: tulip-agents
@@ -100,7 +100,7 @@ markdown_extensions:
 # convention (see README). check_paths makes a missing include fail the
 # build instead of rendering an empty section.
 - pymdownx.snippets:
-    base_path: [., .sdk, ../tulip-agents]
+    base_path: [., .sdk, .sdk/packages/tulip-agents-security, ../tulip-agents, ../tulip-agents/packages/tulip-agents-security]
     check_paths: true
 # Mermaid diagrams render client-side via Material's built-in integration;
 # the custom_fence is what routes ```mermaid to it instead of highlighting

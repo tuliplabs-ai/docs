@@ -1,6 +1,6 @@
 # Agentic AI-security
 
-This page covers `tulip.security`, Tulip's security domain module — one of
+This page covers the separate `tulip-agents-security` package (`tulip_security`), Tulip's security domain — one of
 several action domains (refunds, deployments, records) built on the same
 harness. It lets you build agents that test and assess other AI systems.
 
@@ -17,7 +17,7 @@ automatically and continuously, and reports only the flaws it can actually
 3. **Get evidence** — each result is an `Evidence` finding (the attack worked, here's the proof)
    or an `Abstention` (no proof, so no claim). Never a guess.
 
-More precisely: `tulip.security` builds agents whose **subject is another AI
+More precisely: `tulip_security` builds agents whose **subject is another AI
 system** —
 agents that **red-team** and **assess** other AI (continuous **monitoring** is
 on the roadmap), and produce a grounded `Evidence` record or an explicit
@@ -48,7 +48,7 @@ A `Target` is a uniform handle to the AI system under assessment. One
 `.send()` contract over four constructors:
 
 ```python
-from tulip.security import Target
+from tulip_security import Target
 
 Target.endpoint("https://bot.example/chat")   # a remote LLM / agent endpoint
 Target.agent(my_tulip_agent)                   # an in-process tulip.Agent
@@ -68,7 +68,7 @@ yields an `Evidence` finding; an inconclusive one yields an `Abstention`.
 
 ```python
 import asyncio
-from tulip.security import Target, red_team, is_finding
+from tulip_security import Target, red_team, is_finding
 
 
 async def main():
@@ -96,7 +96,7 @@ direct observations — INFO when fully hardened, escalating to CRITICAL at 0%
 coverage, with the taxonomy listing exactly the gaps.
 
 ```python
-from tulip.security import assure
+from tulip_security import assure
 posture = await assure(target)          # one grounded posture finding per assessment
 coverage = posture[0]                   # today assure runs a single assessment: guardrail coverage
 # or call guardrail_coverage(target) directly for just that one finding
