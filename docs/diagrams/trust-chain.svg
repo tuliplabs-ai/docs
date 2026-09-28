@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  The trust chain, as wired in tulip.security:
+  The trust chain, as wired in tulip.control:
     Target         -> red_team / assure  each probe runs against the target (jobs.py; assure calls
                                          guardrail_coverage, assess.py)
     job            -> ground_finding     grounding happens in the runner, for every result of every job

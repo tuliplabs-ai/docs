@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  The second-path failure, as the gate weighs each call (tulip.security.policy.approve):
+  The second-path failure, as the gate weighs each call (tulip.control.policy.approve):
     send_invoice              labelled outbound communication; the label is in
                               require_human_for, so approve() returns require_human (hold)
     generate_invoice_qr_code  carries no label the policy names, so no label rule fires;

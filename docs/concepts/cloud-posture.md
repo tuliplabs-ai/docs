@@ -28,7 +28,7 @@ specification, shipped with `boto3`:
   behind a grounded finding.
 
 ```python
-from tulip.security import describe_aws, use_aws
+from tulip_security import describe_aws, use_aws
 
 describe_aws()                                  # {"services": ["s3", "ec2", ...]}
 describe_aws("s3")                              # s3's read-only operations
@@ -60,7 +60,7 @@ system prompt, a structured `PostureReport` output schema, and
 reflexion + grounding.
 
 ```python
-from tulip.security import create_soc_analyst, SecurityControls
+from tulip_security import create_soc_analyst, SecurityControls
 
 controls = SecurityControls(min_gsar=0.6, min_confidence=0.6)
 analyst = create_soc_analyst(
@@ -89,7 +89,7 @@ a typed `Evidence` only if its cited evidence clears the threshold, otherwise it
 abstains.
 
 ```python
-from tulip.security import ground_report, is_finding
+from tulip_security import ground_report, is_finding
 
 for grounded in ground_report(report, controls):
     if is_finding(grounded):

@@ -1,7 +1,7 @@
 # Threat scenarios — the coverage matrix
 
 Tulip encodes three published threat catalogues as typed enums in
-[`tulip.security.taxonomy`](security.md#threat-taxonomy): the **OWASP Top 10
+[`tulip.control.taxonomy`](security.md#threat-taxonomy): the **OWASP Top 10
 for LLM Applications (2025)**, the **OWASP Top 10 for Agentic Applications
 (2026)**, and **MITRE ATLAS**. For each item there is a small, standalone
 **scenario gist** — it states one threat, shows an agent hitting it, and shows

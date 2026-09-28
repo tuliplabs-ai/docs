@@ -142,14 +142,14 @@ so see [Guarantees and boundaries](why-tulip.md).
 | **Admission gate** | Run a side-effecting action only if it clears the chain; `admit(trail=...)` records the decision to the audit trail you pass; else raises `AdmissionError` | `admit(...)` · `ctx.actions.execute(...)` · [SecurityContext](concepts/security-context.md) |
 | **SecurityContext** | Investigate by domain (logs / endpoint / identity / cloud / threat-intel / actions), not by vendor | `SecurityContext()` · [SecurityContext](concepts/security-context.md) |
 | **Audit trail** | Hash-chained, tamper-evident record of every entry written to it, including each decision `admit(trail=...)` makes; exports JSONL for a SIEM | `AuditTrail` · [Observability](concepts/observability.md) |
-| **Cloud posture (read-only)** | Spec-driven AWS auditing — `describe_aws` introspects botocore models; `use_aws` runs read-only calls, writes refused by construction | `tulip.security.aws` · [Cloud posture](concepts/cloud-posture.md) |
+| **Cloud posture (read-only)** | Spec-driven AWS auditing — `describe_aws` introspects botocore models; `use_aws` runs read-only calls, writes refused by construction | `tulip_security.aws` · [Cloud posture](concepts/cloud-posture.md) |
 | **Inference fingerprinting** | Timing side-channel model/hardware fingerprint → grounded `FingerprintFinding` or abstention | `fingerprint_to_finding` · [Grounded findings](concepts/security.md) |
 | **Governed agent** | An `Agent` with grounding + guardrails + audit trail on by default | `governed_agent(...)` · [Agentic AI-security](concepts/agentic-ai-security.md) |
 
 ```python
 # A finding only exists above the GSAR bar — else it abstains. ground_finding never
 # returns an ungrounded Evidence.
-from tulip.security import ground_finding, Severity, is_finding
+from tulip.control import ground_finding, Severity, is_finding
 
 result = ground_finding(
     title="Expired TLS certificate on 192.0.2.10:443",
@@ -168,7 +168,7 @@ else:
 # The action chain: investigate → verify → policy → admission gate.
 # isolate_host fires only if the chain clears; production → hold (require_human).
 from tulip.control import Action
-from tulip.security import SecurityContext, verify
+from tulip_security import SecurityContext, verify
 
 ctx = SecurityContext()
 verdict = await verify(finding)

@@ -2,8 +2,8 @@
 
 An integration is a small module that implements the core **`SecurityAdapter`**
 contract and reuses the core toolkit. The adapter pattern is general — it fits
-any vendor system an agent reads from or acts on; the protocol lives under
-`tulip.security` for historical reasons, and new domain packages are welcome.
+any vendor system an agent reads from or acts on; the protocol lives in
+the `tulip-agents-security` package (`tulip_security`), and new domain packages are welcome.
 An integration lives in your own distribution, depends one-way on
 `tulip-agents`, and is discovered by explicit import.
 
@@ -14,7 +14,7 @@ canonical home per integration (add a new domain package if none fits).
 ## The contract
 
 ```python
-from tulip.security import SecurityAdapter, ToolAdapter  # the protocol + a concrete
+from tulip_security import SecurityAdapter, ToolAdapter  # the protocol + a concrete
 
 # A SecurityAdapter is just: name, vendor, tools() -> list[Tool]
 ```
@@ -22,28 +22,28 @@ from tulip.security import SecurityAdapter, ToolAdapter  # the protocol + a conc
 ## Five steps
 
 1. **A pure function** that calls the vendor API on the live path (credentials
-   from the environment via `tulip.security.env(...)`) and returns a
+   from the environment via `tulip_security.env(...)`) and returns a
    deterministic, benign **offline sample** when no credentials are set — so it
    runs in CI with no network. Keep the same return shape on both paths.
-2. **An `async @tool`** wrapper that returns `tulip.security.as_json(...)`.
+2. **An `async @tool`** wrapper that returns `tulip_security.as_json(...)`.
 3. **A `*_adapter()` factory** returning a `ToolAdapter`
    (`name`, `vendor`, `_tools=[…]`).
 4. **(If it asserts about an asset)** build a GSAR partition — GSAR is Tulip's
    evidence check: a claim must be backed by tool output, otherwise the agent
-   abstains — with `tulip.security.tool_match` / `inference_claim` and route it
-   through `tulip.security.ground_finding`, so an ungrounded result abstains. (For
-   threat-intel indicators, `tulip.security.indicator_type` maps a coarse kind —
+   abstains — with `tulip_security.tool_match` / `inference_claim` and route it
+   through `tulip.control.ground_finding`, so an ungrounded result abstains. (For
+   threat-intel indicators, `tulip_security.indicator_type` maps a coarse kind —
    `"ip"` / `"domain"` / `"hash"` — to the typed enum.)
 5. **An optional extra** in `pyproject.toml` (`<area>-<vendor>`) if the live
    path needs a vendor SDK. The offline path must need nothing beyond core.
 
 ## Conformance — required
 
-Every adapter must pass the core conformance kit (`tulip.security.testing`) —
+Every adapter must pass the core conformance kit (`tulip_security.testing`) —
 the shared contract test every integration is held to:
 
 ```python
-from tulip.security.testing import assert_adapter_conformance, assert_tool_returns_json
+from tulip_security.testing import assert_adapter_conformance, assert_tool_returns_json
 from acme_tulip.siem import acme_adapter, acme_tool   # your domain package
 
 def test_conforms():
@@ -58,7 +58,7 @@ Pass the kit, and exercise the live path in `tests/test_live_paths.py`.
 ## Wire it in
 
 ```python
-from tulip.security import security_toolset
+from tulip_security import security_toolset
 from acme_tulip.siem import acme_adapter
 
 tools = security_toolset(extra=acme_adapter().tools())

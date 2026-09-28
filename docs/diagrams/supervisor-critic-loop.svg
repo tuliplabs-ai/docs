@@ -9,7 +9,7 @@
     review -> END     when the verdict is APPROVE, or once 2 revisions are done
   (route_after_review; the conditional edge maps "revise" -> draft, "done" -> END.)
   review_node runs the reviewer agent's verdict and then ground_finding on every
-  pass, whatever the verdict. ground_finding (tulip.security.grounded) returns an
+  pass, whatever the verdict. ground_finding (tulip.control.grounded) returns an
   Evidence only when decide(gsar_score) is PROCEED, otherwise an Abstention.
   After END the caller reads final_state["grounded_result"] from the last pass:
   is_finding() -> it ships; an Abstention ships nothing.

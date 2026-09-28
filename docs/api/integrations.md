@@ -24,10 +24,10 @@ whose responses become grounded-finding evidence. Read-only by construction:
 
 Install the extra: `pip install 'tulip-agents[aws]'`.
 
-::: tulip.security.aws.describe_aws
-::: tulip.security.aws.use_aws
-::: tulip.security.aws.is_readonly_operation
-::: tulip.security.aws.aws_services
+::: tulip_security.aws.describe_aws
+::: tulip_security.aws.use_aws
+::: tulip_security.aws.is_readonly_operation
+::: tulip_security.aws.aws_services
 
 The agent-facing `@tool` wrappers (`describe_aws_tool`, `use_aws_tool`) and the
 [`create_soc_analyst`](../concepts/cloud-posture.md) security-operations (SOC)

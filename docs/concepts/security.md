@@ -1,6 +1,6 @@
 # Security layer — evidence-grounded findings
 
-`tulip.security` applies Tulip's runtime to cybersecurity. A security
+The separate `tulip-agents-security` package (`tulip_security`) applies Tulip's runtime to cybersecurity. A security
 **finding can only be built from evidence that clears the [GSAR](gsar.md)
 grounding threshold.** Below the bar, the agent abstains and records why.
 An ungrounded finding would be a false positive, so the API gives you no
@@ -16,7 +16,7 @@ typed `Evidence` (it ships) or an `Abstention` (it is withheld, with an
 audit record of why).
 
 ```python
-from tulip.security import ground_finding, Severity, is_finding
+from tulip.control import ground_finding, Severity, is_finding
 from tulip.reasoning.gsar import Claim, EvidenceType, Partition
 
 result = ground_finding(
@@ -60,7 +60,7 @@ a SIEM or a compliance report without translation:
 | `OwaspASI` | OWASP Top 10 for Agentic Applications (2026) — `ASI01`–`ASI10` |
 
 ```python
-from tulip.security import AtlasTechnique, OwaspLLM
+from tulip.control import AtlasTechnique, OwaspLLM
 
 # tag a finding with the standards it maps to
 taxonomy = [OwaspLLM.PROMPT_INJECTION, AtlasTechnique.PROMPT_INJECTION]  # LLM01 / AML.T0051
@@ -81,7 +81,7 @@ lets a real service plug in behind a deterministic mock; low feature
 coverage abstains rather than asserting a fingerprint.
 
 ```python
-from tulip.security import FingerprintVerdict, ground_fingerprint
+from tulip.control import FingerprintVerdict, ground_fingerprint
 
 verdict = classifier(features)              # FingerprintClassifier
 finding = ground_fingerprint(
@@ -113,7 +113,7 @@ ground** — with the agent orchestrating tools and `ground_fingerprint`
 enforcing the evidence bar:
 
 ```python
-from tulip.security import (
+from tulip.control import (
     FingerprintVerdict, ground_fingerprint, is_finding,
     Indicator, IndicatorType, AtlasTechnique,
 )
@@ -170,7 +170,7 @@ OpenAI-compatible API) and computes TTFT p50, mean inter-token latency,
 its coefficient of variation, and mean tokens/sec.
 
 ```python
-from tulip.security import measure_endpoint_timing, fingerprint_to_finding
+from tulip_security import measure_endpoint_timing, fingerprint_to_finding
 
 # Live timing measurement against a streaming OpenAI-compatible endpoint.
 features = measure_endpoint_timing(model="gpt-4o-mini", samples=5)

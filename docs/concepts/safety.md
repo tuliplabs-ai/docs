@@ -183,7 +183,7 @@ The [cloud-posture agent](cloud-posture.md) is the worked example. Its
 (`Describe` / `List` / `Get` / …), and it checks **before** any API call:
 
 ```python
-from tulip.security import use_aws
+from tulip_security import use_aws
 
 use_aws("iam", "CreateUser", {"UserName": "x"})
 # PermissionError: refused: iam:CreateUser is not a read-only operation.

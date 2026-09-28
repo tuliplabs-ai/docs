@@ -275,7 +275,7 @@ Cross-check the claim against a direct API fact (`enrich_indicator`,
 *contradicted* claim abstain.
 
 ```python
-from tulip.security import ground_finding, Severity, is_finding, enrich_indicator
+from tulip_security import ground_finding, Severity, is_finding, enrich_indicator
 from tulip.reasoning.gsar import Claim, EvidenceType, Partition
 
 ioc = "198.51.100.7"
