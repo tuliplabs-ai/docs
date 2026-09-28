@@ -23,7 +23,9 @@ dependencies = [
 # The API reference imports the `tulip` package, so install the SDK into
 # the env first. TULIP_SDK_DIR defaults to a sibling checkout; the deploy
 # workflow points it at .sdk.
-sdk = "python -m pip install -e {env:TULIP_SDK_DIR:../tulip-agents}"
+# The security domain ships as its own distribution in the same repo
+# (packages/tulip-agents-security); the API reference documents both.
+sdk = "python -m pip install -e {env:TULIP_SDK_DIR:../tulip-agents} -e {env:TULIP_SDK_DIR:../tulip-agents}/packages/tulip-agents-security"
 serve = "mkdocs serve {args}"
 build = "mkdocs build --strict {args}"
 # Validates every ```python block against the installed SDK -- syntax,
