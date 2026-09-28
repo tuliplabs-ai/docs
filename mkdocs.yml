@@ -100,7 +100,7 @@ markdown_extensions:
 # convention (see README). check_paths makes a missing include fail the
 # build instead of rendering an empty section.
 - pymdownx.snippets:
-    base_path: [., .sdk, ../tulip-agents]
+    base_path: [., .sdk, .sdk/packages/tulip-agents-security, ../tulip-agents, ../tulip-agents/packages/tulip-agents-security]
     check_paths: true
 # Mermaid diagrams render client-side via Material's built-in integration;
 # the custom_fence is what routes ```mermaid to it instead of highlighting

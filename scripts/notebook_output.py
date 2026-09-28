@@ -78,9 +78,23 @@ def sdk_dir() -> Path:
     raise SystemExit("SDK checkout not found — set TULIP_SDK_DIR")
 
 
+#: The security-domain notebooks ship with the tulip-agents-security
+#: distribution, which lives in the same checkout under packages/.
+SECURITY_PKG = Path("packages") / "tulip-agents-security"
+
+
+def notebook_script(stem: str, sdk: Path) -> Path:
+    """The notebook's source: the core examples first, then the security package's."""
+    for base in (sdk, sdk / SECURITY_PKG):
+        script = base / "examples" / f"{stem}.py"
+        if script.is_file():
+            return script
+    return sdk / "examples" / f"{stem}.py"
+
+
 def run_notebook(stem: str, sdk: Path) -> str:
     """Run one notebook offline and return exactly what it printed."""
-    script = sdk / "examples" / f"{stem}.py"
+    script = notebook_script(stem, sdk)
     if not script.is_file():
         raise SystemExit(f"{script} not found — is the SDK checkout current?")
     completed = subprocess.run(
@@ -88,13 +102,13 @@ def run_notebook(stem: str, sdk: Path) -> str:
         capture_output=True,
         text=True,
         timeout=300,
-        cwd=sdk,
+        cwd=script.parent.parent,
         # No provider set: the notebooks fall back to the bundled mock, which
         # is what makes this reproducible and keyless.
         env={
             "PATH": os.environ.get("PATH", ""),
             "HOME": os.environ.get("HOME", ""),
-            "PYTHONPATH": str(sdk / "src"),
+            "PYTHONPATH": os.pathsep.join([str(sdk / "src"), str(sdk / SECURITY_PKG / "src")]),
         },
         check=False,
     )
@@ -110,7 +124,7 @@ def uses_model(stem: str, sdk: Path) -> bool:
     lead-in claiming a "bundled mock model" would describe something the reader
     cannot find in the source. Read it from the source rather than asserting it.
     """
-    script = sdk / "examples" / f"{stem}.py"
+    script = notebook_script(stem, sdk)
     return script.is_file() and "get_model" in script.read_text()
 
 
