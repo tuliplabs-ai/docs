@@ -2,7 +2,7 @@
 
 The source for **[tulipagents.ai](https://tulipagents.ai/)** — the
 documentation site for [Tulip](https://github.com/tuliplabs-ai/tulip-agents),
-the open-source Python agent framework.
+the open-source Python runtime that puts a policy gate, approvals and an audit trail in front of what an agent does.
 Everything you'd expect — tools, memory, multi-agent, RAG, streaming —
 behind one `Agent` class, with control wired through the core: the cognitive
 router (PRISM) picks which shape runs, optional GSAR evaluates typed claim

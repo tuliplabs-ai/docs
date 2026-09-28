@@ -2,22 +2,23 @@
 hide:
   - navigation
   - toc
-title: tulip agents — the open-source Python agent framework
-description: Build Python agents with typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one Agent class — and put a policy gate in front of the actions that change real systems.
+title: tulip agents — a policy gate, approvals and audit for Python agents
+description: Every consequential action an agent takes clears a policy you write, waits for a named person when it matters, and lands on an audit trail you can verify. Build on it, or put it around the agent you already have.
 ---
 
 <div class="tulip-hero" markdown>
 <div class="tulip-hero__motif" aria-hidden="true"></div>
 <div class="tulip-hero__copy" markdown>
 
-<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span><span class="tpn-tag">open-source Python agent framework</span></p>
+<p class="tulip-product-name"><span class="tpn-brand">tulip agents</span><span class="tpn-sep"> · </span><span class="tpn-tag">policy gate, approvals and audit for Python agents</span></p>
 
-# Build agents that <span class="accent">do real work.</span>
+# The model never <span class="accent">holds the trigger.</span>
 
-Typed tools, memory, RAG, streaming, and eight multi-agent shapes behind one
-`Agent` class, on any OpenAI-compatible provider. And when an agent needs to
-change a real system, the same runtime puts a policy gate in front of the
-side effect.
+Every consequential action clears a policy you write — real code, outside the
+model, before the side effect. When it matters it waits for a named person, and
+every decision lands on an audit trail you can verify. Build on the full
+runtime (typed tools, memory, RAG, streaming, multi-agent) on any
+OpenAI-compatible provider, or put the gate around the agent you already have.
 
 <div class="tulip-hero__cta" markdown>
 [Get started](how-to/quickstart.md){ .md-button .md-button--primary }
