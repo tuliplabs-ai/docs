@@ -5,7 +5,8 @@ description: Who maintains Tulip, where it came from, and how releases, security
 
 # About Tulip
 
-Tulip is an open-source agent framework maintained by **The Tulip Authors**.
+Tulip puts a policy gate, approvals and an audit trail in front of the actions
+a Python agent takes. It is open source and maintained by **The Tulip Authors**.
 Current maintainers and contributors are visible in the repository's
 [Git history](https://github.com/tuliplabs-ai/tulip-agents/graphs/contributors)
 and release activity; the project does not claim organizational endorsement
