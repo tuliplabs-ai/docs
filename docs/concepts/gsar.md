@@ -12,7 +12,7 @@ the outage."* Vanilla `Agent(grounding=True)` — a single LLM-as-judge
 scalar over the answer as a whole — often misses this. Each *claim* is
 grounded; the *conclusion* over-reaches.
 
-**GSAR** (typed grounding, from
+**GSAR** (typed grounding, after the method in F. A. Kamelhar,
 [arXiv:2604.23366 (2026)](https://arxiv.org/abs/2604.23366))
 is the upgrade. It
 breaks the synthesis into claims, partitions them four ways, scores

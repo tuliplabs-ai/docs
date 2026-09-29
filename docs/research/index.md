@@ -10,17 +10,19 @@ rather than a benchmark, it says that too. The evaluations, and the training
 of Clusiana-Admit-4B, ran on the authors' own accounts, API keys and rented
 GPUs.
 
-## Papers
+## Related work
 
-**[GSAR: Typed Grounding for Hallucination Detection and Recovery in
-Multi-Agent LLMs](https://arxiv.org/abs/2604.23366)** — 2026. Uses a judge to partition claims into grounded / ungrounded /
-contradicted / complementary against typed evidence, scores the partition, and
-routes the result to proceed, regenerate, replan or abstain. Evaluated with
-multiple LLM judges on FEVER.
+Tulip's grounding layer draws on **[GSAR: Typed Grounding for Hallucination
+Detection and Recovery in Multi-Agent LLMs](https://arxiv.org/abs/2604.23366)**
+(F. A. Kamelhar, 2026), a paper separate from this project. It uses a judge to
+partition claims into grounded / ungrounded / contradicted / complementary
+against typed evidence, scores the partition, and routes the result to
+proceed, regenerate, replan or abstain; the paper evaluates it with multiple
+LLM judges on FEVER.
 
-Implemented in the SDK as [GSAR](../concepts/gsar.md); `ground_finding()`
-returns evidence *or* an abstention, so an ungrounded claim is not something
-the caller can accidentally ship.
+The SDK implements the method as [GSAR](../concepts/gsar.md);
+`ground_finding()` returns evidence *or* an abstention, so an ungrounded claim
+is not something the caller can accidentally ship.
 
 ## Findings
 
