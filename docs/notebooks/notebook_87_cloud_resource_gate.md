@@ -50,7 +50,7 @@ Both attempts land on the trail next to each other — the resize that ran and t
 terminate that was held — and ``trail.verify()`` confirms the SHA-256 chain is
 intact, so the record is tamper-evident. ``perform`` is a local stub: each
 side-effect function mutates an in-memory ``INVENTORY`` / ``IAM`` dict instead of
-calling boto3, the OCI SDK, or ``gcloud``, so the script runs offline with no
+calling boto3, the Azure SDK, or ``gcloud``, so the script runs offline with no
 cloud account, no creds, no network. Swap those functions for real API calls and
 the gate is unchanged.
 
