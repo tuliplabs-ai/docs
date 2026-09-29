@@ -107,16 +107,16 @@ that loop against a real AWS account.
 - [Safety & guardrails](safety.md) — the `GuardrailsHook` / `SteeringHook` controls several gists use.
 - [Cloud-posture agent](cloud-posture.md) — scenarios applied to live infrastructure.
 
-[pi]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/prompt_injection.py
-[sd]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/sensitive_disclosure.py
-[sc]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/supply_chain.py
-[mp]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/memory_poisoning.py
-[ioh]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/improper_output_handling.py
-[ea]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/excessive_agency.py
-[ta]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/tool_abuse.py
-[mt]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/misinformation_trust.py
-[me]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/model_extraction.py
-[ce]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/code_execution.py
-[iac]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/inter_agent_comms.py
-[cf]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/cascading_failures.py
-[ra]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/examples/scenarios/rogue_agent.py
+[pi]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/prompt_injection.py
+[sd]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/sensitive_disclosure.py
+[sc]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/supply_chain.py
+[mp]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/memory_poisoning.py
+[ioh]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/improper_output_handling.py
+[ea]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/excessive_agency.py
+[ta]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/tool_abuse.py
+[mt]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/misinformation_trust.py
+[me]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/model_extraction.py
+[ce]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/code_execution.py
+[iac]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/inter_agent_comms.py
+[cf]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/cascading_failures.py
+[ra]: https://github.com/tuliplabs-ai/tulip-agents/blob/main/packages/tulip-agents-security/examples/scenarios/rogue_agent.py
