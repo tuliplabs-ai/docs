@@ -1,8 +1,14 @@
 # Security
 
-The security domain ships as the separate `tulip-agents-security` package (`tulip_security`), installed with
-`pip install "tulip-agents[security]"`. The core `tulip-agents` package does not
-include it. It covers three separable jobs:
+The security domain ships as the separate `tulip-agents-security` package
+(`tulip_security`). It is not published to PyPI; install it from the repository:
+
+```bash
+pip install "git+https://github.com/tuliplabs-ai/tulip-agents#subdirectory=packages/tulip-agents-security"
+```
+
+The core `tulip-agents` package does not include it. It covers three separable
+jobs:
 
 - **Red-teaming** an agent — send adversarial probes at a target and report
   what got through.
