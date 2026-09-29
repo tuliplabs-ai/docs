@@ -3,6 +3,12 @@ name: Deploy docs
 on:
   push:
     branches: [main]
+  # An SDK release does not touch this repo, so without this the site keeps
+  # building against whatever release was newest at the last docs change (the
+  # header's SDK version badge and the example-source links go stale). Rebuild
+  # every 6 hours against the latest v* tag; the build takes about a minute.
+  schedule:
+    - cron: "17 */6 * * *"
   workflow_dispatch:
     inputs:
       sdk_ref:
