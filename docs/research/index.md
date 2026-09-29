@@ -1,7 +1,7 @@
 # Research
 
-Findings from building Tulip — an open-source Python agent framework — and the
-control layer that decides which of an agent's actions may run.
+Findings from building Tulip's control layer — the policy gate, approvals and
+audit trail that decide which of an agent's actions may run.
 Everything here comes from running code against real catalogs, real tools and
 real models. The method and the scoring code are public and runnable against
 your own endpoint; where a result depends on a model or a corpus we do not
