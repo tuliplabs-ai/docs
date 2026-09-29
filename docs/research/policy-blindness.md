@@ -15,6 +15,7 @@ description: A measured study of consequence-family blind spots in admission pol
 | Evaluation-code revision | [`4601064`](https://github.com/tuliplabs-ai/tulip-agents/tree/4601064413dc925f748f6ad8f6b31adba827af74/examples/research) |
 | Model under study | Clusiana-Admit-4B, research-only and not generally available |
 | Dataset availability | Family probe is included; the full held-out corpus is not redistributed |
+| Compute and accounts | The authors' own accounts, API keys and rented GPUs, for every evaluation and for training Clusiana-Admit-4B |
 
 *A risk policy tends to encode one family of consequence and stay silent about
 the others. We found it three times in a week — twice in our own code, once in
